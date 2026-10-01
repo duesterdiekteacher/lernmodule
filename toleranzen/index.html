@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toleranzen – Lernmodule</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .card {
+            max-width: 700px;
+            width: 100%;
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        h1 {
+            color: #38bdf8;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        /* Container für die vertikale Anordnung der Buttons */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .module-link {
+            display: inline-block;
+            width: 100%;
+            max-width: 450px;
+            background: linear-gradient(90deg, #0ea5e9, #22c55e);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .module-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Farbvariante für Button 1 (Quiz) */
+        .module-link.quiz-btn {
+            background: linear-gradient(90deg, #a855f7, #6366f1);
+        }
+        .module-link.quiz-btn:hover {
+            box-shadow: 0 5px 15px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Farbvariante für Button 2 (Zusammenfassung) */
+        .module-link.summary-btn {
+            background: linear-gradient(90deg, #f59e0b, #eab308);
+        }
+        .module-link.summary-btn:hover {
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-link:hover {
+            color: #38bdf8;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <a class="back-link" href="../metall/">← Alle Themen Metall</a>
+    <div class="icon">📏</div>
+
+    <h1>Toleranzen</h1>
+
+    <p>
+        Kein Werkstück ist ganz genau.
+        Hier lernst du, wie weit ein Maß abweichen darf.
+        Am Ende prüfst du eine echte Antriebswelle.
+    </p>
+
+    <div class="button-container">
+        <a class="module-link" href="toleranzen_komplett.html">
+            🚀 Komplettes Lernmodul starten
+        </a>
+
+        <a class="module-link summary-btn" href="toleranzen_kompakt.html">
+            📖 Kompaktmodus (zeitsparend)
+        </a>
+
+        <a class="module-link quiz-btn" href="toleranzen_quiz.html">
+            📝 Quiz-Modus (nur Fragen)
+        </a>
+    </div>
+
+    <div class="subtitle">
+        📘 Du brauchst dein Tabellenbuch.<br>
+        Metall • Prüftechnik • ISO 2768 • ISO 286
+    </div>
+</div>
+
+</body>
+</html>
