@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# Programmierung - Vertiefung Vererbung mit UML</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #38bdf8;
+        }
+        
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #0ea5e9, #22c55e);
+            height: 30px;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .module-card {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #334155;
+        }
+        
+        .module-card:hover:not(.locked) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
+        
+        /* Module 5 und 6 farblich dezent abgesetzt (dunkles Indigo) */
+        .module-card.advanced-card {
+            background: #16122c;
+            border-color: #4c1d95;
+        }
+        
+        .module-card.advanced-card:hover:not(.locked) {
+            border-color: #a855f7;
+            box-shadow: 0 8px 15px rgba(168, 85, 247, 0.2);
+        }
+        
+        .module-card.completed {
+            border-color: #22c55e !important;
+        }
+        
+        .module-card.completed::before {
+            content: "✓";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #22c55e;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .module-card.locked {
+            background: #0f111a;
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        
+        .module-card.locked::before {
+            content: "🔒";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+        }
+        
+        .module-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .module-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #f1f5f9;
+            margin-bottom: 10px;
+        }
+        
+        .module-description {
+            color: #94a3b8;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .module-content {
+            display: none;
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        
+        .module-content.active {
+            display: block;
+        }
+        
+        .module-content h2 {
+            color: #38bdf8;
+            font-size: 32px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+        }
+        
+        .module-content h3 {
+            color: #38bdf8;
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .module-content p {
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        /* Nebeneinander-Layout für Code und UML */
+        .split-layout {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+            table-layout: fixed;
+        }
+        
+        .split-cell-code {
+            display: table-cell;
+            width: 55%;
+            vertical-align: top;
+            padding-right: 20px;
+        }
+        
+        .split-cell-diagram {
+            display: table-cell;
+            width: 45%;
+            vertical-align: top;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.4);
+        }
+        
+        @media (max-width: 850px) {
+            .split-layout, .split-cell-code, .split-cell-diagram {
+                display: block;
+                width: 100%;
+                padding-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Visual Studio Code Dark Highlighting mit Zeilenumbrüchen */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdcdc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            border-left: 4px solid #569cd6;
+            overflow-x: auto;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre; /* Behält Zeilenumbrüche zwingend bei */
+        }
+        
+        .code-keyword { color: #569cd6; }
+        .code-type { color: #4ec9b0; }
+        .code-string { color: #d69d85; }
+        .code-comment { color: #57a64a; font-style: italic; }
+        .code-number { color: #b5cea8; }
+        
+        .info-box {
+            background: #0c4a6e;
+            border-left: 5px solid #0ea5e9;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h4 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .info-box p {
+            color: #e2e8f0;
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+        
+        /* Farbschema für das Quiz bleibt in allen Modulen identisch */
+        .quiz-section {
+            background: #0f172a;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+            border: 1px solid #334155;
+        }
+        
+        .quiz-section h3 {
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-question {
+            background: #1e293b;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 2px solid #334155;
+        }
+        
+        .quiz-question.correct {
+            border-color: #22c55e;
+            background: #064e3b;
+        }
+        
+        .quiz-question.wrong {
+            border-color: #ef4444;
+            background: #7f1d1d;
+        }
+        
+        .quiz-question p {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #f8fafc;
+        }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #334155;
+            transition: background 0.2s, transform 0.1s;
+        }
+        
+        .quiz-option:hover {
+            background: #475569;
+            transform: scale(1.01);
+        }
+        
+        .quiz-option input {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .quiz-option label {
+            cursor: pointer;
+            color: #f1f5f9;
+            width: 100%;
+        }
+        
+        .quiz-feedback {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .quiz-feedback.show {
+            display: block;
+        }
+        
+        .quiz-feedback.correct {
+            background: #10b981;
+            color: white;
+        }
+        
+        .quiz-feedback.wrong {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+        }
+        
+        .btn-back {
+            background: #64748b;
+            margin-right: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #475569;
+        }
+        
+        .badge {
+            display: none;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+        }
+        
+        .badge.show {
+            display: block;
+        }
+        
+        .badge h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+        
+        .badge-icon {
+            font-size: 80px;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        ul li, ol li {
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #1f2937;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #374151;
+        }
+        
+        th {
+            background: #111827;
+            color: #38bdf8;
+        }
+        
+        tr:nth-child(even) {
+            background: #283548;
+        }
+        
+        /* UML Design via SVG */
+        .uml-class-box {
+            fill: #1e293b;
+            stroke: #38bdf8;
+            stroke-width: 2;
+        }
+        .uml-text {
+            fill: #f8fafc;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        .uml-title {
+            font-weight: bold;
+            fill: #38bdf8;
+        }
+        .uml-line {
+            stroke: #334155;
+            stroke-width: 1.5;
+        }
+        .uml-arrow {
+            stroke: #38bdf8;
+            stroke-width: 2;
+            fill: #0f172a;
+        }
+        .uml-arrow-conflict {
+            stroke: #ef4444;
+            stroke-width: 2;
+            fill: #7f1d1d;
+            stroke-dasharray: 4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💻 C# Vererbung & OOP-Architektur 💻</h1>
+            <p>Lernen Sie die Grundlagen der Vererbung am Beispiel eines RPG-Charakters!</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%;">0 von 6 Modulen abgeschlossen</div>
+        </div>
+
+        <!-- MODULE GRID -->
+        <div class="module-grid" id="module-grid">
+            <div class="module-card" id="card-1" onclick="openModule(1)">
+                <div class="module-icon">🌱</div>
+                <div class="module-title">Modul 1: Is-A & Hierarchien</div>
+                <div class="module-description">Grundlagen der Vererbung, Generalisierung, Spezialisierung und UML-Pfeildarstellung.</div>
+            </div>
+
+            <div class="module-card" id="card-2" onclick="openModule(2)">
+                <div class="module-icon">⚙️</div>
+                <div class="module-title">Modul 2: Syntax & Umfang</div>
+                <div class="module-description">Wie wird Vererbung in C# geschrieben und im Klassendiagramm rechts visualisiert?</div>
+            </div>
+
+            <div class="module-card" id="card-3" onclick="openModule(3)">
+                <div class="module-icon">🏗️</div>
+                <div class="module-title">Modul 3: Konstruktoren & base</div>
+                <div class="module-description">Verhalten von Konstruktoren und Weitergabe von Parametern strukturell neben dem Code dargestellt.</div>
+            </div>
+
+            <div class="module-card" id="card-4" onclick="openModule(4)">
+                <div class="module-icon">📈</div>
+                <div class="module-title">Modul 4: Hauptziele & Vorteile</div>
+                <div class="module-description">Warum vererben wir? Wiederverwendung von Code, weniger doppelter Code und einfache Erweiterung.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-5" onclick="openModule(5)">
+                <div class="module-icon">🔮</div>
+                <div class="module-title">Modul 5: Polymorphie</div>
+                <div class="module-description">Gesperrt. Schließe das Grundlagen-Quiz ab, um die Vielgestaltigkeit und virtual/override-UML freizuschalten.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-6" onclick="openModule(6)">
+                <div class="module-icon">💎</div>
+                <div class="module-title">Modul 6: Diamond-Problem</div>
+                <div class="module-description">Gesperrt. Erfahre alles über Probleme bei Mehrfachvererbung und das Rauten-UML-Diagramm.</div>
+            </div>
+        </div>
+
+        <!-- MODULE CONTENT SECTIONS -->
+        <div id="module-content-container"></div>
+
+        <!-- BADGE -->
+        <div class="badge" id="badge">
+            <div class="badge-icon">👑</div>
+            <h2>Herzlichen Glückwunsch!</h2>
+            <p style="font-size: 20px;">Du hast alle Grundlagen- und Fortgeschrittenen-Module geschafft.</p>
+            <h2 id="expert-title" style="margin-top: 20px; color: #38bdf8;">C# OOP ARCHITEKT & EXPERTE!</h2>
+        </div>
+    </div>
+
+    <script>
+        let completedModules = new Set();
+        let basicQuizPassed = false;
+        
+        const modules = {
+            1: {
+                title: "Modul 1: 'Is-A'-Beziehung & Klassenhierarchie",
+                content: `
+                    <h3>Die Idee hinter der Vererbung</h3>
+                    <p>Die Vererbung ist ein wichtiges Werkzeug in der objektorientierten Programmierung (OOP). Sie beschreibt eine feste Beziehung zwischen Klassen: Die sogenannte <strong>"Is-A"-Beziehung (Ist-ein-Beziehung)</strong>.</p>
+                    <p>Wenn eine Klasse von einer anderen Klasse erbt, bedeutet das: Die Unterklasse ist eine spezialisierte Version der Oberklasse.</p>
+                    
+                    <div class="info-box">
+                        <h4>🎮 Unser Rollenspiel-Beispiel (RPG):</h4>
+                        <ul>
+                            <li>Ein <strong>Krieger</strong> ist eine <strong>Spielfigur</strong>.</li>
+                            <li>Ein <strong>Magier</strong> ist eine <strong>Spielfigur</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <h3>Darstellung von Vererbung im UML-Klassendiagramm</h3>
+                    <p>Im offiziellen UML-Standard (Unified Modeling Language) wird Vererbung durch eine ganz bestimmte Linie dargestellt: Ein solider Pfeil mit einer <strong>geschlossenen, leeren Pfeilspitze (Dreieck)</strong>. Dieser Pfeil zeigt immer <strong>von der Unterklasse nach oben zur Oberklasse</strong>.</p>
+                    
+                    <div style="text-align: center; margin: 25px 0; background: #0f172a; padding: 20px; border-radius: 10px; border: 2px solid #334155;">
+                        <h4 style="color: #38bdf8; margin-bottom: 10px;">UML-Standard: Vererbungsrichtung</h4>
+                        <svg width="260" height="160">
+                            <rect x="50" y="10" width="160" height="40" class="uml-class-box" />
+                            <text x="130" y="34" class="uml-text uml-title" text-anchor="middle">Spielfigur</text>
+                            
+                            <rect x="50" y="110" width="160" height="40" class="uml-class-box" />
+                            <text x="130" y="134" class="uml-text uml-title" text-anchor="middle">Krieger</text>
+                            
+                            <line x1="130" y1="110" x2="130" y2="62" stroke="#38bdf8" stroke-width="2" />
+                            <polygon points="130,50 124,62 136,62" class="uml-arrow" />
+                        </svg>
+                        <p style="font-size: 14px; color: #94a3b8; margin-top: 10px;">Die leere Dreiecksspitze deutet direkt auf das "Elternteil" hin.</p>
+                    </div>
+
+                    <h3>Generalisierung und Spezialisierung</h3>
+                    <p>Beim Planen von Klassen arbeiten wir in zwei Richtungen:</p>
+                    <p><strong>Generalisierung (Das Allgemeine finden):</strong> Wir schauen uns spezifische Klassen wie Krieger und Magier an. Wir suchen Gemeinsamkeiten (z.B. Name und Lebenspunkte) und packen diese in eine allgemeine Oberklasse namens <code>Spielfigur</code>.</p>
+                    <p><strong>Spezialisierung (Das Spezifische hinzufügen):</strong> Wir nehmen die allgemeine Klasse <code>Spielfigur</code> und erweitern sie für neue Klassen. Der <code>Krieger</code> bekommt einen Rüstungswert, der <code>Magier</code> bekommt Manapunkte.</p>
+
+                    <h3>Bezeichnungen für die Klassen</h3>
+                    <p>In der Praxis gibt es verschiedene Namen für die beteiligten Klassen, die genau dasselbe bedeuten:</p>
+                    <table>
+                        <tr>
+                            <th>Allgemeine Ebene (oben)</th>
+                            <th>Spezifische Ebene (unten)</th>
+                        </tr>
+                        <tr>
+                            <td>Oberklasse</td>
+                            <td>Unterklasse</td>
+                        </tr>
+                        <tr>
+                            <td>Basisklasse</td>
+                            <td>Abgeleitete Klasse</td>
+                        </tr>
+                        <tr>
+                            <td>Elternklasse</td>
+                            <td>Kindklasse</td>
+                        </tr>
+                    </table>
+                `,
+                quiz: [
+                    {
+                        question: "Welches Szenario beschreibt eine logisch korrekte 'Is-A'-Beziehung für eine Vererbung?",
+                        options: [
+                            "Die Klasse Waffe erbt von der Klasse Krieger.",
+                            "Die Klasse Krieger erbt von der Klasse Spielfigur.",
+                            "Die Klasse Spielfigur erbt von der Klasse Magier.",
+                            "Die Klasse Magier erbt von der Klasse Zauberspruch."
+                        ],
+                        correct: 1,
+                        hint: "Ein Krieger 'ist eine' Spielfigur. Eine Waffe ist eher ein Gegenstand, den man besitzt ('Has-A').",
+                        explanation: "Vererbung beschreibt eine 'Is-A'-Beziehung. Da ein Krieger eine Spielfigur ist, stellt dies die korrekte Vererbung dar."
+                    },
+                    {
+                        question: "Wie sieht die Pfeilspitze im UML-Klassendiagramm aus, die eine Vererbung kennzeichnet?",
+                        options: [
+                            "Eine offene spitze Linie (wie ein Größer-Zeichen >)",
+                            "Ein ausgefülltes schwarzes Dreieck",
+                            "Eine geschlossene, leere Dreiecksspitze",
+                            "Ein runder Kreis"
+                        ],
+                        correct: 2,
+                        hint: "Die Spitze zeigt nach oben zur Basisklasse und ist im Inneren hohl.",
+                        explanation: "Der UML-Standard schreibt für die Generalisierung/Vererbung zwingend eine geschlossene, leere Dreiecksspitze vor."
+                    },
+                    {
+                        question: "Wenn wir aus den Klassen 'Krieger' und 'Magier' die gemeinsamen Eigenschaften heraussuchen und eine neue Klasse 'Spielfigur' erstellen, nennt man das...",
+                        options: [
+                            "Spezialisierung",
+                            "Instanziierung",
+                            "Kapselung",
+                            "Generalisierung"
+                        ],
+                        correct: 3,
+                        hint: "Es beschreibt den Weg vom Spezifischen hin zum Allgemeinen.",
+                        explanation: "Das Zusammenfassen von gemeinsamen Eigenschaften spezifischer Klassen in eine allgemeinere Oberklasse wird Generalisierung genannt."
+                    }
+                ]
+            },
+            2: {
+                title: "Modul 2: Syntax und Vererbungsumfang in C#",
+                content: `
+                    <h3>Wie schreibt man Vererbung in C#?</h3>
+                    <p>In C# wird die Vererbung ganz einfach mit einem einzigen Zeichen umgesetzt: dem <strong>Doppelpunkt (:)</strong>. Er wird direkt bei der Definition der Unterklasse hingeschrieben.</p>
+                    
+                    <div class="split-layout">
+                        <div class="split-cell-code">
+                            <div class="code-block"><span class="code-keyword">public class</span> <span class="code-type">Spielfigur</span>
+{
+    <span class="code-keyword">public</span> <span class="code-type">string</span> <span class="code-param">name</span>;
+    <span class="code-keyword">public</span> <span class="code-type">int</span> <span class="code-param">hp</span>;
+}
+
+<span class="code-comment">// Krieger erbt von Spielfigur</span>
+<span class="code-keyword">public class</span> <span class="code-type">Krieger</span> : <span class="code-type">Spielfigur</span>
+{
+    <span class="code-keyword">public</span> <span class="code-type">int</span> <span class="code-param">ruestung</span>;
+}</div>
+                        </div>
+                        <div class="split-cell-diagram">
+                            <h4 style="color:#38bdf8; font-size:14px; margin-bottom:10px;">UML Entsprechung</h4>
+                            <svg width="220" height="190">
+                                <rect x="20" y="10" width="180" height="60" class="uml-class-box" />
+                                <text x="110" y="28" class="uml-text uml-title" text-anchor="middle">Spielfigur</text>
+                                <line x1="20" y1="36" x2="200" y2="36" class="uml-line" />
+                                <text x="26" y="50" class="uml-text">+ name : string</text>
+                                <text x="26" y="64" class="uml-text">+ hp : int</text>
+                                
+                                <rect x="20" y="120" width="180" height="50" class="uml-class-box" />
+                                <text x="110" y="138" class="uml-text uml-title" text-anchor="middle">Krieger</text>
+                                <line x1="20" y1="146" x2="200" y2="146" class="uml-line" />
+                                <text x="26" y="160" class="uml-text">+ ruestung : int</text>
+                                
+                                <line x1="110" y1="120" x2="110" y2="82" stroke="#38bdf8" stroke-width="2" />
+                                <polygon points="110,70 104,82 116,82" class="uml-arrow" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <h3>Einfachvererbung</h3>
+                    <p>Ein wichtiges Prinzip in C# lautet: <strong>Es gibt nur Einfachvererbung für Klassen</strong>. Das bedeutet, dass eine Klasse in C# immer nur von genau <strong>einer</strong> direkten Basisklasse erben darf. Eine Zeile wie <code>class Paladin : Krieger, Magier</code> ist in C# verboten.</p>
+
+                    <h3>Was wird vererbt?</h3>
+                    <p>Bei einer erfolgreichen Vererbung werden folgende Dinge an die abgeleitete Klasse weitergegeben:</p>
+                    <ul>
+                        <li><strong>Attribute (Felder):</strong> Variablen, die Daten speichern (z.B. Lebenspunkte). Siehe oben: Der Krieger besitzt automatisch auch 'name' und 'hp'.</li>
+                        <li><strong>Methoden:</strong> Funktionen, die Aktionen ausführen (z.B. Laufen() oder Ausgeben()).</li>
+                    </ul>
+                `,
+                quiz: [
+                    {
+                        question: "Welches Zeichen wird in C# verwendet, um anzuzeigen, dass eine Klasse von einer anderen erbt?",
+                        options: [
+                            "Das Wort extends",
+                            "Der Doppelpunkt (:)",
+                            "Der Pfeil (->)",
+                            "Das Kaufmanns-Und (&)"
+                        ],
+                        correct: 1,
+                        hint: "Es ist ein kurzes Satzzeichen, kein geschriebenes Wort.",
+                        explanation: "In C# wird der Doppelpunkt (:) als Vererbungsoperator genutzt."
+                    },
+                    {
+                        question: "Von wie vielen direkten Basisklassen kann eine Klasse in C# maximal gleichzeitig erben?",
+                        options: [
+                            "Von beliebig vielen Klassen",
+                            "Von maximal zwei Klassen",
+                            "Von genau einer Klasse (Einfachvererbung)",
+                            "Das hängt von den Einstellungen im Projekt ab"
+                        ],
+                        correct: 2,
+                        hint: "C# verbietet Mehrfachvererbung bei Klassen, um Fehler zu vermeiden.",
+                        explanation: "C# erlaubt nur die Einfachvererbung für Klassen, um eindeutige Strukturen zu sichern."
+                    },
+                    {
+                        question: "Welche Komponenten werden bei der Vererbung an die Kindklasse (z.B. Krieger) weitergegeben?",
+                        options: [
+                            "Nur Methoden, die keine Rückgabewerte haben",
+                            "Attribute und Methoden",
+                            "Ausschließlich Konstruktoren",
+                            "Keine, es wird nur eine Verknüpfung erstellt"
+                        ],
+                        correct: 1,
+                        hint: "Sowohl die Daten (Zustand) als auch das Verhalten (Aktionen) werden vererbt.",
+                        explanation: "Eine Unterklasse erbt strukturell alle Attribute und Methoden ihrer Oberklasse."
+                    }
+                ]
+            },
+            3: {
+                title: "Modul 3: Konstruktoren & das 'base'-Schlüsselwort",
+                content: `
+                    <h3>Wichtig: Konstruktoren werden NICHT vererbt</h3>
+                    <p>Ein ganz wichtiger Punkt bei der Vererbung ist: <strong>Konstruktoren werden niemals vererbt!</strong> Jede Klasse muss ihre eigenen Konstruktoren schreiben.</p>
+                    <p>Der Grund ist logisch: Ein Konstruktor hat die Aufgabe, den Variablen seiner eigenen Klasse Startwerte zu geben. Da eine Kindklasse wie <code>Krieger</code> neue Variablen (z.B. Rüstungswert) mitbringt, kann der Konstruktor der Oberklasse <code>Spielfigur</code> diese neuen Variablen gar nicht kennen.</p>
+
+                    <h3>Wie der Aufruf abläuft & das Wort 'base'</h3>
+                    <p>Wenn du ein Objekt einer Kindklasse erstellst, wird im Hintergrund <strong>immer zuerst</strong> ein Konstruktor der Basisklasse aufgerufen. Wenn du nichts extra dazuschreibst, sucht der Compiler automatisch nach dem Standardkonstruktor (ohne Parameter) der Basisklasse.</p>
+                    <p>Wenn die Basisklasse aber Parameter im Konstruktor erwartet, benutzt man das Schlüsselwort <strong>base</strong>, um die Werte nach oben weiterzureichen:</p>
+
+                    <div class="split-layout">
+                        <div class="split-cell-code">
+                            <div class="code-block"><span class="code-keyword">public class</span> <span class="code-type">Spielfigur</span>
+{
+    <span class="code-keyword">public</span> <span class="code-type">Spielfigur</span>(<span class="code-type">string</span> <span class="code-param">name</span>)
+    {
+        <span class="code-comment">// Name der Spielfigur setzen</span>
+    }
+}
+
+<span class="code-keyword">public class</span> <span class="code-type">Krieger</span> : <span class="code-type">Spielfigur</span>
+{
+    <span class="code-comment">// Parameterübergabe an den Konstruktor der Basisklasse mit ': base(name)'</span>
+    <span class="code-keyword">public</span> <span class="code-type">Krieger</span>(<span class="code-type">string</span> <span class="code-param">name</span>, <span class="code-type">int</span> <span class="code-param">ruestung</span>) : <span class="code-keyword">base</span>(<span class="code-param">name</span>)
+    {
+        <span class="code-comment">// Eigene Variablen des Kriegers setzen</span>
+    }
+}</div>
+                        </div>
+                        <div class="split-cell-diagram">
+                            <h4 style="color:#38bdf8; font-size:14px; margin-bottom:10px;">UML Konstruktoren</h4>
+                            <svg width="260" height="220">
+                                <rect x="10" y="10" width="250" height="60" class="uml-class-box" />
+                                <text x="130" y="28" class="uml-text uml-title" text-anchor="middle">Spielfigur</text>
+                                <line x1="10" y1="36" x2="260" y2="36" class="uml-line" />
+                                <text x="16" y="50" class="uml-text"> </text>
+                                <line x1="10" y1="54" x2="260" y2="54" class="uml-line" />
+                                <text x="16" y="68" class="uml-text">+ Spielfigur(name:string)</text>
+                                
+                                <rect x="10" y="130" width="250" height="60" class="uml-class-box" />
+                                <text x="130" y="148" class="uml-text uml-title" text-anchor="middle">Krieger</text>
+                                <line x1="10" y1="156" x2="260" y2="156" class="uml-line" />
+                                <text x="16" y="170" class="uml-text"> </text>
+                                <line x1="10" y1="174" x2="260" y2="174" class="uml-line" />
+                                <text x="16" y="188" class="uml-text">+ Krieger(name:string, ruestung:int)</text>
+                                
+                                <line x1="130" y1="130" x2="130" y2="82" stroke="#38bdf8" stroke-width="2" />
+                                <polygon points="130,70 124,82 136,82" class="uml-arrow" />
+                            </svg>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    {
+                        question: "Welche Aussage über Konstruktoren bei der Vererbung stimmt?",
+                        options: [
+                            "Konstruktoren werden automatisch an alle Unterklassen vererbt.",
+                            "Konstruktoren werden nicht vererbt; jede Klasse braucht eigene Konstruktoren.",
+                            "Nur Konstruktoren mit Parametern werden vererbt.",
+                            "Konstruktoren werden vererbt, dürfen aber in der Unterklasse nicht benutzt werden."
+                        ],
+                        correct: 1,
+                        hint: "Denk an die Aufgabe eines Konstruktors, die Variablen seiner eigenen Klasse zu initialisieren.",
+                        explanation: "Konstruktoren werden in C# nicht vererbt. Die Kindklasse muss eigene Konstruktoren definieren."
+                    },
+                    {
+                        question: "Wie gibt der Konstruktor einer Unterklasse (Krieger) Parameter an den Konstruktor der Oberklasse (Spielfigur) weiter?",
+                        options: [
+                            "Durch den Aufruf von parent() im Code-Block.",
+                            "Durch das Wort super vor dem Konstruktor.",
+                            "Mit der Schreibweise ': base(...)' direkt hinter dem Kopf des Konstruktors.",
+                            "Das geht in C# nicht; man muss Variablen manuell kopieren."
+                        ],
+                        correct: 2,
+                        hint: "Es wird direkt nach den Klammern des Unterklassen-Konstruktors mit einem Doppelpunkt angehängt.",
+                        explanation: "Über ': base(...)' wird der Konstruktor der Basisklasse aufgerufen und mit Daten gefüttert, noch bevor der Code der Unterklasse läuft."
+                    }
+                ]
+            },
+            4: {
+                title: "Modul 4: Hauptziele & Vorteile von Vererbung",
+                content: `
+                    <h3>Warum nutzen wir Vererbung in Programmen?</h3>
+                    <p>Vererbung hilft uns dabei, Programme sauber aufzubauen und zu strukturieren. Das bringt handfeste Vorteile in Projekten:</p>
+                    
+                    <h3>1. Code-Wiederverwendung und weniger doppelter Code</h3>
+                    <p>Anstatt dieselben Variablen und Methoden in der Klasse <code>Krieger</code> und in der Klasse <code>Magier</code> doppelt aufzuschreiben, schreiben wir sie einmal in die Basisklasse <code>Spielfigur</code>. Das sorgt für:</p>
+                    <ul>
+                        <li><strong>Weniger Codezeilen:</strong> Das Projekt bleibt übersichtlich und sauber.</li>
+                        <li><strong>Weniger Zeitaufwand:</strong> Entwickler müssen dieselbe Arbeit nicht mehrfach machen.</li>
+                        <li><strong>Günstigere Entwicklung:</strong> Weniger Arbeitszeit bedeutet direkt weniger Kosten für das Projekt.</li>
+                    </ul>
+
+                    <h3>2. Einfachere Wartung</h3>
+                    <p>Wenn sich ein Fehler in eine Methode einschleicht, muss er nur an einer einzigen Stelle korrigiert werden – nämlich in der Basisklasse <code>Spielfigur</code>. Alle abgeleiteten Klassen (Krieger, Magier) profitieren sofort von dieser Fehlerbehebung. Man vergisst so keine Stelle im System.</p>
+
+                    <h3>3. Erweiterbarkeit</h3>
+                    <p>Vererbung erlaubt es uns, neue Funktionen in ein Programm einzubauen, <strong>ohne den alten, bereits funktionierenden Code der Basisklasse verändern zu müssen</strong>. Wir leiten einfach eine neue Kindklasse (z.B. <code>Dieb</code>) ab. Der Code der Klasse <code>Spielfigur</code> bleibt dabei unberührt und sicher vor neuen Fehlern.</p>
+                `,
+                quiz: [
+                    {
+                        question: "Welche Kette von Vorteilen beschreibt den Nutzen von Code-Wiederverwendung durch Vererbung am besten?",
+                        options: [
+                            "Mehr Code -> Höhere Komplexität -> Höhere Kosten",
+                            "Weniger doppelter Code -> Weniger Änderungsaufwand & leichtere Wartung -> Kostengünstiger",
+                            "Automatische Optimierung -> Kürzere Ladezeiten -> Weniger Speicherbedarf",
+                            "Vollständige Kapselung -> Höhere Verschlüsselung -> Mehr Sicherheit"
+                        ],
+                        correct: 1,
+                        hint: "Wiederverwendung bedeutet, Code zentral zu schreiben, damit man ihn bei Fehlern nur einmal korrigieren muss.",
+                        explanation: "Das Vermeiden von doppeltem Code verringert den Wartungsaufwand massiv, spart Zeit und senkt somit Kosten."
+                    },
+                    {
+                        question: "Was bedeutet 'Erweiterbarkeit ohne Code-Veränderung' bei der Vererbung?",
+                        options: [
+                            "Dass der Code zur Laufzeit automatisch aus dem Internet geladen wird.",
+                            "Dass Variablen über Textdateien geändert werden.",
+                            "Dass neue Spielfiguren-Klassen (wie 'Dieb') erstellt werden können, ohne die stabile Basisklasse 'Spielfigur' anzufassen.",
+                            "Dass der Compiler von selbst neue Methoden schreibt, wenn das Spiel sie braucht."
+                        ],
+                        correct: 2,
+                        hint: "Denk daran, wie man bestehende Klassen schützt, wenn neue Wünsche für das Spiel dazukommen.",
+                        explanation: "Durch Vererbung können neue Klassen gebaut werden, indem man eine neue Unterklasse erstellt. Die ursprüngliche Basisklasse bleibt stabil und verändert sich nicht."
+                    }
+                ]
+            },
+            5: {
+                title: "Modul 5: Polymorphie (Vielgestaltigkeit)",
+                content: `
+                    <h3>Was ist Polymorphie?</h3>
+                    <p>Glückwunsch, du hast dieses fortgeschrittene Modul freigeschaltet! <strong>Polymorphie (Vielgestaltigkeit)</strong> ist die Fähigkeit einer Variablen, zur Laufzeit Objekte mit unterschiedlichen Formen zu halten.</p>
+                    <p>Das bedeutet: Eine Variable vom Typ einer Basisklasse (<code>Spielfigur</code>) kann ein Objekt einer beliebigen abgeleiteten Klasse (<code>Krieger</code> oder <code>Magier</code>) speichern. Welche Methode beim Aufruf ausgeführt wird, entscheidet sich erst <i>zur Laufzeit</i>, je nachdem, welches Objekt wirklich in der Variable steckt.</p>
+
+                    <h3>Methoden überschreiben mit 'virtual' und 'override'</h3>
+                    <p>Damit Polymorphie funktioniert, muss die Basisklasse erlauben, dass ihre Methoden in den Unterklassen neu geschrieben werden dürfen. Das macht man mit dem Wort <strong>virtual</strong>. Die Unterklasse zeigt mit dem Wort <strong>override</strong>, dass sie die Methode neu definiert:</p>
+
+                    <div class="split-layout">
+                        <div class="split-cell-code">
+                            <div class="code-block"><span class="code-keyword">public class</span> <span class="code-type">Spielfigur</span>
+{
+    <span class="code-keyword">public virtual void</span> <span class="code-type">Angreifen</span>()
+    {
+        <span class="code-comment">// Standardangriff</span>
+    }
+}
+
+<span class="code-keyword">public class</span> <span class="code-type">Krieger</span> : <span class="code-type">Spielfigur</span>
+{
+    <span class="code-keyword">public override void</span> <span class="code-type">Angreifen</span>()
+    {
+        <span class="code-comment">// Schwertschlag</span>
+    }
+}</div>
+                        </div>
+                        <div class="split-cell-diagram">
+                            <h4 style="color:#38bdf8; font-size:14px; margin-bottom:10px;">Polymorphie im UML</h4>
+                            <svg width="220" height="200">
+                                <rect x="10" y="10" width="200" height="60" class="uml-class-box" />
+                                <text x="110" y="28" class="uml-text uml-title" text-anchor="middle">Spielfigur</text>
+                                <line x1="10" y1="36" x2="210" y2="36" class="uml-line" />
+                                <text x="16" y="50" class="uml-text"> </text>
+                                <line x1="10" y1="54" x2="210" y2="54" class="uml-line" />
+                                <text x="16" y="68" class="uml-text">+ Angreifen() {virtual}</text>
+                                
+                                <rect x="10" y="130" width="200" height="60" class="uml-class-box" />
+                                <text x="110" y="148" class="uml-text uml-title" text-anchor="middle">Krieger</text>
+                                <line x1="10" y1="156" x2="210" y2="156" class="uml-line" />
+                                <text x="16" y="170" class="uml-text"> </text>
+                                <line x1="10" y1="174" x2="210" y2="174" class="uml-line" />
+                                <text x="16" y="188" class="uml-text">+ Angreifen() {override}</text>
+                                
+                                <line x1="110" y1="130" x2="110" y2="82" stroke="#38bdf8" stroke-width="2" />
+                                <polygon points="110,70 104,82 116,82" class="uml-arrow" />
+                            </svg>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    {
+                        question: "Welches Schlüsselwort muss in der Basisklasse (Spielfigur) stehen, damit eine Methode in Unterklassen überschrieben werden darf?",
+                        options: [
+                            "new",
+                            "static",
+                            "virtual",
+                            "sealed"
+                        ],
+                        correct: 2,
+                        hint: "Es bedeutet übersetzt 'virtuell' und erlaubt Flexibilität für Unterklassen.",
+                        explanation: "Das Schlüsselwort 'virtual' erlaubt das Überschreiben einer Methode. Ohne dieses Wort verbietet der Compiler das Überschreiben mit 'override'."
+                    },
+                    {
+                        question: "Mit welchem Schlüsselwort kennzeichnet eine Unterklasse (Krieger), dass sie eine virtuelle Methode der Oberklasse anpassen will?",
+                        options: [
+                            "override",
+                            "overload",
+                            "extends",
+                            "replace"
+                        ],
+                        correct: 0,
+                        hint: "Es bedeutet übersetzt so viel wie 'überschreiben' oder 'übersteuern'.",
+                        explanation: "Das Schlüsselwort 'override' verbindet die Methode der Unterklasse mit der virtuellen Methode der Basisklasse."
+                    },
+                    {
+                        question: "Was passiert, wenn ein Objekt 'Krieger' in einer Variable vom Typ 'Spielfigur' gespeichert ist und die überschriebene Methode 'Angreifen()' aufgerufen wird?",
+                        options: [
+                            "Es wird die Methode der Basisklasse (Spielfigur) ausgeführt.",
+                            "Es wird zur Laufzeit die spezifische Methode der echten Instanz (Krieger) ausgeführt.",
+                            "Das Programm bricht mit einem Fehler ab.",
+                            "Es passiert gar nichts, da die Typen nicht zusammenpassen."
+                        ],
+                        correct: 1,
+                        hint: "Das ist der Kern der Polymorphie: Das echte Objekt im Speicher bestimmt, was passiert.",
+                        explanation: "Durch die dynamische Bindung merkt C# zur Laufzeit, welches Objekt wirklich im Speicher liegt, und ruft die passende überschriebene Methode auf."
+                    }
+                ]
+            },
+            6: {
+                title: "Modul 6: Mehrfachvererbung & das Diamond-Problem",
+                content: `
+                    <h3>Warum C# keine Mehrfachvererbung bei Klassen erlaubt</h3>
+                    <p>Wie du in Modul 2 gelernt hast, darf eine Klasse in C# nur von einer einzigen Klasse erben. Der Grund dafür ist ein bekanntes Problem in der Informatik: Das <strong>Diamond-Problem (Diamant-Problem oder Rauten-Problem)</strong>.</p>
+                    
+                    <h3>Das Diamond-Problem veranschaulicht</h3>
+                    <p>Stell dir vor, Mehrfachvererbung wäre in C# erlaubt. Schauen wir uns den logischen Fehler im UML-Diagramm auf der rechten Seite an:</p>
+
+                    <div class="split-layout">
+                        <div class="split-cell-code">
+                            <p><strong>Die Problemkette:</strong></p>
+                            <ol>
+                                <li><code>Spielfigur</code> bietet die Methode <code>Aktion()</code> an.</li>
+                                <li><code>Krieger</code> und <code>Magier</code> erben beide davon und überschreiben <code>Aktion()</code> komplett unterschiedlich.</li>
+                                <li>Der fiktive <code>Paladin</code> versucht von <strong>beiden gleichzeitig</strong> zu erben.</li>
+                            </ol>
+                            <p style="margin-top:15px; color:#ef4444; font-weight:bold;">Der Konflikt:</p>
+                            <p>Rufst du nun <code>Paladin.Aktion()</code> auf, gerät das System in eine Sackgasse: Soll die Variante des Kriegers oder des Magiers genommen werden? Es ist nicht eindeutig entscheidbar!</p>
+                        </div>
+                        <div class="split-cell-diagram">
+                            <h4 style="color:#ef4444; font-size:14px; margin-bottom:10px;">Das Diamond-Problem (Raute)</h4>
+                            <svg width="340" height="260">
+                                <rect x="100" y="10" width="140" height="45" class="uml-class-box" />
+                                <text x="170" y="28" class="uml-text uml-title" text-anchor="middle">Spielfigur</text>
+                                <text x="105" y="48" class="uml-text" style="font-size:10px; fill:#94a3b8;">+ Aktion()</text>
+                                
+                                <rect x="10" y="95" width="130" height="45" class="uml-class-box" />
+                                <text x="75" y="113" class="uml-text uml-title" text-anchor="middle">Krieger</text>
+                                <text x="15" y="133" class="uml-text" style="font-size:10px; fill:#94a3b8;">+ Aktion() {override}</text>
+                                
+                                <rect x="200" y="95" width="130" height="45" class="uml-class-box" />
+                                <text x="265" y="113" class="uml-text uml-title" text-anchor="middle">Magier</text>
+                                <text x="205" y="133" class="uml-text" style="font-size:10px; fill:#94a3b8;">+ Aktion() {override}</text>
+                                
+                                <rect x="100" y="195" width="140" height="45" class="uml-class-box" style="stroke:#ef4444;" />
+                                <text x="170" y="213" class="uml-text uml-title" text-anchor="middle" style="fill:#ef4444;">Paladin (Fehler!)</text>
+                                <text x="105" y="233" class="uml-text" style="font-size:10px; fill:#ef4444;">Welche Aktion()?</text>
+                                
+                                <line x1="75" y1="95" x2="140" y2="55" stroke="#38bdf8" stroke-width="1.5" />
+                                <polygon points="145,52 134,54 139,63" class="uml-arrow" />
+                                
+                                <line x1="265" y1="95" x2="200" y2="55" stroke="#38bdf8" stroke-width="1.5" />
+                                <polygon points="195,52 201,63 206,54" class="uml-arrow" />
+                                
+                                <line x1="140" y1="195" x2="85" y2="140" class="uml-arrow-conflict" />
+                                <polygon points="80,135 84,146 91,140" style="fill:#7f1d1d; stroke:#ef4444;" />
+                                
+                                <line x1="200" y1="195" x2="255" y2="140" class="uml-arrow-conflict" />
+                                <polygon points="260,135 249,140 256,146" style="fill:#7f1d1d; stroke:#ef4444;" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <h3>Die Lösung in C#: Schnittstellen (Interfaces)</h3>
+                    <p>Um dieses Problem komplett zu umgehen, verbietet C# Mehrfachvererbung bei Klassen. Wir nutzen stattdessen <strong>Interfaces (Schnittstellen)</strong>.</p>
+                    <p>Eine Klasse darf zwar nur eine einzige Basisklasse haben, kann aber <strong>so viele Interfaces implementieren wie sie möchte</strong>. Da ein normales Interface nur einen Vertrag (Methoden-Namen ohne fertigen Code-Inhalt) vorschreibt, kann kein Konflikt zwischen verschiedenen Code-Inhalten entstehen. Die Unterklasse schreibt den Code einfach selbst.</p>
+                `,
+                quiz: [
+                    {
+                        question: "Was beschreibt das 'Diamond-Problem' in der Programmierung?",
+                        options: [
+                            "Den sehr hohen Speicherverbrauch von großen Klassen.",
+                            "Einen Tippfehler bei der Verwendung von spitzen Klammern (< >).",
+                            "Die Unklarheit, welche Methode ausgeführt werden soll, wenn eine Klasse von zwei Klassen erbt, die dieselbe Methode einer gemeinsamen Basisklasse unterschiedlich überschrieben haben.",
+                            "Das Problem, dass Diamanten im Code nicht richtig dargestellt werden können."
+                        ],
+                        correct: 2,
+                        hint: "Denk an eine Raute im Diagramm: Oben eine Basisklasse, zwei Pfade in der Mitte, die unten in einer Kindklasse wieder zusammenlaufen.",
+                        explanation: "Das Diamond-Problem entsteht, wenn über zwei Vererbungswege dieselbe Methode mit unterschiedlichem Code vererbt wird und für die Unterklasse unklar ist, welcher Code gilt."
+                    },
+                    {
+                        question: "Wie verhindert C# die Gefahren des Diamond-Problems auf Klassenebene?",
+                        options: [
+                            "Durch das Löschen von doppelten Methoden nach dem Zufallsprinzip.",
+                            "Indem Mehrfachvererbung für Klassen komplett verboten ist (Einfachvererbung).",
+                            "Durch das automatische Verdoppeln des Codes zur Sicherheit.",
+                            "Das Diamond-Problem wird von C# ignoriert."
+                        ],
+                        correct: 1,
+                        hint: "Eine Klasse darf in C# immer nur ein direktes Elternteil haben.",
+                        explanation: "Weil eine Klasse in C# nur von genau einer Klasse erben kann, können niemals zwei widersprüchliche Klassen-Vererbungswege aufeinandertreffen."
+                    },
+                    {
+                        question: "Welchen Mechanismus nutzt C#, um Eigenschaften oder Aufgaben aus mehreren Quellen sauber in einer Klasse zu vereinen?",
+                        options: [
+                            "Mehrfachvererbung über Strukturen (struct)",
+                            "Die Verwendung von beliebig vielen Interfaces (Schnittstellen)",
+                            "Das Kopieren von fremden Klassen zur Laufzeit",
+                            "Das Wort multi class vor der Klassendefinition"
+                        ],
+                        correct: 1,
+                        hint: "Interfaces geben nur Namen von Methoden vor, enthalten aber keinen fertigen Zustand oder Code.",
+                        explanation: "Eine Klasse darf nur eine Basisklasse haben, kann aber unbegrenzt viele Interfaces umsetzen, um verschiedene Aufgaben zu übernehmen."
+                    }
+                ]
+            }
+        };
+
+        function openModule(moduleNum) {
+            if (moduleNum > 4 && !basicQuizPassed) {
+                alert('🔒 Dieses Modul ist noch gesperrt. Bitte absolviere erst das Grundlagen-Quiz der Module 1 bis 4!');
+                return;
+            }
+            
+            document.getElementById('module-grid').style.display = 'none';
+            const container = document.getElementById('module-content-container');
+            const module = modules[moduleNum];
+            
+            // Render HTML content safely using loops instead of buggy nested template literals
+            let html = '<div class="module-content active">' +
+                       '<h2>' + module.title + '</h2>' +
+                       module.content +
+                       '<div class="quiz-section">' +
+                       '<h3>📝 Verständnis-Check</h3>';
+            
+            for (let i = 0; i < module.quiz.length; i++) {
+                let q = module.quiz[i];
+                html += '<div class="quiz-question" data-module="' + moduleNum + '" data-question="' + i + '">' +
+                        '<p>' + (i + 1) + '. ' + q.question + '</p>';
+                
+                for (let j = 0; j < q.options.length; j++) {
+                    let opt = q.options[j];
+                    html += '<div class="quiz-option" onclick="selectAnswer(' + moduleNum + ', ' + i + ', ' + j + ')">' +
+                            '<input type="radio" name="q' + moduleNum + '_' + i + '" id="q' + moduleNum + '_' + i + '_' + j + '">' +
+                            '<label for="q' + moduleNum + '_' + i + '_' + j + '">' + opt + '</label>' +
+                            '</div>';
+                }
+                
+                html += '<div class="quiz-feedback" data-feedback="' + moduleNum + '-' + i + '"></div>' +
+                        '</div>';
+            }
+            
+            html += '</div>' +
+                    '<button class="btn btn-back" onclick="backToOverview()">← Übersicht</button>' +
+                    '<button class="btn" onclick="completeModule(' + moduleNum + ')">Modul abschließen →</button>' +
+                    '</div>';
+            
+            container.innerHTML = html;
+            window.scrollTo(0, 0);
+        }
+
+        function selectAnswer(moduleNum, questionNum, answerNum) {
+            const question = modules[moduleNum].quiz[questionNum];
+            const questionDiv = document.querySelector('[data-module="' + moduleNum + '"][data-question="' + questionNum + '"]');
+            const feedback = document.querySelector('[data-feedback="' + moduleNum + '-' + questionNum + '"]');
+            
+            const radios = questionDiv.querySelectorAll('input[type="radio"]');
+            radios.forEach((r, i) => { r.checked = (i === answerNum); });
+            
+            feedback.classList.add('show');
+            if (answerNum === question.correct) {
+                feedback.classList.remove('wrong');
+                feedback.classList.add('correct');
+                feedback.textContent = '✓ Korrekt! ' + question.explanation;
+                questionDiv.classList.remove('wrong');
+                questionDiv.classList.add('correct');
+            } else {
+                feedback.classList.remove('correct');
+                feedback.classList.add('wrong');
+                feedback.textContent = '✗ Nicht ganz richtig. Hinweis: ' + question.hint;
+                questionDiv.classList.remove('correct');
+                questionDiv.classList.add('wrong');
+            }
+        }
+
+        function completeModule(moduleNum) {
+            const module = modules[moduleNum];
+            let allCorrect = true;
+            
+            for (let i = 0; i < module.quiz.length; i++) {
+                const questionDiv = document.querySelector('[data-module="' + moduleNum + '"][data-question="' + i + '"]');
+                if (!questionDiv || !questionDiv.classList.contains('correct')) {
+                    allCorrect = false;
+                    break;
+                }
+            }
+            
+            if (!allCorrect) {
+                alert('Bitte beantworte alle Fragen dieses Moduls korrekt, bevor du es abschließt!');
+                return;
+            }
+            
+            completedModules.add(moduleNum);
+            checkUnlocks();
+            updateProgress();
+            
+            alert('🎉 Modul ' + moduleNum + ' erfolgreich abgeschlossen!');
+            backToOverview();
+        }
+
+        function backToOverview() {
+            document.getElementById('module-grid').style.display = 'grid';
+            document.getElementById('module-content-container').innerHTML = '';
+            window.scrollTo(0, 0);
+        }
+
+        function checkUnlocks() {
+            if (completedModules.has(1) && completedModules.has(2) && completedModules.has(3) && completedModules.has(4)) {
+                if (!basicQuizPassed) {
+                    basicQuizPassed = true;
+                    alert('🔓 Perfekt! Du hast das Grundlagen-Quiz bestanden. Die Profi-Module zu Polymorphie und dem Diamond-Problem sind jetzt freigeschaltet!');
+                    
+                    const card5 = document.getElementById('card-5');
+                    card5.classList.remove('locked');
+                    card5.querySelector('.module-description').textContent = 'Erfahre alles über Vielgestaltigkeit, dynamische Bindung sowie virtual & override.';
+                    
+                    const card6 = document.getElementById('card-6');
+                    card6.classList.remove('locked');
+                    card6.querySelector('.module-description').textContent = 'Verstehe das Problem der Mehrfachvererbung und wie C# es mit Interfaces löst.';
+                }
+            }
+        }
+
+        function updateProgress() {
+            const totalModules = 6;
+            const progress = (completedModules.size / totalModules) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            document.getElementById('progress').textContent = completedModules.size + ' von ' + totalModules + ' Modulen abgeschlossen';
+            
+            for (let i = 1; i <= totalModules; i++) {
+                const card = document.getElementById('card-' + i);
+                if (card && completedModules.has(i)) {
+                    card.classList.add('completed');
+                }
+            }
+            
+            if (completedModules.size === totalModules) {
+                document.getElementById('badge').classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>
