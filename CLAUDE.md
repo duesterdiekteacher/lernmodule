@@ -18,6 +18,7 @@
 - Nichts aus Fachkundebuch oder Tabellenbuch hochladen: keine Scans, keine abgeschriebenen Tabellen oder Texte. Die Schüler arbeiten mit ihrem eigenen Tabellenbuch. Im Modul nur einzelne Werte in Beispielen und Lösungen.
 - Keine Seitenzahlen aus dem Tabellenbuch nennen. Das Modul soll auch mit einer neuen Auflage funktionieren. Stattdessen den Namen der Tabelle nennen und auf Inhalts- oder Sachwortverzeichnis verweisen.
 - Lerntexte selbst formulieren (kurze Sätze, LRS-freundlich), nicht aus Büchern übernehmen.
+- Aufgabentypen vielfältig mischen, nicht nur Multiple Choice: Zahlen eingeben, Zuordnen, Reihenfolge, Skizzen beschriften, Richtig/Falsch, Fehler finden. Rechenaufgaben mit Zufallswerten („Neue Zahlen“), damit jeder Schüler andere Aufgaben bekommt.
 
 ## Erzeugung
 - Die drei Varianten eines Moduls werden aus einer gemeinsamen Quelle erzeugt, damit die Aufgaben überall gleich sind.
