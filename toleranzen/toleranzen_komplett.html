@@ -538,6 +538,67 @@
             .header h1 { font-size: 32px; }
             .module-content h2 { font-size: 26px; }
         }
+
+        /* ---------- Aufgabentypen ---------- */
+        .task-head { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .task-type, .task-book {
+            font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+            background: #0f172a; border: 1px solid #475569; color: #cbd5e1;
+        }
+        .task-book { border-color: #f59e0b; color: #fde68a; background: #3b2a0a; }
+        .task-note { color: #94a3b8; font-size: 15px; margin: -5px 0 12px 0; }
+        .quiz-question .sketch { margin: 10px 0 15px 0; }
+        .fields { display: flex; flex-direction: column; gap: 10px; }
+        .field-row {
+            display: grid; grid-template-columns: minmax(150px, 1fr) minmax(170px, 1.3fr);
+            gap: 4px 14px; align-items: center;
+            background: #273449; border: 2px solid transparent; border-radius: 8px; padding: 10px 12px;
+        }
+        .field-row.ok { border-color: #22c55e; }
+        .field-row.bad { border-color: #ef4444; }
+        .field-label { color: #f1f5f9; font-size: 17px; }
+        .field-input { display: flex; align-items: center; gap: 8px; }
+        .field-input input, .field-input select {
+            background: #0f172a; color: #f8fafc; border: 2px solid #475569; border-radius: 6px;
+            font-size: 18px; padding: 8px 10px; font-family: inherit;
+        }
+        .field-input input { width: 9em; font-family: 'Consolas', 'Courier New', monospace; }
+        .field-input select { width: 100%; max-width: 320px; font-size: 16px; }
+        .field-input input:focus, .field-input select:focus { outline: none; border-color: #38bdf8; }
+        .field-input input:disabled, .field-input select:disabled { opacity: 0.85; }
+        .field-pre, .field-unit { color: #cbd5e1; font-size: 17px; }
+        .field-msg { grid-column: 1 / -1; color: #fecaca; font-size: 15px; }
+        .field-msg:empty { display: none; }
+        .order-list { list-style: decimal; margin-left: 28px; }
+        .order-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: #273449; border: 2px solid transparent; border-radius: 8px;
+            padding: 8px 10px; margin-bottom: 8px; color: #f1f5f9;
+        }
+        .order-item.ok { border-color: #22c55e; }
+        .order-item.bad { border-color: #ef4444; }
+        .order-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .order-btns button {
+            background: #334155; color: #f8fafc; border: 1px solid #64748b; border-radius: 6px;
+            width: 38px; height: 34px; font-size: 15px; cursor: pointer;
+        }
+        .order-btns button:hover:not(:disabled) { background: #475569; }
+        .order-btns button:disabled { opacity: 0.3; cursor: default; }
+        .task-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+        .btn-check, .btn-new {
+            border: none; border-radius: 8px; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+        .btn-check { background: #0ea5e9; color: white; }
+        .btn-check:hover { background: #0284c7; }
+        .btn-new { background: #334155; color: #f1f5f9; border: 1px solid #64748b; }
+        .btn-new:hover { background: #475569; }
+        .quiz-feedback { line-height: 1.6; }
+        @media (max-width: 600px) {
+            .field-row { grid-template-columns: 1fr; }
+            .field-input input { width: 100%; }
+            .quiz-section { padding: 18px 10px; }
+            .quiz-question { padding: 14px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -604,504 +665,906 @@
     </div>
 
     <script>
-        let completedModules = new Set();
-        let basicQuizPassed = false;
-
-        const modules = {
+const modules = {
   "1": {
     "title": "Modul 1: Grundbegriffe der Maßtoleranzen",
-    "content": "\n<h3>Warum gibt es Toleranzen?</h3>\n<p>Kein Werkstück wird ganz genau auf ein Maß gefertigt. Maschine, Werkzeug, Werkstoff und Mensch verursachen immer kleine Abweichungen.</p>\n<p>Die Teile sollen trotzdem passen. Und sie sollen <strong>austauschbar</strong> sein. Deshalb legt man fest, wie weit ein Maß abweichen darf. Diese erlaubte Abweichung heißt <strong>Toleranz</strong>.</p>\n<div class=\"info-box\"><h4>💡 Wichtig</h4><p>Genaue Teile sind teuer. Deshalb toleriert man nur so genau, wie es für die Funktion nötig ist.</p></div>\n\n<h3>Die Begriffe</h3>\n<ul>\n<li><strong>Nennmaß N:</strong> das Maß in der Zeichnung, z. B. 20 mm. In der Skizze ist es die <strong>Nulllinie</strong>.</li>\n<li><strong>Oberes und unteres Abmaß:</strong> So weit darf das Maß nach oben und nach unten vom Nennmaß abweichen.</li>\n<li><strong>Höchstmaß G<sub>o</sub>:</strong> das größte erlaubte Maß.</li>\n<li><strong>Mindestmaß G<sub>u</sub>:</strong> das kleinste erlaubte Maß.</li>\n<li><strong>Toleranz T:</strong> der Unterschied zwischen Höchstmaß und Mindestmaß. Die Toleranz ist <strong>immer positiv</strong>.</li>\n</ul>\n\n<div class=\"sketch\">\n<h4 style=\"color:#38bdf8; margin-bottom:10px;\">Toleranzskizze: Welle Ø20 +0,2/−0,1</h4>\n<svg viewBox=\"0 0 540 270\" role=\"img\" aria-label=\"Toleranzskizze mit Nennmaß, Höchstmaß, Mindestmaß, Abmaßen und Toleranz\">\n  <defs>\n    <marker id=\"ar\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\">\n      <path d=\"M0,0 L10,5 L0,10 z\" fill=\"#e2e8f0\"/>\n    </marker>\n  </defs>\n  <line x1=\"20\" y1=\"240\" x2=\"520\" y2=\"240\" stroke=\"#64748b\" stroke-width=\"2\"/>\n  <line x1=\"20\" y1=\"120\" x2=\"520\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/>\n  <text x=\"24\" y=\"112\" fill=\"#38bdf8\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Nulllinie</text>\n  <rect x=\"250\" y=\"80\" width=\"130\" height=\"60\" fill=\"#0ea5e9\" fill-opacity=\"0.35\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n  <text x=\"315\" y=\"114\" fill=\"#f8fafc\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">Toleranzfeld</text>\n  <line x1=\"90\" y1=\"80\" x2=\"250\" y2=\"80\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"150\" y1=\"140\" x2=\"250\" y2=\"140\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"380\" y1=\"80\" x2=\"500\" y2=\"80\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"380\" y1=\"140\" x2=\"500\" y2=\"140\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"40\" y1=\"240\" x2=\"40\" y2=\"122\" stroke=\"#e2e8f0\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"46\" y=\"200\" fill=\"#e2e8f0\" font-size=\"13\" font-family=\"Segoe UI, Arial\">N = 20</text>\n  <line x1=\"100\" y1=\"240\" x2=\"100\" y2=\"82\" stroke=\"#4ade80\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"106\" y=\"160\" fill=\"#4ade80\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Höchstmaß</text>\n  <text x=\"106\" y=\"176\" fill=\"#4ade80\" font-size=\"13\" font-family=\"Segoe UI, Arial\">G<tspan font-size=\"10\" dy=\"3\">o</tspan><tspan dy=\"-3\"> = 20,2</tspan></text>\n  <line x1=\"190\" y1=\"240\" x2=\"190\" y2=\"142\" stroke=\"#fbbf24\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"196\" y=\"200\" fill=\"#fbbf24\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Mindestmaß</text>\n  <text x=\"196\" y=\"216\" fill=\"#fbbf24\" font-size=\"13\" font-family=\"Segoe UI, Arial\">G<tspan font-size=\"10\" dy=\"3\">u</tspan><tspan dy=\"-3\"> = 19,9</tspan></text>\n  <line x1=\"410\" y1=\"120\" x2=\"410\" y2=\"82\" stroke=\"#e2e8f0\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"396\" y=\"70\" fill=\"#e2e8f0\" font-size=\"13\" font-family=\"Segoe UI, Arial\">es = +0,2</text>\n  <line x1=\"440\" y1=\"120\" x2=\"440\" y2=\"138\" stroke=\"#e2e8f0\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"408\" y=\"160\" fill=\"#e2e8f0\" font-size=\"13\" font-family=\"Segoe UI, Arial\">ei = −0,1</text>\n  <line x1=\"495\" y1=\"82\" x2=\"495\" y2=\"138\" stroke=\"#f472b6\" stroke-width=\"2\" marker-start=\"url(#ar)\" marker-end=\"url(#ar)\"/>\n  <text x=\"488\" y=\"185\" fill=\"#f472b6\" font-size=\"13\" font-family=\"Segoe UI, Arial\">T = 0,3</text>\n</svg>\n<p class=\"caption\">Die Pfeile für Höchstmaß und Mindestmaß beginnen unten am Bauteil. Die Abmaße beginnen an der Nulllinie.</p>\n</div>\n\n\n<h3>Bohrung oder Welle?</h3>\n<p>Für Bohrungen (Innenmaße) schreibt man <strong>Großbuchstaben</strong>. Für Wellen (Außenmaße) schreibt man <strong>Kleinbuchstaben</strong>.</p>\n<div class=\"table-wrap\"><table><tr><th></th><th>Bohrung (innen)</th><th>Welle (außen)</th></tr><tr><td>oberes Abmaß</td><td>ES</td><td>es</td></tr><tr><td>unteres Abmaß</td><td>EI</td><td>ei</td></tr><tr><td>Höchstmaß</td><td>G<sub>oB</sub></td><td>G<sub>oW</sub></td></tr><tr><td>Mindestmaß</td><td>G<sub>uB</sub></td><td>G<sub>uW</sub></td></tr><tr><td>Toleranz</td><td>T<sub>B</sub></td><td>T<sub>W</sub></td></tr></table></div>\n<div class=\"info-box\"><h4>🧠 Merkhilfe</h4><p>Die Bohrung ist das große Loch: GROSSE Buchstaben. Die Welle steckt drin: kleine Buchstaben.</p></div>\n",
-    "quiz": [
-      {
-        "question": "Warum gibt man in Zeichnungen Toleranzen an?",
-        "options": [
-          "Damit die Zeichnung übersichtlicher aussieht.",
-          "Weil kein Teil ganz genau gefertigt werden kann und die Teile trotzdem passen sollen.",
-          "Damit der Prüfer weniger messen muss.",
-          "Damit jedes Teil so genau wie möglich gefertigt wird."
-        ],
-        "correct": 1,
-        "hint": "Denk an Maschine, Werkzeug und Mensch. Ganz genau geht es nie.",
-        "explanation": "Abweichungen gibt es immer. Die Toleranz legt fest, wie groß sie sein dürfen. So passen die Teile und sind austauschbar."
-      },
-      {
-        "question": "Welche Kurzzeichen gehören zu einer Welle?",
-        "options": [
-          "ES und EI",
-          "es und ei",
-          "N und T",
-          "G und B"
-        ],
-        "correct": 1,
-        "hint": "Eine Welle ist ein Außenmaß. Groß oder klein geschrieben?",
-        "explanation": "Wellen bekommen Kleinbuchstaben: es (oberes Abmaß) und ei (unteres Abmaß)."
-      },
-      {
-        "question": "Was ist die Toleranz T?",
-        "options": [
-          "Das obere Abmaß.",
-          "Der Unterschied zwischen Höchstmaß und Mindestmaß.",
-          "Das Nennmaß plus das obere Abmaß.",
-          "Der Unterschied zwischen Istmaß und Nennmaß."
-        ],
-        "correct": 1,
-        "hint": "Die Toleranz ist der ganze Bereich, in dem das Maß liegen darf.",
-        "explanation": "T = Höchstmaß − Mindestmaß. Das ist die Höhe des Toleranzfeldes."
-      },
-      {
-        "question": "Welche Aussage stimmt?",
-        "options": [
-          "Die Toleranz kann auch negativ sein.",
-          "Das Höchstmaß ist immer größer als das Nennmaß.",
-          "Die Toleranz ist immer positiv.",
-          "Das Nennmaß liegt immer genau in der Mitte des Toleranzfeldes."
-        ],
-        "correct": 2,
-        "hint": "Die Toleranz ist ein Abstand. Kann ein Abstand negativ sein?",
-        "explanation": "Die Toleranz ist immer positiv. Das Höchstmaß kann aber kleiner als das Nennmaß sein, z. B. bei 25 −0,1/−0,3."
-      }
-    ]
+    "content": "\n<h3>Warum gibt es Toleranzen?</h3>\n<p>Kein Werkstück wird ganz genau auf ein Maß gefertigt. Maschine, Werkzeug, Werkstoff und Mensch verursachen immer kleine Abweichungen.</p>\n<p>Die Teile sollen trotzdem passen. Und sie sollen <strong>austauschbar</strong> sein. Deshalb legt man fest, wie weit ein Maß abweichen darf. Diese erlaubte Abweichung heißt <strong>Toleranz</strong>.</p>\n<div class=\"info-box\"><h4>💡 Wichtig</h4><p>Genaue Teile sind teuer. Deshalb toleriert man nur so genau, wie es für die Funktion nötig ist.</p></div>\n\n<h3>Die Begriffe</h3>\n<ul>\n<li><strong>Nennmaß N:</strong> das Maß in der Zeichnung, z. B. 20 mm. In der Skizze ist es die <strong>Nulllinie</strong>.</li>\n<li><strong>Oberes und unteres Abmaß:</strong> So weit darf das Maß nach oben und nach unten vom Nennmaß abweichen.</li>\n<li><strong>Höchstmaß G<sub>o</sub>:</strong> das größte erlaubte Maß.</li>\n<li><strong>Mindestmaß G<sub>u</sub>:</strong> das kleinste erlaubte Maß.</li>\n<li><strong>Toleranz T:</strong> der Unterschied zwischen Höchstmaß und Mindestmaß. Die Toleranz ist <strong>immer positiv</strong>.</li>\n</ul>\n\n<div class=\"sketch\">\n<h4 style=\"color:#38bdf8; margin-bottom:10px;\">Toleranzskizze: Welle Ø20 +0,2/−0,1</h4>\n<svg viewBox=\"0 0 540 270\" role=\"img\" aria-label=\"Toleranzskizze mit Nennmaß, Höchstmaß, Mindestmaß, Abmaßen und Toleranz\">\n  <defs>\n    <marker id=\"ar\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\">\n      <path d=\"M0,0 L10,5 L0,10 z\" fill=\"#e2e8f0\"/>\n    </marker>\n  </defs>\n  <line x1=\"20\" y1=\"240\" x2=\"520\" y2=\"240\" stroke=\"#64748b\" stroke-width=\"2\"/>\n  <line x1=\"20\" y1=\"120\" x2=\"520\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/>\n  <text x=\"24\" y=\"112\" fill=\"#38bdf8\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Nulllinie</text>\n  <rect x=\"250\" y=\"80\" width=\"130\" height=\"60\" fill=\"#0ea5e9\" fill-opacity=\"0.35\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n  <text x=\"315\" y=\"114\" fill=\"#f8fafc\" font-size=\"13\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">Toleranzfeld</text>\n  <line x1=\"90\" y1=\"80\" x2=\"250\" y2=\"80\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"150\" y1=\"140\" x2=\"250\" y2=\"140\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"380\" y1=\"80\" x2=\"500\" y2=\"80\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"380\" y1=\"140\" x2=\"500\" y2=\"140\" stroke=\"#64748b\" stroke-dasharray=\"3 4\"/>\n  <line x1=\"40\" y1=\"240\" x2=\"40\" y2=\"122\" stroke=\"#e2e8f0\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"46\" y=\"200\" fill=\"#e2e8f0\" font-size=\"13\" font-family=\"Segoe UI, Arial\">N = 20</text>\n  <line x1=\"100\" y1=\"240\" x2=\"100\" y2=\"82\" stroke=\"#4ade80\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"106\" y=\"160\" fill=\"#4ade80\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Höchstmaß</text>\n  <text x=\"106\" y=\"176\" fill=\"#4ade80\" font-size=\"13\" font-family=\"Segoe UI, Arial\">G<tspan font-size=\"10\" dy=\"3\">o</tspan><tspan dy=\"-3\"> = 20,2</tspan></text>\n  <line x1=\"190\" y1=\"240\" x2=\"190\" y2=\"142\" stroke=\"#fbbf24\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"196\" y=\"200\" fill=\"#fbbf24\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Mindestmaß</text>\n  <text x=\"196\" y=\"216\" fill=\"#fbbf24\" font-size=\"13\" font-family=\"Segoe UI, Arial\">G<tspan font-size=\"10\" dy=\"3\">u</tspan><tspan dy=\"-3\"> = 19,9</tspan></text>\n  <line x1=\"410\" y1=\"120\" x2=\"410\" y2=\"82\" stroke=\"#e2e8f0\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"396\" y=\"70\" fill=\"#e2e8f0\" font-size=\"13\" font-family=\"Segoe UI, Arial\">es = +0,2</text>\n  <line x1=\"440\" y1=\"120\" x2=\"440\" y2=\"138\" stroke=\"#e2e8f0\" stroke-width=\"2\" marker-end=\"url(#ar)\"/>\n  <text x=\"408\" y=\"160\" fill=\"#e2e8f0\" font-size=\"13\" font-family=\"Segoe UI, Arial\">ei = −0,1</text>\n  <line x1=\"495\" y1=\"82\" x2=\"495\" y2=\"138\" stroke=\"#f472b6\" stroke-width=\"2\" marker-start=\"url(#ar)\" marker-end=\"url(#ar)\"/>\n  <text x=\"488\" y=\"185\" fill=\"#f472b6\" font-size=\"13\" font-family=\"Segoe UI, Arial\">T = 0,3</text>\n</svg>\n<p class=\"caption\">Die Pfeile für Höchstmaß und Mindestmaß beginnen unten am Bauteil. Die Abmaße beginnen an der Nulllinie.</p>\n</div>\n\n\n<h3>Bohrung oder Welle?</h3>\n<p>Für Bohrungen (Innenmaße) schreibt man <strong>Großbuchstaben</strong>. Für Wellen (Außenmaße) schreibt man <strong>Kleinbuchstaben</strong>.</p>\n<div class=\"table-wrap\"><table><tr><th></th><th>Bohrung (innen)</th><th>Welle (außen)</th></tr><tr><td>oberes Abmaß</td><td>ES</td><td>es</td></tr><tr><td>unteres Abmaß</td><td>EI</td><td>ei</td></tr><tr><td>Höchstmaß</td><td>G<sub>oB</sub></td><td>G<sub>oW</sub></td></tr><tr><td>Mindestmaß</td><td>G<sub>uB</sub></td><td>G<sub>uW</sub></td></tr><tr><td>Toleranz</td><td>T<sub>B</sub></td><td>T<sub>W</sub></td></tr></table></div>\n<div class=\"info-box\"><h4>🧠 Merkhilfe</h4><p>Die Bohrung ist das große Loch: GROSSE Buchstaben. Die Welle steckt drin: kleine Buchstaben.</p></div>\n"
   },
   "2": {
     "title": "Modul 2: Rechnen mit frei gewählten Toleranzen",
-    "content": "\n<h3>Frei gewählte Toleranzen</h3>\n<p>Bei manchen Maßen stehen die Abmaße direkt hinter dem Nennmaß, z. B. <strong>15 ±0,1</strong>. Das nennt man <strong>frei gewählte Toleranzen</strong>. Du kannst die Abmaße direkt aus der Zeichnung ablesen.</p>\n\n<h3>Die Formeln</h3>\n<div class=\"formula\">\nHöchstmaß = Nennmaß + oberes Abmaß<br>\nMindestmaß = Nennmaß + unteres Abmaß<br>\nToleranz = Höchstmaß − Mindestmaß<br>\n<span style=\"color:#94a3b8;\">Kontrolle: Toleranz = oberes Abmaß − unteres Abmaß</span>\n</div>\n<p>Für die Welle heißt das z. B.: G<sub>oW</sub> = N + es und G<sub>uW</sub> = N + ei.</p>\n<div class=\"info-box\"><h4>⚠️ Merke</h4><p>Setze die Abmaße immer <strong>mit Vorzeichen</strong> ein. Ein Minus macht das Maß kleiner: 20 mm + (−0,1 mm) = 19,9 mm.</p></div>\n\n<h3>Beispiel: Welle Ø20 +0,2/−0,1</h3>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Rechnung</th></tr><tr><td>① Werte ablesen</td><td>N = 20 mm, es = +0,2 mm, ei = −0,1 mm</td></tr><tr><td>② Höchstmaß</td><td>20 mm + (+0,2 mm) = <strong>20,2 mm</strong></td></tr><tr><td>③ Mindestmaß</td><td>20 mm + (−0,1 mm) = <strong>19,9 mm</strong></td></tr><tr><td>④ Toleranz</td><td>20,2 mm − 19,9 mm = <strong>0,3 mm</strong></td></tr><tr><td>⑤ Kontrolle</td><td>0,2 mm − (−0,1 mm) = 0,3 mm ✓</td></tr></table></div>\n\n<div class=\"info-box\"><h4>💡 Tipp</h4><p>Steht nur ein Abmaß da, z. B. <strong>36 +0,5</strong>, dann ist das andere Abmaß <strong>0</strong>. Also: Höchstmaß 36,5 mm, Mindestmaß 36,0 mm.</p></div>\n",
-    "quiz": [
-      {
-        "question": "Maß 80 ±0,2. Wie groß sind Höchstmaß und Mindestmaß?",
-        "options": [
-          "80,2 mm und 80,0 mm",
-          "80,2 mm und 79,8 mm",
-          "80,4 mm und 79,6 mm",
-          "80,0 mm und 79,8 mm"
-        ],
-        "correct": 1,
-        "hint": "±0,2 heißt: oberes Abmaß +0,2 und unteres Abmaß −0,2.",
-        "explanation": "80 + 0,2 = 80,2 mm und 80 + (−0,2) = 79,8 mm. Die Toleranz ist 0,4 mm."
-      },
-      {
-        "question": "Maß 25 −0,1/−0,3. Wie groß ist das Höchstmaß?",
-        "options": [
-          "25,1 mm",
-          "25,0 mm",
-          "24,9 mm",
-          "24,7 mm"
-        ],
-        "correct": 2,
-        "hint": "Das obere Abmaß ist −0,1. Rechne 25 + (−0,1).",
-        "explanation": "25 + (−0,1) = 24,9 mm. Hier ist sogar das Höchstmaß kleiner als das Nennmaß."
-      },
-      {
-        "question": "Maß 36 +0,5. Wie groß ist die Toleranz?",
-        "options": [
-          "0,25 mm",
-          "0,5 mm",
-          "1,0 mm",
-          "36,5 mm"
-        ],
-        "correct": 1,
-        "hint": "Das fehlende Abmaß ist 0. Rechne Höchstmaß minus Mindestmaß.",
-        "explanation": "Höchstmaß 36,5 mm, Mindestmaß 36,0 mm. Toleranz = 36,5 − 36,0 = 0,5 mm."
-      },
-      {
-        "question": "Maß 20 ±0,1. Wie groß ist die Toleranz?",
-        "options": [
-          "0,1 mm",
-          "0,2 mm",
-          "0 mm",
-          "20,1 mm"
-        ],
-        "correct": 1,
-        "hint": "Die Toleranz ist der ganze Bereich von unten bis oben.",
-        "explanation": "20,1 mm − 19,9 mm = 0,2 mm. Oder: 0,1 − (−0,1) = 0,2 mm."
-      }
-    ]
+    "content": "\n<h3>Frei gewählte Toleranzen</h3>\n<p>Bei manchen Maßen stehen die Abmaße direkt hinter dem Nennmaß, z. B. <strong>15 ±0,1</strong>. Das nennt man <strong>frei gewählte Toleranzen</strong>. Du kannst die Abmaße direkt aus der Zeichnung ablesen.</p>\n\n<h3>Die Formeln</h3>\n<div class=\"formula\">\nHöchstmaß = Nennmaß + oberes Abmaß<br>\nMindestmaß = Nennmaß + unteres Abmaß<br>\nToleranz = Höchstmaß − Mindestmaß<br>\n<span style=\"color:#94a3b8;\">Kontrolle: Toleranz = oberes Abmaß − unteres Abmaß</span>\n</div>\n<p>Für die Welle heißt das z. B.: G<sub>oW</sub> = N + es und G<sub>uW</sub> = N + ei.</p>\n<div class=\"info-box\"><h4>⚠️ Merke</h4><p>Setze die Abmaße immer <strong>mit Vorzeichen</strong> ein. Ein Minus macht das Maß kleiner: 20 mm + (−0,1 mm) = 19,9 mm.</p></div>\n\n<h3>Beispiel: Welle Ø20 +0,2/−0,1</h3>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Rechnung</th></tr><tr><td>① Werte ablesen</td><td>N = 20 mm, es = +0,2 mm, ei = −0,1 mm</td></tr><tr><td>② Höchstmaß</td><td>20 mm + (+0,2 mm) = <strong>20,2 mm</strong></td></tr><tr><td>③ Mindestmaß</td><td>20 mm + (−0,1 mm) = <strong>19,9 mm</strong></td></tr><tr><td>④ Toleranz</td><td>20,2 mm − 19,9 mm = <strong>0,3 mm</strong></td></tr><tr><td>⑤ Kontrolle</td><td>0,2 mm − (−0,1 mm) = 0,3 mm ✓</td></tr></table></div>\n\n<div class=\"info-box\"><h4>💡 Tipp</h4><p>Steht nur ein Abmaß da, z. B. <strong>36 +0,5</strong>, dann ist das andere Abmaß <strong>0</strong>. Also: Höchstmaß 36,5 mm, Mindestmaß 36,0 mm.</p></div>\n"
   },
   "3": {
     "title": "Modul 3: Allgemeintoleranzen nach DIN ISO 2768-1",
-    "content": "\n<h3>Maße ohne Toleranzangabe</h3>\n<p>Nicht jedes Maß hat eine eigene Toleranzangabe. Maße ohne Toleranzangabe heißen <strong>Freimaße</strong>. Für sie gelten die <strong>Allgemeintoleranzen</strong>.</p>\n<p>Welche Toleranzklasse gilt, steht im <strong>Schriftfeld</strong> der Zeichnung, z. B. <strong>ISO 2768-m</strong>. So bleibt die Zeichnung übersichtlich.</p>\n\n<h3>Die vier Toleranzklassen</h3>\n<div class=\"table-wrap\"><table><tr><th>Kurzzeichen</th><th>f</th><th>m</th><th>c</th><th>v</th></tr><tr><td>Bedeutung</td><td>fein</td><td>mittel</td><td>grob</td><td>sehr grob</td></tr></table></div>\n<p>Allgemeintoleranzen sind immer <strong>symmetrisch</strong>. Das obere und das untere Abmaß sind gleich groß, z. B. ±0,3.</p>\n\n<h3>Drei Anwendungsbereiche</h3>\n<p>Die Tabelle im Tabellenbuch hat drei Teile:</p>\n<ol>\n<li><strong>Längenmaße</strong> (dazu gehören auch Durchmesser)</li>\n<li><strong>Gebrochene Kanten</strong> (Rundungen und Fasen)</li>\n<li><strong>Winkelmaße</strong></li>\n</ol>\n\n<h3>So liest du ab</h3>\n<ol>\n<li>Toleranzklasse im Schriftfeld suchen.</li>\n<li>Richtigen Teil der Tabelle wählen: Längenmaß, gebrochene Kante oder Winkel.</li>\n<li>Nennmaßbereich suchen.</li>\n<li>Grenzabmaße ablesen.</li>\n</ol>\n<div class=\"info-box\"><h4>⚠️ Achtung beim Ablesen</h4><p>„über 30 bis 120“ heißt: größer als 30 mm und <strong>bis einschließlich</strong> 120 mm. Das Maß 30 mm gehört also noch zum Bereich „über 6 bis 30“.</p></div>\n<div class=\"book-box\"><h4>📘 Nimm dein Tabellenbuch</h4><p>Tabelle „Allgemeintoleranzen für Längen- und Winkelmaße“. In eurem Tabellenbuch auf Seite 98.</p></div>\n\n<h3>Beispiel: Längenmaß 75 mm, ISO 2768-m</h3>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Vorgehen</th></tr><tr><td>① Toleranzklasse</td><td>Schriftfeld: ISO 2768-m → Klasse m (mittel)</td></tr><tr><td>② Nennmaßbereich</td><td>75 mm liegt im Bereich „über 30 bis 120“</td></tr><tr><td>③ Abmaße</td><td>Zeile m, Spalte „über 30 bis 120“: ±0,3 mm</td></tr><tr><td>④ Höchstmaß</td><td>75 mm + 0,3 mm = <strong>75,3 mm</strong></td></tr><tr><td>⑤ Mindestmaß</td><td>75 mm − 0,3 mm = <strong>74,7 mm</strong></td></tr><tr><td>⑥ Toleranz</td><td>75,3 mm − 74,7 mm = <strong>0,6 mm</strong></td></tr></table></div>\n",
-    "quiz": [
-      {
-        "question": "In der Zeichnung steht ein Maß ohne Toleranzangabe. Was gilt dafür?",
-        "options": [
-          "Das Maß darf beliebig abweichen.",
-          "Das Maß muss ganz genau stimmen.",
-          "Es gilt die Allgemeintoleranz, die im Schriftfeld steht.",
-          "Es gilt immer ±0,1 mm."
-        ],
-        "correct": 2,
-        "hint": "Solche Maße heißen Freimaße. Schau ins Schriftfeld.",
-        "explanation": "Für Freimaße gilt die Allgemeintoleranz nach ISO 2768. Die Klasse steht im Schriftfeld, z. B. ISO 2768-m."
-      },
-      {
-        "question": "Im Schriftfeld steht ISO 2768-m. Was bedeutet das „m“?",
-        "options": [
-          "Millimeter",
-          "mittel",
-          "maximal",
-          "minimal"
-        ],
-        "correct": 1,
-        "hint": "Es gibt die Klassen fein, ?, grob und sehr grob.",
-        "explanation": "m steht für die Toleranzklasse mittel. Die anderen Klassen sind f (fein), c (grob) und v (sehr grob)."
-      },
-      {
-        "question": "📘 Nimm dein Tabellenbuch: Maß 30 mm, ISO 2768-m. Welche Grenzabmaße gelten?",
-        "options": [
-          "±0,1 mm",
-          "±0,2 mm",
-          "±0,3 mm",
-          "±0,5 mm"
-        ],
-        "correct": 1,
-        "hint": "„bis 30“ heißt „bis einschließlich 30“. In welchen Bereich gehört 30 mm also?",
-        "explanation": "30 mm gehört noch zum Bereich „über 6 bis 30“. Dort steht für Klasse m: ±0,2 mm."
-      },
-      {
-        "question": "📘 Fase 1×45°, ISO 2768-m. In welchem Teil der Tabelle liest du ab?",
-        "options": [
-          "Längenmaße",
-          "Gebrochene Kanten",
-          "Winkelmaße",
-          "Gar nicht, Fasen sind nicht toleriert."
-        ],
-        "correct": 1,
-        "hint": "Eine Fase bricht die scharfe Kante eines Werkstücks.",
-        "explanation": "Fasen und Rundungen sind gebrochene Kanten. Dafür gibt es einen eigenen Teil der Tabelle. Für 1 mm und Klasse m gilt ±0,2 mm."
-      },
-      {
-        "question": "📘 Maß 50 mm, ISO 2768-c. Dort steht ±0,8 mm. Wie groß ist das Mindestmaß?",
-        "options": [
-          "50,0 mm",
-          "49,6 mm",
-          "49,2 mm",
-          "50,8 mm"
-        ],
-        "correct": 2,
-        "hint": "Allgemeintoleranzen sind symmetrisch. Es geht 0,8 mm nach oben und 0,8 mm nach unten.",
-        "explanation": "50 mm − 0,8 mm = 49,2 mm. Das Höchstmaß ist 50,8 mm."
-      }
-    ]
+    "content": "\n<h3>Maße ohne Toleranzangabe</h3>\n<p>Nicht jedes Maß hat eine eigene Toleranzangabe. Maße ohne Toleranzangabe heißen <strong>Freimaße</strong>. Für sie gelten die <strong>Allgemeintoleranzen</strong>.</p>\n<p>Welche Toleranzklasse gilt, steht im <strong>Schriftfeld</strong> der Zeichnung, z. B. <strong>ISO 2768-m</strong>. So bleibt die Zeichnung übersichtlich.</p>\n\n<h3>Die vier Toleranzklassen</h3>\n<div class=\"table-wrap\"><table><tr><th>Kurzzeichen</th><th>f</th><th>m</th><th>c</th><th>v</th></tr><tr><td>Bedeutung</td><td>fein</td><td>mittel</td><td>grob</td><td>sehr grob</td></tr></table></div>\n<p>Allgemeintoleranzen sind immer <strong>symmetrisch</strong>. Das obere und das untere Abmaß sind gleich groß, z. B. ±0,3.</p>\n\n<h3>Drei Anwendungsbereiche</h3>\n<p>Die Tabelle im Tabellenbuch hat drei Teile:</p>\n<ol>\n<li><strong>Längenmaße</strong> (dazu gehören auch Durchmesser)</li>\n<li><strong>Gebrochene Kanten</strong> (Rundungen und Fasen)</li>\n<li><strong>Winkelmaße</strong></li>\n</ol>\n\n<h3>So liest du ab</h3>\n<ol>\n<li>Toleranzklasse im Schriftfeld suchen.</li>\n<li>Richtigen Teil der Tabelle wählen: Längenmaß, gebrochene Kante oder Winkel.</li>\n<li>Nennmaßbereich suchen.</li>\n<li>Grenzabmaße ablesen.</li>\n</ol>\n<div class=\"info-box\"><h4>⚠️ Achtung beim Ablesen</h4><p>„über 30 bis 120“ heißt: größer als 30 mm und <strong>bis einschließlich</strong> 120 mm. Das Maß 30 mm gehört also noch zum Bereich „über 6 bis 30“.</p></div>\n<div class=\"book-box\"><h4>📘 Nimm dein Tabellenbuch</h4><p>Tabelle „Allgemeintoleranzen für Längen- und Winkelmaße“. In eurem Tabellenbuch auf Seite 98.</p></div>\n\n<h3>Beispiel: Längenmaß 75 mm, ISO 2768-m</h3>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Vorgehen</th></tr><tr><td>① Toleranzklasse</td><td>Schriftfeld: ISO 2768-m → Klasse m (mittel)</td></tr><tr><td>② Nennmaßbereich</td><td>75 mm liegt im Bereich „über 30 bis 120“</td></tr><tr><td>③ Abmaße</td><td>Zeile m, Spalte „über 30 bis 120“: ±0,3 mm</td></tr><tr><td>④ Höchstmaß</td><td>75 mm + 0,3 mm = <strong>75,3 mm</strong></td></tr><tr><td>⑤ Mindestmaß</td><td>75 mm − 0,3 mm = <strong>74,7 mm</strong></td></tr><tr><td>⑥ Toleranz</td><td>75,3 mm − 74,7 mm = <strong>0,6 mm</strong></td></tr></table></div>\n"
   },
   "4": {
     "title": "Modul 4: Ist das Maß in Ordnung?",
-    "content": "\n<h3>Die Prüfregel</h3>\n<p>Das <strong>Istmaß</strong> ist das Maß, das du am fertigen Werkstück misst. Ein Maß ist <strong>in Ordnung</strong>, wenn das Istmaß zwischen Mindestmaß und Höchstmaß liegt.</p>\n<div class=\"formula\">Mindestmaß ≤ Istmaß ≤ Höchstmaß</div>\n<p>Auch ein Istmaß, das <strong>genau</strong> auf dem Höchstmaß oder dem Mindestmaß liegt, ist in Ordnung.</p>\n\n<h3>Beispiel</h3>\n<p>Grenzmaße: Mindestmaß 29,8 mm, Höchstmaß 30,2 mm.</p>\n<div class=\"table-wrap\"><table><tr><th>Istmaß</th><th>Ergebnis</th></tr><tr><td>30,15 mm</td><td><span class='ok'>in Ordnung</span></td></tr><tr><td>30,25 mm</td><td><span class='nok'>zu groß</span></td></tr><tr><td>29,80 mm</td><td><span class='ok'>in Ordnung</span> (genau das Mindestmaß)</td></tr><tr><td>29,75 mm</td><td><span class='nok'>zu klein</span></td></tr></table></div>\n\n<h3>Nacharbeit oder Ausschuss?</h3>\n<p>Wenn ein Maß nicht passt, gibt es zwei Möglichkeiten. Die Frage ist: Kann man noch <strong>Material wegnehmen</strong>?</p>\n<div class=\"table-wrap\"><table><tr><th>Fehler</th><th>Was tun?</th><th>Warum?</th></tr><tr><td>Welle zu dick</td><td><span class='ok'>nacharbeiten</span></td><td>Man kann noch Material abtragen, z. B. schleifen.</td></tr><tr><td>Welle zu dünn</td><td><span class='nok'>Ausschuss</span></td><td>Man kann kein Material hinzufügen.</td></tr><tr><td>Bohrung zu klein</td><td><span class='ok'>nacharbeiten</span></td><td>Man kann die Bohrung noch aufbohren oder reiben.</td></tr><tr><td>Bohrung zu groß</td><td><span class='nok'>Ausschuss</span></td><td>Eine Bohrung wird nicht wieder kleiner.</td></tr></table></div>\n",
-    "quiz": [
-      {
-        "question": "Mindestmaß 29,8 mm, Höchstmaß 30,2 mm. Das Istmaß ist 30,15 mm. Ist das Maß in Ordnung?",
-        "options": [
-          "Ja, es liegt zwischen Mindestmaß und Höchstmaß.",
-          "Nein, es ist zu groß.",
-          "Nein, es ist zu klein.",
-          "Nein, es muss genau 30,0 mm sein."
-        ],
-        "correct": 0,
-        "hint": "Vergleiche: Ist 30,15 größer als 29,8 und kleiner als 30,2?",
-        "explanation": "29,8 ≤ 30,15 ≤ 30,2. Das Maß ist in Ordnung."
-      },
-      {
-        "question": "Mindestmaß 29,8 mm, Höchstmaß 30,2 mm. Das Istmaß ist genau 29,80 mm. Ist das Maß in Ordnung?",
-        "options": [
-          "Nein, es ist zu klein.",
-          "Ja, das Mindestmaß ist noch erlaubt.",
-          "Nein, Grenzmaße sind verboten.",
-          "Das kann man nicht sagen."
-        ],
-        "correct": 1,
-        "hint": "In der Prüfregel steht „kleiner oder gleich“ (≤).",
-        "explanation": "Das Mindestmaß ist das kleinste erlaubte Maß. Ein Istmaß genau auf dem Grenzmaß ist in Ordnung."
-      },
-      {
-        "question": "Eine Welle ist zu dick. Was macht man?",
-        "options": [
-          "Man verschrottet sie sofort.",
-          "Man arbeitet sie nach, z. B. durch Schleifen.",
-          "Man lässt sie so, weil zu dick nicht schlimm ist.",
-          "Man schweißt Material auf."
-        ],
-        "correct": 1,
-        "hint": "Kann man von einer zu dicken Welle noch Material wegnehmen?",
-        "explanation": "Von einer zu dicken Welle kann man noch Material abtragen. Sie wird nachgearbeitet, bis sie im Toleranzfeld liegt."
-      },
-      {
-        "question": "Eine Bohrung ist zu groß gebohrt. Was bedeutet das?",
-        "options": [
-          "Man bohrt noch einmal nach.",
-          "Das Teil ist Ausschuss.",
-          "Das ist egal, Hauptsache die Welle passt rein.",
-          "Man reibt die Bohrung auf."
-        ],
-        "correct": 1,
-        "hint": "Kann eine Bohrung wieder kleiner werden?",
-        "explanation": "Eine zu große Bohrung kann man nicht kleiner machen. Das Teil ist Ausschuss. Nur eine zu kleine Bohrung kann man nacharbeiten."
-      }
-    ]
+    "content": "\n<h3>Die Prüfregel</h3>\n<p>Das <strong>Istmaß</strong> ist das Maß, das du am fertigen Werkstück misst. Ein Maß ist <strong>in Ordnung</strong>, wenn das Istmaß zwischen Mindestmaß und Höchstmaß liegt.</p>\n<div class=\"formula\">Mindestmaß ≤ Istmaß ≤ Höchstmaß</div>\n<p>Auch ein Istmaß, das <strong>genau</strong> auf dem Höchstmaß oder dem Mindestmaß liegt, ist in Ordnung.</p>\n\n<h3>Beispiel</h3>\n<p>Grenzmaße: Mindestmaß 29,8 mm, Höchstmaß 30,2 mm.</p>\n<div class=\"table-wrap\"><table><tr><th>Istmaß</th><th>Ergebnis</th></tr><tr><td>30,15 mm</td><td><span class='ok'>in Ordnung</span></td></tr><tr><td>30,25 mm</td><td><span class='nok'>zu groß</span></td></tr><tr><td>29,80 mm</td><td><span class='ok'>in Ordnung</span> (genau das Mindestmaß)</td></tr><tr><td>29,75 mm</td><td><span class='nok'>zu klein</span></td></tr></table></div>\n\n<h3>Nacharbeit oder Ausschuss?</h3>\n<p>Wenn ein Maß nicht passt, gibt es zwei Möglichkeiten. Die Frage ist: Kann man noch <strong>Material wegnehmen</strong>?</p>\n<div class=\"table-wrap\"><table><tr><th>Fehler</th><th>Was tun?</th><th>Warum?</th></tr><tr><td>Welle zu dick</td><td><span class='ok'>nacharbeiten</span></td><td>Man kann noch Material abtragen, z. B. schleifen.</td></tr><tr><td>Welle zu dünn</td><td><span class='nok'>Ausschuss</span></td><td>Man kann kein Material hinzufügen.</td></tr><tr><td>Bohrung zu klein</td><td><span class='ok'>nacharbeiten</span></td><td>Man kann die Bohrung noch aufbohren oder reiben.</td></tr><tr><td>Bohrung zu groß</td><td><span class='nok'>Ausschuss</span></td><td>Eine Bohrung wird nicht wieder kleiner.</td></tr></table></div>\n"
   },
   "5": {
     "title": "Modul 5: ISO-Toleranzen lesen",
-    "content": "\n<h3>Verschlüsselte Toleranzen</h3>\n<p>Super, du hast das Profi-Modul freigeschaltet! Maße, die besonders genau sein müssen, bekommen <strong>ISO-Toleranzen</strong>. Ein Beispiel ist der Lagersitz für ein Kugellager.</p>\n<p>Die Abmaße stehen dann nicht in der Zeichnung. Sie sind <strong>verschlüsselt</strong>, z. B. <strong>Ø30 h6</strong>.</p>\n\n<h3>Die drei Teile</h3>\n<div class=\"table-wrap\"><table><tr><th>Ø30</th><th>h</th><th>6</th></tr><tr><td><strong>Nennmaß</strong></td><td><strong>Grundabmaß</strong> (Buchstabe)</td><td><strong>Toleranzgrad</strong> (Zahl)</td></tr><tr><td>Größe des Bauteils</td><td><strong>Lage</strong> des Toleranzfeldes</td><td><strong>Größe</strong> der Toleranz</td></tr></table></div>\n<p>Buchstabe und Zahl zusammen heißen <strong>Toleranzklasse</strong>, hier h6.</p>\n<ul>\n<li><strong>Großbuchstabe</strong> (z. B. H7): Bohrung.</li>\n<li><strong>Kleinbuchstabe</strong> (z. B. h6): Welle.</li>\n</ul>\n\n<h3>Wie groß ist die Toleranz?</h3>\n<p>Die Größe der Toleranz hängt von zwei Dingen ab:</p>\n<ul>\n<li>Je größer der <strong>Toleranzgrad</strong>, desto größer die Toleranz. Ø30 H9 hat mehr Toleranz als Ø30 H7.</li>\n<li>Je größer das <strong>Nennmaß</strong>, desto größer die Toleranz. Ø100 H7 hat mehr Toleranz als Ø10 H7.</li>\n</ul>\n<p>Der Buchstabe ändert nur die <strong>Lage</strong>, nicht die Größe. Ø50 H7 und Ø50 G7 haben gleich viel Toleranz.</p>\n<div class=\"sketch\"><h4 style=\"color:#38bdf8; margin-bottom:10px;\">Gleicher Toleranzgrad, andere Buchstaben (Wellen Ø30)</h4><svg viewBox=\"0 0 520 250\" role=\"img\" aria-label=\"Lage der Toleranzfelder g6, h6, js6 und k6 zur Nulllinie\"><line x1=\"20\" y1=\"120\" x2=\"500\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/><text x=\"24\" y=\"112\" fill=\"#38bdf8\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Nulllinie</text><text x=\"24\" y=\"142\" fill=\"#94a3b8\" font-size=\"12\" font-family=\"Segoe UI, Arial\">(Nennmaß 30)</text><rect x=\"140\" y=\"148\" width=\"60\" height=\"52\" fill=\"#a855f7\" fill-opacity=\"0.4\" stroke=\"#a855f7\" stroke-width=\"2\"/><text x=\"170\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">g6</text><rect x=\"230\" y=\"120\" width=\"60\" height=\"52\" fill=\"#0ea5e9\" fill-opacity=\"0.4\" stroke=\"#0ea5e9\" stroke-width=\"2\"/><text x=\"260\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">h6</text><rect x=\"320\" y=\"94.0\" width=\"60\" height=\"52.0\" fill=\"#22c55e\" fill-opacity=\"0.4\" stroke=\"#22c55e\" stroke-width=\"2\"/><text x=\"350\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">js6</text><rect x=\"410\" y=\"60\" width=\"60\" height=\"52\" fill=\"#f59e0b\" fill-opacity=\"0.4\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"440\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">k6</text></svg><p class=\"caption\">Alle vier Felder sind gleich hoch: gleiche Toleranz (13 µm). Nur die Lage ist anders.</p></div>\n\n<h3>Mikrometer</h3>\n<p>Im Tabellenbuch stehen die Werte in <strong>Mikrometern (µm)</strong>.</p>\n<div class=\"formula\">1 µm = 0,001 mm &nbsp;&nbsp;→&nbsp;&nbsp; 13 µm = 0,013 mm</div>\n\n<h3>Sonderfall H und h</h3>\n<div class=\"info-box\"><h4>🧠 Merke</h4><p>Bei H und h ist das Grundabmaß immer 0. Bohrung H: Das Mindestmaß ist das Nennmaß. Welle h: Das Höchstmaß ist das Nennmaß.</p></div>\n",
-    "quiz": [
-      {
-        "question": "Was gibt die Zahl 6 in Ø30 h6 an?",
-        "options": [
-          "Die Lage des Toleranzfeldes",
-          "Den Toleranzgrad, also die Größe der Toleranz",
-          "Das Nennmaß in Zentimetern",
-          "Wie oft gemessen werden muss"
-        ],
-        "correct": 1,
-        "hint": "Der Buchstabe sagt „wo“, die Zahl sagt „wie viel“.",
-        "explanation": "Die Zahl ist der Toleranzgrad. Er legt die Größe der Toleranz fest. Der Buchstabe legt die Lage fest."
-      },
-      {
-        "question": "Ist Ø6 H7 eine Bohrung oder eine Welle?",
-        "options": [
-          "Eine Welle, weil die Zahl klein ist.",
-          "Eine Bohrung, weil ein Großbuchstabe verwendet wird.",
-          "Eine Welle, weil ein Großbuchstabe verwendet wird.",
-          "Das kann man nicht erkennen."
-        ],
-        "correct": 1,
-        "hint": "Großbuchstaben gehören zum großen Loch.",
-        "explanation": "Großbuchstaben stehen für Bohrungen, Kleinbuchstaben für Wellen. Ø6 H7 ist eine Bohrung."
-      },
-      {
-        "question": "Welches Maß hat die größere Toleranz: Ø30 H7 oder Ø30 H9?",
-        "options": [
-          "Ø30 H7",
-          "Ø30 H9",
-          "Beide gleich",
-          "Das steht nur im Tabellenbuch"
-        ],
-        "correct": 1,
-        "hint": "Das Nennmaß ist gleich. Vergleiche die Toleranzgrade.",
-        "explanation": "Gleiches Nennmaß, aber größerer Toleranzgrad. Deshalb hat Ø30 H9 die größere Toleranz."
-      },
-      {
-        "question": "Welches Maß hat die größere Toleranz: Ø50 H7 oder Ø50 G7?",
-        "options": [
-          "Ø50 H7",
-          "Ø50 G7",
-          "Beide gleich",
-          "Man kann Bohrungen nicht vergleichen"
-        ],
-        "correct": 2,
-        "hint": "Was ändert der Buchstabe: die Lage oder die Größe?",
-        "explanation": "Gleiches Nennmaß und gleicher Toleranzgrad. Der Buchstabe ändert nur die Lage. Die Toleranz ist gleich groß."
-      },
-      {
-        "question": "Im Tabellenbuch steht 13 µm. Wie viel ist das in Millimetern?",
-        "options": [
-          "0,13 mm",
-          "1,3 mm",
-          "0,013 mm",
-          "0,0013 mm"
-        ],
-        "correct": 2,
-        "hint": "1 µm = 0,001 mm. Also 13 × 0,001 mm.",
-        "explanation": "13 µm = 13 × 0,001 mm = 0,013 mm. ISO-Toleranzen sind oft nur ein paar Hundertstel Millimeter groß."
-      }
-    ]
+    "content": "\n<h3>Verschlüsselte Toleranzen</h3>\n<p>Super, du hast das Profi-Modul freigeschaltet! Maße, die besonders genau sein müssen, bekommen <strong>ISO-Toleranzen</strong>. Ein Beispiel ist der Lagersitz für ein Kugellager.</p>\n<p>Die Abmaße stehen dann nicht in der Zeichnung. Sie sind <strong>verschlüsselt</strong>, z. B. <strong>Ø30 h6</strong>.</p>\n\n<h3>Die drei Teile</h3>\n<div class=\"table-wrap\"><table><tr><th>Ø30</th><th>h</th><th>6</th></tr><tr><td><strong>Nennmaß</strong></td><td><strong>Grundabmaß</strong> (Buchstabe)</td><td><strong>Toleranzgrad</strong> (Zahl)</td></tr><tr><td>Größe des Bauteils</td><td><strong>Lage</strong> des Toleranzfeldes</td><td><strong>Größe</strong> der Toleranz</td></tr></table></div>\n<p>Buchstabe und Zahl zusammen heißen <strong>Toleranzklasse</strong>, hier h6.</p>\n<ul>\n<li><strong>Großbuchstabe</strong> (z. B. H7): Bohrung.</li>\n<li><strong>Kleinbuchstabe</strong> (z. B. h6): Welle.</li>\n</ul>\n\n<h3>Wie groß ist die Toleranz?</h3>\n<p>Die Größe der Toleranz hängt von zwei Dingen ab:</p>\n<ul>\n<li>Je größer der <strong>Toleranzgrad</strong>, desto größer die Toleranz. Ø30 H9 hat mehr Toleranz als Ø30 H7.</li>\n<li>Je größer das <strong>Nennmaß</strong>, desto größer die Toleranz. Ø100 H7 hat mehr Toleranz als Ø10 H7.</li>\n</ul>\n<p>Der Buchstabe ändert nur die <strong>Lage</strong>, nicht die Größe. Ø50 H7 und Ø50 G7 haben gleich viel Toleranz.</p>\n<div class=\"sketch\"><h4 style=\"color:#38bdf8; margin-bottom:10px;\">Gleicher Toleranzgrad, andere Buchstaben (Wellen Ø30)</h4><svg viewBox=\"0 0 520 250\" role=\"img\" aria-label=\"Lage der Toleranzfelder g6, h6, js6 und k6 zur Nulllinie\"><line x1=\"20\" y1=\"120\" x2=\"500\" y2=\"120\" stroke=\"#38bdf8\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/><text x=\"24\" y=\"112\" fill=\"#38bdf8\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Nulllinie</text><text x=\"24\" y=\"142\" fill=\"#94a3b8\" font-size=\"12\" font-family=\"Segoe UI, Arial\">(Nennmaß 30)</text><rect x=\"140\" y=\"148\" width=\"60\" height=\"52\" fill=\"#a855f7\" fill-opacity=\"0.4\" stroke=\"#a855f7\" stroke-width=\"2\"/><text x=\"170\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">g6</text><rect x=\"230\" y=\"120\" width=\"60\" height=\"52\" fill=\"#0ea5e9\" fill-opacity=\"0.4\" stroke=\"#0ea5e9\" stroke-width=\"2\"/><text x=\"260\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">h6</text><rect x=\"320\" y=\"94.0\" width=\"60\" height=\"52.0\" fill=\"#22c55e\" fill-opacity=\"0.4\" stroke=\"#22c55e\" stroke-width=\"2\"/><text x=\"350\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">js6</text><rect x=\"410\" y=\"60\" width=\"60\" height=\"52\" fill=\"#f59e0b\" fill-opacity=\"0.4\" stroke=\"#f59e0b\" stroke-width=\"2\"/><text x=\"440\" y=\"230\" fill=\"#f8fafc\" font-size=\"16\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">k6</text></svg><p class=\"caption\">Alle vier Felder sind gleich hoch: gleiche Toleranz (13 µm). Nur die Lage ist anders.</p></div>\n\n<h3>Mikrometer</h3>\n<p>Im Tabellenbuch stehen die Werte in <strong>Mikrometern (µm)</strong>.</p>\n<div class=\"formula\">1 µm = 0,001 mm &nbsp;&nbsp;→&nbsp;&nbsp; 13 µm = 0,013 mm</div>\n\n<h3>Sonderfall H und h</h3>\n<div class=\"info-box\"><h4>🧠 Merke</h4><p>Bei H und h ist das Grundabmaß immer 0. Bohrung H: Das Mindestmaß ist das Nennmaß. Welle h: Das Höchstmaß ist das Nennmaß.</p></div>\n"
   },
   "6": {
     "title": "Modul 6: Die Antriebswelle prüfen",
-    "content": "\n<h3>Abmaße mit dem Tabellenbuch bestimmen</h3>\n<p>Für ISO-Toleranzen brauchst du zwei Tabellen:</p>\n<ul>\n<li><strong>Grundtoleranzen:</strong> Dort steht die Toleranz IT (in µm). Zeile = Nennmaßbereich, Spalte = Toleranzgrad.</li>\n<li><strong>Grundabmaße</strong> für Wellen oder Bohrungen: Dort steht <strong>ein</strong> Abmaß. Das zweite Abmaß rechnest du aus.</li>\n</ul>\n<div class=\"book-box\"><h4>📘 Nimm dein Tabellenbuch</h4><p>Grundtoleranzen: Seite 90. Grundabmaße für Wellen: Seite 91. Grundabmaße für Bohrungen: Seite 92.</p></div>\n<div class=\"table-wrap\"><table><tr><th>Toleranzklasse</th><th>Im Tabellenbuch steht ...</th><th>Zweites Abmaß</th></tr><tr><td>Wellen a bis h</td><td>es (oberes Abmaß)</td><td>ei = es − IT</td></tr><tr><td>Wellen j bis s</td><td>ei (unteres Abmaß)</td><td>es = ei + IT</td></tr><tr><td>Bohrungen A bis H</td><td>EI (unteres Abmaß)</td><td>ES = EI + IT</td></tr></table></div>\n<p>Bohrungen J bis S lassen wir hier weg. Dafür braucht man einen Zusatzwert.</p>\n\n<h3>Beispiel: Welle Ø40 f7</h3>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Vorgehen</th></tr><tr><td>① Ablesen</td><td>N = 40 mm. f ist klein → Welle. Toleranzgrad 7.</td></tr><tr><td>② Grundtoleranz</td><td>Zeile „30 ... 50“, Spalte IT7 → IT = 25 µm</td></tr><tr><td>③ Grundabmaß</td><td>Wellen, Zeile „30 ... 40“, Spalte f → es = −25 µm</td></tr><tr><td>④ Zweites Abmaß</td><td>ei = es − IT = −25 µm − 25 µm = −50 µm</td></tr><tr><td>⑤ In mm</td><td>es = −0,025 mm, ei = −0,050 mm</td></tr><tr><td>⑥ Grenzmaße</td><td>Höchstmaß 39,975 mm, Mindestmaß 39,950 mm</td></tr><tr><td>⑦ Kontrolle</td><td>39,975 − 39,950 = 0,025 mm = IT7 ✓</td></tr></table></div>\n\n<h3>So prüfst du ein Bauteil</h3>\n<ol>\n<li>Toleranzart bestimmen: frei gewählt, Allgemeintoleranz oder ISO-Toleranz?</li>\n<li>Abmaße ermitteln: aus der Zeichnung oder aus dem Tabellenbuch.</li>\n<li>Höchstmaß und Mindestmaß berechnen.</li>\n<li>Istmaß mit den Grenzmaßen vergleichen.</li>\n<li>Entscheiden: in Ordnung, nacharbeiten oder Ausschuss?</li>\n</ol>\n\n<h3>Jetzt du: Tims Antriebswelle</h3>\n\n<div class=\"info-box\">\n<h4>🔧 Der Auftrag</h4>\n<p>Tim hat an der CNC-Drehmaschine eine Antriebswelle für ein Förderband gedreht. Auf den Lagersitz Ø30 h6 kommt später ein Kugellager. Du sollst prüfen: Ist die Welle in Ordnung? Im Schriftfeld der Zeichnung steht: <strong>ISO 2768-m</strong>.</p>\n</div>\n<div class=\"table-wrap\"><table><tr><th>Maß in der Zeichnung</th><th>Istmaß (Tim) in mm</th></tr><tr><td>Ø30 h6</td><td>29,992</td></tr><tr><td>Ø25 g6</td><td>24,996</td></tr><tr><td>Ø6 H7 (Bohrung)</td><td>6,008</td></tr><tr><td>Ø40</td><td>40,12</td></tr><tr><td>40</td><td>39,82</td></tr><tr><td>15 ±0,1</td><td>15,05</td></tr><tr><td>120</td><td>120,20</td></tr><tr><td>10</td><td>10,05</td></tr><tr><td>Fase 1×45°</td><td>1,1</td></tr></table></div>\n<p>Rechne die Fragen unten mit Stift, Papier und Tabellenbuch durch.</p>\n",
-    "quiz": [
-      {
-        "question": "📘 Lagersitz Ø30 h6. Welche Abmaße gelten?",
-        "options": [
-          "es = 0 mm, ei = −0,013 mm",
-          "es = +0,013 mm, ei = 0 mm",
-          "es = 0 mm, ei = −0,021 mm",
-          "es = +0,0065 mm, ei = −0,0065 mm"
-        ],
-        "correct": 0,
-        "hint": "Bei h ist es = 0. Die Grundtoleranz IT6 findest du in der Zeile „18 ... 30“.",
-        "explanation": "IT6 im Bereich 18 bis 30 ist 13 µm. Bei h ist es = 0, also ei = 0 − 13 µm = −13 µm = −0,013 mm."
-      },
-      {
-        "question": "📘 Ø25 g6. Wie groß sind Höchstmaß und Mindestmaß?",
-        "options": [
-          "25,007 mm und 24,994 mm",
-          "24,993 mm und 24,980 mm",
-          "25,000 mm und 24,987 mm",
-          "24,993 mm und 24,987 mm"
-        ],
-        "correct": 1,
-        "hint": "Wellen a bis h: Im Tabellenbuch steht es. Dann rechnest du ei = es − IT. Das Vorzeichen von es ist wichtig.",
-        "explanation": "es = −7 µm, IT6 = 13 µm, ei = −7 − 13 = −20 µm. Höchstmaß 24,993 mm, Mindestmaß 24,980 mm."
-      },
-      {
-        "question": "📘 Bohrung Ø6 H7. Wie groß sind Höchstmaß und Mindestmaß?",
-        "options": [
-          "6,015 mm und 6,000 mm",
-          "6,000 mm und 5,988 mm",
-          "6,012 mm und 6,000 mm",
-          "6,012 mm und 5,988 mm"
-        ],
-        "correct": 2,
-        "hint": "Bei H ist EI = 0. Und Achtung: 6 mm gehört zum Bereich „3 ... 6“, denn „bis“ heißt „bis einschließlich“.",
-        "explanation": "IT7 im Bereich 3 bis 6 ist 12 µm. EI = 0, ES = +12 µm. Höchstmaß 6,012 mm, Mindestmaß 6,000 mm."
-      },
-      {
-        "question": "Vergleiche alle Istmaße mit den Grenzmaßen. Welches Maß ist NICHT in Ordnung?",
-        "options": [
-          "Ø30 h6 (Istmaß 29,992)",
-          "Ø25 g6 (Istmaß 24,996)",
-          "Ø6 H7 (Istmaß 6,008)",
-          "120 (Istmaß 120,20)"
-        ],
-        "correct": 1,
-        "hint": "Nimm deine Ergebnisse aus Frage 1 bis 3. Für 120 gilt ISO 2768-m.",
-        "explanation": "Das Höchstmaß von Ø25 g6 ist 24,993 mm. Gemessen wurden 24,996 mm. Das Maß ist 0,003 mm zu groß. Alle anderen 8 Maße sind in Ordnung."
-      },
-      {
-        "question": "Frau Keller fragt: „Müssen wir die Welle verschrotten?“ Was ist richtig?",
-        "options": [
-          "Ja, ein Maß ist falsch, also ist die Welle Ausschuss.",
-          "Nein, 0,003 mm sind so wenig, die Welle kann so in die Montage.",
-          "Nein, Ø25 ist zu dick. Man kann noch Material abtragen und die Welle nacharbeiten.",
-          "Nein, man muss die Bohrung Ø6 nacharbeiten."
-        ],
-        "correct": 2,
-        "hint": "Ist Ø25 zu groß oder zu klein? Und kann man dann noch Material wegnehmen?",
-        "explanation": "Die Welle ist an Ø25 zu dick. Man kann sie nacharbeiten, z. B. schleifen, bis das Maß zwischen 24,980 und 24,993 mm liegt. So darf sie aber nicht in die Montage."
-      }
-    ]
+    "content": "\n<h3>Abmaße mit dem Tabellenbuch bestimmen</h3>\n<p>Für ISO-Toleranzen brauchst du zwei Tabellen:</p>\n<ul>\n<li><strong>Grundtoleranzen:</strong> Dort steht die Toleranz IT (in µm). Zeile = Nennmaßbereich, Spalte = Toleranzgrad.</li>\n<li><strong>Grundabmaße</strong> für Wellen oder Bohrungen: Dort steht <strong>ein</strong> Abmaß. Das zweite Abmaß rechnest du aus.</li>\n</ul>\n<div class=\"book-box\"><h4>📘 Nimm dein Tabellenbuch</h4><p>Grundtoleranzen: Seite 90. Grundabmaße für Wellen: Seite 91. Grundabmaße für Bohrungen: Seite 92.</p></div>\n<div class=\"table-wrap\"><table><tr><th>Toleranzklasse</th><th>Im Tabellenbuch steht ...</th><th>Zweites Abmaß</th></tr><tr><td>Wellen a bis h</td><td>es (oberes Abmaß)</td><td>ei = es − IT</td></tr><tr><td>Wellen j bis s</td><td>ei (unteres Abmaß)</td><td>es = ei + IT</td></tr><tr><td>Bohrungen A bis H</td><td>EI (unteres Abmaß)</td><td>ES = EI + IT</td></tr></table></div>\n<p>Bohrungen J bis S lassen wir hier weg. Dafür braucht man einen Zusatzwert.</p>\n\n<h3>Beispiel: Welle Ø40 f7</h3>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Vorgehen</th></tr><tr><td>① Ablesen</td><td>N = 40 mm. f ist klein → Welle. Toleranzgrad 7.</td></tr><tr><td>② Grundtoleranz</td><td>Zeile „30 ... 50“, Spalte IT7 → IT = 25 µm</td></tr><tr><td>③ Grundabmaß</td><td>Wellen, Zeile „30 ... 40“, Spalte f → es = −25 µm</td></tr><tr><td>④ Zweites Abmaß</td><td>ei = es − IT = −25 µm − 25 µm = −50 µm</td></tr><tr><td>⑤ In mm</td><td>es = −0,025 mm, ei = −0,050 mm</td></tr><tr><td>⑥ Grenzmaße</td><td>Höchstmaß 39,975 mm, Mindestmaß 39,950 mm</td></tr><tr><td>⑦ Kontrolle</td><td>39,975 − 39,950 = 0,025 mm = IT7 ✓</td></tr></table></div>\n\n<h3>So prüfst du ein Bauteil</h3>\n<ol>\n<li>Toleranzart bestimmen: frei gewählt, Allgemeintoleranz oder ISO-Toleranz?</li>\n<li>Abmaße ermitteln: aus der Zeichnung oder aus dem Tabellenbuch.</li>\n<li>Höchstmaß und Mindestmaß berechnen.</li>\n<li>Istmaß mit den Grenzmaßen vergleichen.</li>\n<li>Entscheiden: in Ordnung, nacharbeiten oder Ausschuss?</li>\n</ol>\n\n<h3>Jetzt du: Tims Antriebswelle</h3>\n\n<div class=\"info-box\">\n<h4>🔧 Der Auftrag</h4>\n<p>Tim hat an der CNC-Drehmaschine eine Antriebswelle für ein Förderband gedreht. Auf den Lagersitz Ø30 h6 kommt später ein Kugellager. Du sollst prüfen: Ist die Welle in Ordnung? Im Schriftfeld der Zeichnung steht: <strong>ISO 2768-m</strong>.</p>\n</div>\n<div class=\"table-wrap\"><table><tr><th>Maß in der Zeichnung</th><th>Istmaß (Tim) in mm</th></tr><tr><td>Ø30 h6</td><td>29,992</td></tr><tr><td>Ø25 g6</td><td>24,996</td></tr><tr><td>Ø6 H7 (Bohrung)</td><td>6,008</td></tr><tr><td>Ø40</td><td>40,12</td></tr><tr><td>40</td><td>39,82</td></tr><tr><td>15 ±0,1</td><td>15,05</td></tr><tr><td>120</td><td>120,20</td></tr><tr><td>10</td><td>10,05</td></tr><tr><td>Fase 1×45°</td><td>1,1</td></tr></table></div>\n<p>Rechne die Fragen unten mit Stift, Papier und Tabellenbuch durch.</p>\n"
   }
 };
 
-        function openModule(moduleNum) {
-            if (moduleNum > 4 && !basicQuizPassed) {
-                alert('🔒 Dieses Modul ist noch gesperrt. Schließe zuerst die Module 1 bis 4 ab!');
-                return;
-            }
-            
-            document.getElementById('module-grid').style.display = 'none';
-            const container = document.getElementById('module-content-container');
-            const module = modules[moduleNum];
-            
-            // Render HTML content safely using loops instead of buggy nested template literals
-            let html = '<div class="module-content active">' +
-                       '<h2>' + module.title + '</h2>' +
-                       module.content +
-                       '<div class="quiz-section">' +
-                       '<h3>📝 Verständnis-Check</h3>';
-            
-            for (let i = 0; i < module.quiz.length; i++) {
-                let q = module.quiz[i];
-                html += '<div class="quiz-question" data-module="' + moduleNum + '" data-question="' + i + '">' +
-                        '<p>' + (i + 1) + '. ' + q.question + '</p>';
-                
-                for (let j = 0; j < q.options.length; j++) {
-                    let opt = q.options[j];
-                    html += '<div class="quiz-option" onclick="selectAnswer(' + moduleNum + ', ' + i + ', ' + j + ')">' +
-                            '<input type="radio" name="q' + moduleNum + '_' + i + '" id="q' + moduleNum + '_' + i + '_' + j + '">' +
-                            '<label for="q' + moduleNum + '_' + i + '_' + j + '">' + opt + '</label>' +
-                            '</div>';
-                }
-                
-                html += '<div class="quiz-feedback" data-feedback="' + moduleNum + '-' + i + '"></div>' +
-                        '</div>';
-            }
-            
-            html += '</div>' +
-                    '<button class="btn btn-back" onclick="backToOverview()">← Übersicht</button>' +
-                    '<button class="btn" onclick="completeModule(' + moduleNum + ')">Modul abschließen →</button>' +
-                    '</div>';
-            
-            container.innerHTML = html;
-            window.scrollTo(0, 0);
-        }
+// =====================================================================
+// Aufgaben für das Modul "Toleranzen"
+// Alle Längen intern in µm (ganze Zahlen). Hilfsfunktionen aus engine.js.
+// Aus dem Tabellenbuch stehen hier nur einzelne Lösungswerte für die Übungsfälle.
+// =====================================================================
 
-        function selectAnswer(moduleNum, questionNum, answerNum) {
-            const question = modules[moduleNum].quiz[questionNum];
-            const questionDiv = document.querySelector('[data-module="' + moduleNum + '"][data-question="' + questionNum + '"]');
-            const feedback = document.querySelector('[data-feedback="' + moduleNum + '-' + questionNum + '"]');
-            
-            const radios = questionDiv.querySelectorAll('input[type="radio"]');
-            radios.forEach((r, i) => { r.checked = (i === answerNum); });
-            
-            feedback.classList.add('show');
-            if (answerNum === question.correct) {
-                feedback.classList.remove('wrong');
-                feedback.classList.add('correct');
-                feedback.textContent = '✓ Richtig! ' + question.explanation;
-                questionDiv.classList.remove('wrong');
-                questionDiv.classList.add('correct');
+const UNLOCK_TEXT = {
+    5: 'Was bedeutet Ø30 h6? Grundabmaß, Toleranzgrad und Mikrometer.',
+    6: 'Abmaße mit dem Tabellenbuch bestimmen und Tims Welle prüfen.'
+};
+
+// ---------- Skizze für Modul 1 (Bohrung, nummeriert) ----------
+const SVG_BOHRUNG = (function () {
+    const c = (x, y, nr) => '<circle cx="' + x + '" cy="' + y + '" r="13" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>' +
+        '<text x="' + x + '" y="' + (y + 5) + '" fill="#fbbf24" font-size="15" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">' + nr + '</text>';
+    const arrow = (x, y1, y2, col) => '<line x1="' + x + '" y1="' + y1 + '" x2="' + x + '" y2="' + y2 + '" stroke="' + col + '" stroke-width="2" marker-end="url(#arB)"/>';
+    return '<svg viewBox="0 0 540 270" role="img" aria-label="Toleranzskizze einer Bohrung mit sechs Nummern">' +
+        '<defs><marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e2e8f0"/></marker></defs>' +
+        '<text x="270" y="22" fill="#38bdf8" font-size="15" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">Bohrung</text>' +
+        '<line x1="20" y1="240" x2="520" y2="240" stroke="#64748b" stroke-width="2"/>' +
+        '<line x1="20" y1="150" x2="520" y2="150" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 6"/>' +
+        '<text x="24" y="142" fill="#38bdf8" font-size="14" font-family="Segoe UI, Arial">Nulllinie</text>' +
+        '<rect x="250" y="60" width="130" height="50" fill="#a855f7" fill-opacity="0.35" stroke="#c084fc" stroke-width="2"/>' +
+        '<line x1="100" y1="60" x2="250" y2="60" stroke="#64748b" stroke-dasharray="3 4"/>' +
+        '<line x1="170" y1="110" x2="250" y2="110" stroke="#64748b" stroke-dasharray="3 4"/>' +
+        '<line x1="380" y1="60" x2="510" y2="60" stroke="#64748b" stroke-dasharray="3 4"/>' +
+        '<line x1="380" y1="110" x2="510" y2="110" stroke="#64748b" stroke-dasharray="3 4"/>' +
+        arrow(45, 240, 152, '#e2e8f0') + c(68, 200, '1') +
+        arrow(110, 240, 62, '#e2e8f0') + c(133, 175, '2') +
+        arrow(180, 240, 112, '#e2e8f0') + c(203, 200, '3') +
+        arrow(420, 150, 62, '#e2e8f0') + c(420, 175, '4') +
+        arrow(460, 150, 112, '#e2e8f0') + c(460, 175, '5') +
+        '<line x1="505" y1="62" x2="505" y2="108" stroke="#e2e8f0" stroke-width="2" marker-start="url(#arB)" marker-end="url(#arB)"/>' + c(505, 35, '6') +
+        '</svg>';
+})();
+
+// ---------- Frei gewählte Toleranzen (Zufall) ----------
+const NENN = [12, 16, 20, 25, 30, 36, 40, 45, 50, 60, 64, 80, 100, 120];
+function freeTol(kinds) {
+    const k = rnd(kinds || ['sym', 'pp', 'mm', 'pm', 'p0', 'm0']);
+    const N = rnd(NENN) * 1000;
+    const v = () => rnd([50, 100, 150, 200, 300, 400, 500]);
+    const two = () => { const a = v(); let b = v(); while (b === a) b = v(); return [Math.max(a, b), Math.min(a, b)]; };
+    let es, ei;
+    if (k === 'sym') { const a = v(); es = a; ei = -a; }
+    else if (k === 'pp') { [es, ei] = two(); }
+    else if (k === 'mm') { const [a, b] = two(); es = -b; ei = -a; }
+    else if (k === 'pm') { es = v(); ei = -v(); }
+    else if (k === 'p0') { es = v(); ei = 0; }
+    else { es = 0; ei = -v(); }
+    const n = N / 1000;
+    let txt;
+    if (k === 'sym') txt = n + ' ±' + mm(es);
+    else if (k === 'p0') txt = n + ' +' + mm(es);
+    else if (k === 'm0') txt = n + ' ' + mm(ei);
+    else txt = n + ' ' + mmS(es) + '/' + mmS(ei);
+    return { k, N, n, es, ei, Go: N + es, Gu: N + ei, T: es - ei, txt };
+}
+function rechenweg(t) {
+    return '<br>Höchstmaß = ' + t.n + ' mm + (' + mmS(t.es) + ' mm) = <strong>' + mm(t.Go) + ' mm</strong>' +
+           '<br>Mindestmaß = ' + t.n + ' mm + (' + mmS(t.ei) + ' mm) = <strong>' + mm(t.Gu) + ' mm</strong>' +
+           '<br>Toleranz = ' + mm(t.Go) + ' mm − ' + mm(t.Gu) + ' mm = <strong>' + mm(t.T) + ' mm</strong>';
+}
+
+// ---------- Allgemeintoleranzen ISO 2768-1 (einzelne Übungsfälle) ----------
+const L = 'Längenmaß', K = 'gebrochene Kante';
+const BEREICHE = ['0,5 bis 3', 'über 3 bis 6', 'über 6 bis 30', 'über 30 bis 120', 'über 120 bis 400', 'über 400 bis 1000', 'über 6'];
+// n: Nennmaß in µm, a: Grenzabmaß in µm, eb/ea: typischer Fehler "bis einschließlich", et: Wert aus der Zeile Längenmaße
+const ALLG_NORMAL = [
+    { txt: '75', n: 75000, k: 'm', typ: L, ber: 'über 30 bis 120', a: 300 },
+    { txt: '22', n: 22000, k: 'm', typ: L, ber: 'über 6 bis 30', a: 200 },
+    { txt: '150', n: 150000, k: 'f', typ: L, ber: 'über 120 bis 400', a: 200 },
+    { txt: '45', n: 45000, k: 'f', typ: L, ber: 'über 30 bis 120', a: 150 },
+    { txt: '250', n: 250000, k: 'c', typ: L, ber: 'über 120 bis 400', a: 1200 },
+    { txt: '50', n: 50000, k: 'c', typ: L, ber: 'über 30 bis 120', a: 800 },
+    { txt: 'Ø40', n: 40000, k: 'm', typ: L, ber: 'über 30 bis 120', a: 300 },
+    { txt: '10', n: 10000, k: 'c', typ: L, ber: 'über 6 bis 30', a: 500 },
+    { txt: 'Ø16', n: 16000, k: 'f', typ: L, ber: 'über 6 bis 30', a: 100 },
+    { txt: '200', n: 200000, k: 'v', typ: L, ber: 'über 120 bis 400', a: 2500 },
+    { txt: '80', n: 80000, k: 'v', typ: L, ber: 'über 30 bis 120', a: 1500 },
+    { txt: '5', n: 5000, k: 'c', typ: L, ber: 'über 3 bis 6', a: 300 }
+];
+const ALLG_KNIFFLIG = [
+    { txt: '30', n: 30000, k: 'm', typ: L, ber: 'über 6 bis 30', a: 200, eb: 'über 30 bis 120', ea: 300 },
+    { txt: '6', n: 6000, k: 'm', typ: L, ber: 'über 3 bis 6', a: 100, eb: 'über 6 bis 30', ea: 200 },
+    { txt: '120', n: 120000, k: 'v', typ: L, ber: 'über 30 bis 120', a: 1500, eb: 'über 120 bis 400', ea: 2500 },
+    { txt: '400', n: 400000, k: 'm', typ: L, ber: 'über 120 bis 400', a: 500, eb: 'über 400 bis 1000', ea: 800 },
+    { txt: 'R5', n: 5000, k: 'm', typ: K, ber: 'über 3 bis 6', a: 500, et: 100 },
+    { txt: 'R4', n: 4000, k: 'c', typ: K, ber: 'über 3 bis 6', a: 1000, et: 300 },
+    { txt: 'Fase 2×45°', n: 2000, k: 'm', typ: K, ber: '0,5 bis 3', a: 200, et: 100 },
+    { txt: 'Fase 1×45°', n: 1000, k: 'm', typ: K, ber: '0,5 bis 3', a: 200, et: 100 },
+    { txt: 'R10', n: 10000, k: 'f', typ: K, ber: 'über 6', a: 1000, et: 100 },
+    { txt: 'R1,5', n: 1500, k: 'c', typ: K, ber: '0,5 bis 3', a: 400, et: 200 }
+];
+const KLASSE = { f: 'f (fein)', m: 'm (mittel)', c: 'c (grob)', v: 'v (sehr grob)' };
+function allgTask(pool) {
+    const c = rnd(pool);
+    const einschl = 'Achtung: „bis“ heißt „bis einschließlich“. ' + c.txt + ' gehört noch in den kleineren Bereich.';
+    const kante = 'Das ist der Wert aus der Zeile Längenmaße. Rundungen und Fasen sind gebrochene Kanten. Dafür gibt es eine eigene Zeile.';
+    const abErr = [];
+    if (c.ea) abErr.push({ v: c.ea, msg: einschl });
+    if (c.et) abErr.push({ v: c.et, msg: kante });
+    return {
+        type: 'num', book: true,
+        q: 'Maß <strong>' + c.txt + '</strong> ohne Toleranzangabe. Im Schriftfeld steht <strong>ISO 2768-' + c.k + '</strong>. ' +
+           'Bestimme die Werte mit deinem Tabellenbuch (S. 98).',
+        fields: [
+            { label: 'Anwendungsbereich', kind: 'select', options: [L, K, 'Winkelmaß'], ans: c.typ,
+              errors: [{ v: L, msg: 'Rundungen (R) und Fasen sind gebrochene Kanten.' }, { v: K, msg: 'Längen und Durchmesser sind Längenmaße.' }] },
+            { label: 'Nennmaßbereich', kind: 'select', options: BEREICHE, ans: c.ber, errors: c.eb ? [{ v: c.eb, msg: einschl }] : [] },
+            { label: 'Grenzabmaße', prefix: '±', unit: 'mm', ans: c.a, errors: abErr },
+            { label: 'Höchstmaß', unit: 'mm', ans: c.n + c.a },
+            { label: 'Mindestmaß', unit: 'mm', ans: c.n - c.a,
+              errors: [{ v: c.n, msg: 'Allgemeintoleranzen sind symmetrisch (±). Es geht genauso weit nach unten wie nach oben.' }] }
+        ],
+        hint: 'Toleranzklasse ' + KLASSE[c.k] + '. Suche zuerst den richtigen Teil der Tabelle, dann den Nennmaßbereich.',
+        explanation: c.txt + ' ist ein' + (c.typ === L ? ' Längenmaß' : 'e gebrochene Kante') + ', Bereich „' + c.ber + '“, Klasse ' + c.k +
+                     ' → <strong>±' + mm(c.a) + ' mm</strong>.<br>Höchstmaß ' + mm(c.n + c.a) + ' mm, Mindestmaß ' + mm(c.n - c.a) + ' mm.'
+    };
+}
+
+// ---------- ISO-Toleranzen (einzelne Übungsfälle) ----------
+// o = oberes Abmaß, u = unteres Abmaß in µm; bnd = Fehlerwert IT bei Bereichsgrenze
+const ISO_FAELLE = [
+    { a: 'Ø20 h7', n: 20, b: false, IT: 21, o: 0, u: -21, ber: '18 ... 30' },
+    { a: 'Ø12 g6', n: 12, b: false, IT: 11, o: -6, u: -17, ber: '10 ... 18' },
+    { a: 'Ø60 H7', n: 60, b: true, IT: 30, o: 30, u: 0, ber: '50 ... 80' },
+    { a: 'Ø25 k6', n: 25, b: false, IT: 13, o: 15, u: 2, ber: '18 ... 30' },
+    { a: 'Ø16 F8', n: 16, b: true, IT: 27, o: 43, u: 16, ber: '10 ... 18' },
+    { a: 'Ø40 f7', n: 40, b: false, IT: 25, o: -25, u: -50, ber: '30 ... 50' },
+    { a: 'Ø40 g6', n: 40, b: false, IT: 16, o: -9, u: -25, ber: '30 ... 50' },
+    { a: 'Ø80 h6', n: 80, b: false, IT: 19, o: 0, u: -19, ber: '50 ... 80', bnd: 22 },
+    { a: 'Ø10 H8', n: 10, b: true, IT: 22, o: 22, u: 0, ber: '6 ... 10', bnd: 27 },
+    { a: 'Ø50 m6', n: 50, b: false, IT: 16, o: 25, u: 9, ber: '30 ... 50', bnd: 19 },
+    { a: 'Ø100 H7', n: 100, b: true, IT: 35, o: 35, u: 0, ber: '80 ... 120' },
+    { a: 'Ø45 k6', n: 45, b: false, IT: 16, o: 18, u: 2, ber: '30 ... 50' },
+    { a: 'Ø20 G7', n: 20, b: true, IT: 21, o: 28, u: 7, ber: '18 ... 30' },
+    { a: 'Ø18 h9', n: 18, b: false, IT: 43, o: 0, u: -43, ber: '10 ... 18', bnd: 52 }
+];
+function isoTask() {
+    const c = rnd(ISO_FAELLE);
+    const letter = c.a.split(' ')[1].replace(/[0-9]/g, '');
+    const welleUnten = !c.b && letter >= 'j';           // Wellen j bis s: ei steht im Tabellenbuch
+    const N = c.n * 1000;
+    const oName = c.b ? 'ES (oberes Abmaß)' : 'es (oberes Abmaß)';
+    const uName = c.b ? 'EI (unteres Abmaß)' : 'ei (unteres Abmaß)';
+    const itErr = c.bnd ? [{ v: c.bnd, msg: 'Achtung: „bis“ heißt „bis einschließlich“. Ø' + c.n + ' gehört zum Bereich ' + c.ber + '.' }] : [];
+    let oErr = [], uErr = [], weg;
+    if (c.b) {
+        oErr = [{ v: c.u - c.IT, msg: 'Bei Bohrungen A bis H steht EI im Tabellenbuch. Dann gilt ES = EI + IT.' }];
+        weg = 'EI = ' + umS(c.u) + ' µm (Tabellenbuch), ES = EI + IT = ' + umS(c.u) + ' + ' + c.IT + ' = <strong>' + umS(c.o) + ' µm</strong>';
+    } else if (welleUnten) {
+        oErr = [{ v: c.u - c.IT, msg: 'Bei Wellen j bis s steht ei im Tabellenbuch. Dann gilt es = ei + IT.' }];
+        weg = 'ei = ' + umS(c.u) + ' µm (Tabellenbuch), es = ei + IT = ' + umS(c.u) + ' + ' + c.IT + ' = <strong>' + umS(c.o) + ' µm</strong>';
+    } else {
+        uErr = [{ v: c.o + c.IT, msg: 'Bei Wellen a bis h steht es im Tabellenbuch. Dann gilt ei = es − IT.' }];
+        weg = 'es = ' + umS(c.o) + ' µm (Tabellenbuch), ei = es − IT = ' + umS(c.o) + ' − ' + c.IT + ' = <strong>' + umS(c.u) + ' µm</strong>';
+    }
+    if (c.o !== 0) oErr.push({ v: -c.o, msg: 'Prüfe das Vorzeichen.' });
+    if (c.u !== 0) uErr.push({ v: -c.u, msg: 'Prüfe das Vorzeichen.' });
+    return {
+        type: 'num', book: true,
+        q: 'Bestimme für <strong>' + c.a + '</strong> die Grundtoleranz, die Abmaße und die Grenzmaße. ' +
+           'Nimm dein Tabellenbuch (S. 90 bis 92).',
+        note: 'Abmaße in µm mit Vorzeichen eingeben, z. B. −25 oder +15. Grenzmaße in mm.',
+        fields: [
+            { label: 'Grundtoleranz IT', unit: 'µm', ans: c.IT, errors: itErr },
+            { label: oName, unit: 'µm', ans: c.o, errors: oErr },
+            { label: uName, unit: 'µm', ans: c.u, errors: uErr },
+            { label: 'Höchstmaß', unit: 'mm', ans: N + c.o },
+            { label: 'Mindestmaß', unit: 'mm', ans: N + c.u }
+        ],
+        hint: c.a + ' ist eine ' + (c.b ? 'Bohrung' : 'Welle') + '. Nennmaßbereich ' + c.ber + '. Rechne das zweite Abmaß mit der Grundtoleranz aus.',
+        explanation: 'IT = ' + c.IT + ' µm. ' + weg + '.<br>Höchstmaß ' + mm(N + c.o, 3) + ' mm, Mindestmaß ' + mm(N + c.u, 3) + ' mm.'
+    };
+}
+
+// ---------- Tims Antriebswelle (fest, wie im Arbeitsblatt) ----------
+const TIM = [
+    { m: 'Ø30 h6', ist: 29992, Go: 30000, Gu: 29987 },
+    { m: 'Ø25 g6', ist: 24996, Go: 24993, Gu: 24980 },
+    { m: 'Ø6 H7', ist: 6008, Go: 6012, Gu: 6000 },
+    { m: 'Ø40', ist: 40120, Go: 40300, Gu: 39700 },
+    { m: '40', ist: 39820, Go: 40300, Gu: 39700 },
+    { m: '15 ±0,1', ist: 15050, Go: 15100, Gu: 14900 },
+    { m: '120', ist: 120200, Go: 120300, Gu: 119700 },
+    { m: '10', ist: 10050, Go: 10200, Gu: 9800 },
+    { m: 'Fase 1×45°', ist: 1100, Go: 1200, Gu: 800 }
+];
+
+// =====================================================================
+const TASKS = {
+// ---------------------------------------------------------------- Modul 1
+1: [
+    {
+        type: 'match', shuffle: false, svg: SVG_BOHRUNG,
+        q: 'Die Skizze zeigt das Toleranzfeld einer Bohrung. Welcher Begriff gehört zu welcher Nummer?',
+        options: ['Nennmaß N', 'Höchstmaß G<sub>oB</sub>', 'Mindestmaß G<sub>uB</sub>', 'oberes Abmaß ES', 'unteres Abmaß EI', 'Toleranz T<sub>B</sub>'].map(s => s.replace(/<\/?sub>/g, '')),
+        items: [
+            { left: 'Nummer 1', answer: 'Nennmaß N' },
+            { left: 'Nummer 2', answer: 'Höchstmaß GoB' },
+            { left: 'Nummer 3', answer: 'Mindestmaß GuB' },
+            { left: 'Nummer 4', answer: 'oberes Abmaß ES' },
+            { left: 'Nummer 5', answer: 'unteres Abmaß EI' },
+            { left: 'Nummer 6', answer: 'Toleranz TB' }
+        ],
+        hint: 'Höchst- und Mindestmaß beginnen unten am Bauteil. Die Abmaße beginnen an der Nulllinie.',
+        explanation: 'Die Pfeile vom Bauteil aus sind Nennmaß, Höchstmaß und Mindestmaß. Die Pfeile von der Nulllinie aus sind die Abmaße. Die Höhe des Toleranzfeldes ist die Toleranz.'
+    },
+    {
+        type: 'match',
+        q: 'Wofür stehen die Kurzzeichen?',
+        options: ['oberes Abmaß der Bohrung', 'unteres Abmaß der Bohrung', 'oberes Abmaß der Welle', 'unteres Abmaß der Welle'],
+        items: [
+            { left: 'ES', answer: 'oberes Abmaß der Bohrung' },
+            { left: 'EI', answer: 'unteres Abmaß der Bohrung' },
+            { left: 'es', answer: 'oberes Abmaß der Welle' },
+            { left: 'ei', answer: 'unteres Abmaß der Welle' }
+        ],
+        hint: 'GROSSE Buchstaben = Bohrung, kleine Buchstaben = Welle. S steht für „oben“, I für „unten“.',
+        explanation: 'Bohrung: ES und EI (groß). Welle: es und ei (klein).'
+    },
+    {
+        type: 'mc',
+        q: 'Warum gibt man in Zeichnungen Toleranzen an?',
+        options: ['Damit die Zeichnung übersichtlicher aussieht.',
+                  'Weil kein Teil ganz genau gefertigt werden kann und die Teile trotzdem passen sollen.',
+                  'Damit der Prüfer weniger messen muss.',
+                  'Damit jedes Teil so genau wie möglich gefertigt wird.'],
+        correct: 1,
+        hint: 'Denk an Maschine, Werkzeug und Mensch. Ganz genau geht es nie.',
+        explanation: 'Abweichungen gibt es immer. Die Toleranz legt fest, wie groß sie sein dürfen. So passen die Teile und sind austauschbar.'
+    },
+    function () {
+        const all = [
+            { left: 'Die Toleranz kann auch negativ sein.', answer: 'falsch' },
+            { left: 'Das Höchstmaß kann kleiner als das Nennmaß sein.', answer: 'richtig' },
+            { left: 'Bei 20 ±0,1 beträgt die Toleranz 0,1 mm.', answer: 'falsch' },
+            { left: 'Für Wellen schreibt man die Abmaße mit Großbuchstaben (ES, EI).', answer: 'falsch' },
+            { left: 'Toleranzen sorgen dafür, dass Bauteile austauschbar sind.', answer: 'richtig' },
+            { left: 'Das Nennmaß ist das Maß, das in der Zeichnung steht.', answer: 'richtig' },
+            { left: 'Höchstmaß minus Mindestmaß ergibt die Toleranz.', answer: 'richtig' },
+            { left: 'Das Mindestmaß ist immer kleiner als das Nennmaß.', answer: 'falsch' }
+        ];
+        return {
+            type: 'match', q: 'Richtig oder falsch?', options: ['richtig', 'falsch'], items: pickN(all, 5),
+            hint: 'Rot markierte Aussagen hast du noch falsch eingeschätzt. Lies den Lerntext dazu noch einmal.',
+            explanation: 'Merke: Die Toleranz ist immer positiv. Höchstmaß und Mindestmaß können beide über oder unter dem Nennmaß liegen, z. B. bei 25 −0,1/−0,3.'
+        };
+    }
+],
+// ---------------------------------------------------------------- Modul 2
+2: [
+    function () {
+        const t = freeTol();
+        const errT = [];
+        if (t.k === 'sym') errT.push({ v: t.es, msg: 'Die Toleranz ist der ganze Bereich von unten bis oben.' });
+        if (t.es + t.ei !== t.T && t.es + t.ei > 0) errT.push({ v: t.es + t.ei, msg: 'Toleranz = oberes Abmaß − unteres Abmaß. Achte auf das Minus.' });
+        return {
+            type: 'num',
+            q: 'Berechne für das Maß <strong>' + t.txt + '</strong> das Höchstmaß, das Mindestmaß und die Toleranz.',
+            fields: [
+                { label: 'Höchstmaß', unit: 'mm', ans: t.Go, errors: [{ v: t.N - t.es, msg: 'Prüfe das Vorzeichen: Nennmaß + oberes Abmaß.' }] },
+                { label: 'Mindestmaß', unit: 'mm', ans: t.Gu, errors: [{ v: t.N - t.ei, msg: 'Prüfe das Vorzeichen: Ein Minus macht das Maß kleiner.' }] },
+                { label: 'Toleranz', unit: 'mm', ans: t.T, positive: true, errors: errT }
+            ],
+            hint: 'Höchstmaß = Nennmaß + oberes Abmaß. Mindestmaß = Nennmaß + unteres Abmaß. Abmaße mit Vorzeichen einsetzen.' +
+                  (t.k === 'p0' || t.k === 'm0' ? ' Steht nur ein Abmaß da, ist das andere 0.' : ''),
+            explanation: rechenweg(t)
+        };
+    },
+    function () {
+        const t = freeTol(['mm', 'p0', 'm0']);
+        return {
+            type: 'num',
+            q: 'Maß <strong>' + t.txt + '</strong>. Schreibe zuerst die beiden Abmaße mit Vorzeichen auf. Berechne dann Höchstmaß und Mindestmaß.',
+            note: 'Abmaße mit Vorzeichen eingeben, z. B. −0,1. Ein Abmaß von null schreibst du als 0.',
+            fields: [
+                { label: 'oberes Abmaß', unit: 'mm', ans: t.es, errors: t.es ? [{ v: -t.es, msg: 'Prüfe das Vorzeichen.' }] : [] },
+                { label: 'unteres Abmaß', unit: 'mm', ans: t.ei, errors: t.ei ? [{ v: -t.ei, msg: 'Prüfe das Vorzeichen.' }] : [] },
+                { label: 'Höchstmaß', unit: 'mm', ans: t.Go },
+                { label: 'Mindestmaß', unit: 'mm', ans: t.Gu }
+            ],
+            hint: 'Steht nur ein Abmaß da, ist das andere 0. Das obere Abmaß ist immer das größere.',
+            explanation: 'Oberes Abmaß ' + mmS(t.es) + ' mm, unteres Abmaß ' + mmS(t.ei) + ' mm.' + rechenweg(t)
+        };
+    },
+    function () {
+        const t = freeTol(['pp', 'pm', 'mm']);
+        return {
+            type: 'num',
+            q: 'Andersherum: Ein Maß hat das Nennmaß <strong>' + t.n + ' mm</strong>, das Höchstmaß <strong>' + mm(t.Go) +
+               ' mm</strong> und das Mindestmaß <strong>' + mm(t.Gu) + ' mm</strong>. Wie groß sind die Abmaße?',
+            note: 'Abmaße mit Vorzeichen eingeben, z. B. −0,1.',
+            fields: [
+                { label: 'oberes Abmaß', unit: 'mm', ans: t.es, errors: [{ v: -t.es, msg: 'Prüfe das Vorzeichen. Liegt das Höchstmaß über oder unter dem Nennmaß?' }] },
+                { label: 'unteres Abmaß', unit: 'mm', ans: t.ei, errors: [{ v: -t.ei, msg: 'Prüfe das Vorzeichen. Liegt das Mindestmaß über oder unter dem Nennmaß?' }] }
+            ],
+            hint: 'Oberes Abmaß = Höchstmaß − Nennmaß. Unteres Abmaß = Mindestmaß − Nennmaß.',
+            explanation: 'Oberes Abmaß = ' + mm(t.Go) + ' − ' + t.n + ' = <strong>' + mmS(t.es) + ' mm</strong>. Unteres Abmaß = ' +
+                         mm(t.Gu) + ' − ' + t.n + ' = <strong>' + mmS(t.ei) + ' mm</strong>. Das Maß heißt also ' + t.txt + '.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Maß 20 ±0,1. Wie groß ist die Toleranz?',
+        options: ['0,1 mm', '0,2 mm', '0 mm', '20,1 mm'],
+        correct: 1,
+        hint: 'Die Toleranz ist der ganze Bereich von unten bis oben.',
+        explanation: '20,1 mm − 19,9 mm = 0,2 mm. Oder: 0,1 − (−0,1) = 0,2 mm.'
+    }
+],
+// ---------------------------------------------------------------- Modul 3
+3: [
+    {
+        type: 'mc',
+        q: 'In der Zeichnung steht ein Maß ohne Toleranzangabe. Was gilt dafür?',
+        options: ['Das Maß darf beliebig abweichen.', 'Das Maß muss ganz genau stimmen.',
+                  'Es gilt die Allgemeintoleranz, die im Schriftfeld steht.', 'Es gilt immer ±0,1 mm.'],
+        correct: 2,
+        hint: 'Solche Maße heißen Freimaße. Schau ins Schriftfeld.',
+        explanation: 'Für Freimaße gilt die Allgemeintoleranz nach ISO 2768. Die Klasse steht im Schriftfeld, z. B. ISO 2768-m.'
+    },
+    {
+        type: 'match',
+        q: 'Was bedeuten die Kurzzeichen der Toleranzklassen?',
+        options: ['fein', 'mittel', 'grob', 'sehr grob'],
+        items: [{ left: 'f', answer: 'fein' }, { left: 'm', answer: 'mittel' }, { left: 'c', answer: 'grob' }, { left: 'v', answer: 'sehr grob' }],
+        hint: 'f und m sind leicht. c kommt vom englischen „coarse“ (grob), v von „very coarse“.',
+        explanation: 'f = fein, m = mittel, c = grob, v = sehr grob.'
+    },
+    function () {
+        const all = [
+            { left: 'Ø40', answer: L }, { left: '120', answer: L }, { left: 'Ø6', answer: L },
+            { left: 'R4', answer: K }, { left: 'Fase 1×45°', answer: K }, { left: 'R10', answer: K },
+            { left: '30°', answer: 'Winkelmaß' }, { left: '45°', answer: 'Winkelmaß' }
+        ];
+        const items = shuffle([pickN(all.filter(x => x.answer === L), 2), pickN(all.filter(x => x.answer === K), 2),
+                               pickN(all.filter(x => x.answer === 'Winkelmaß'), 1)].flat());
+        return {
+            type: 'match', q: 'In welchem Teil der Tabelle liest du ab?', options: [L, K, 'Winkelmaß'], items,
+            hint: 'Durchmesser zählen zu den Längenmaßen. Rundungen (R) und Fasen sind gebrochene Kanten.',
+            explanation: 'Längen und Durchmesser: Längenmaße. Rundungen und Fasen: gebrochene Kanten. Gradangaben: Winkelmaße.'
+        };
+    },
+    function () { return allgTask(ALLG_NORMAL); },
+    function () { return allgTask(ALLG_KNIFFLIG); }
+],
+// ---------------------------------------------------------------- Modul 4
+4: [
+    function () {
+        const t = freeTol(['sym', 'pp', 'pm', 'mm']);
+        const step = 10;
+        const kinds = shuffle(['in', 'gross', 'klein', rnd(['Go', 'Gu'])]).slice(0, 3);
+        const ist = kinds.map(k => {
+            if (k === 'in') return { v: t.Gu + step * rint(1, Math.max(1, t.T / step - 1)), r: 'in Ordnung' };
+            if (k === 'gross') return { v: t.Go + step * rint(1, 5), r: 'zu groß' };
+            if (k === 'klein') return { v: t.Gu - step * rint(1, 5), r: 'zu klein' };
+            return { v: k === 'Go' ? t.Go : t.Gu, r: 'in Ordnung', grenz: true };
+        });
+        const fields = [
+            { label: 'Höchstmaß', unit: 'mm', ans: t.Go },
+            { label: 'Mindestmaß', unit: 'mm', ans: t.Gu }
+        ];
+        ist.forEach(x => fields.push({
+            label: 'Istmaß ' + mm(x.v, 2) + ' mm', kind: 'select', options: ['in Ordnung', 'zu groß', 'zu klein'], ans: x.r,
+            errors: x.grenz ? [{ v: 'zu groß', msg: 'Genau auf dem Grenzmaß ist noch in Ordnung.' }, { v: 'zu klein', msg: 'Genau auf dem Grenzmaß ist noch in Ordnung.' }] : []
+        }));
+        return {
+            type: 'num',
+            q: 'Maß <strong>' + t.txt + '</strong>. Berechne zuerst die Grenzmaße. Prüfe dann die drei gemessenen Istmaße.',
+            note: 'Zahlen eintippen, bei den Istmaßen auswählen.',
+            fields,
+            hint: 'Ein Maß ist in Ordnung, wenn gilt: Mindestmaß ≤ Istmaß ≤ Höchstmaß.',
+            explanation: 'Grenzmaße: ' + mm(t.Gu) + ' mm bis ' + mm(t.Go) + ' mm.<br>' +
+                         ist.map(x => mm(x.v, 2) + ' mm → ' + x.r).join('<br>')
+        };
+    },
+    {
+        type: 'match',
+        q: 'Ein Maß passt nicht. Kann man das Teil nacharbeiten, oder ist es Ausschuss?',
+        options: ['nacharbeiten', 'Ausschuss'],
+        items: [
+            { left: 'Welle zu dick', answer: 'nacharbeiten' }, { left: 'Welle zu dünn', answer: 'Ausschuss' },
+            { left: 'Bohrung zu klein', answer: 'nacharbeiten' }, { left: 'Bohrung zu groß', answer: 'Ausschuss' }
+        ],
+        hint: 'Frage dich jedes Mal: Kann man noch Material wegnehmen?',
+        explanation: 'Wo noch Material weg kann (Welle zu dick, Bohrung zu klein), wird nachgearbeitet. Material hinzufügen geht nicht. Dann ist das Teil Ausschuss.'
+    },
+    function () {
+        const bohrung = Math.random() < 0.5;
+        const N = rnd([6, 10, 16, 20, 25, 30, 40, 50]) * 1000;
+        const T = rnd([9, 11, 13, 16, 18, 21, 25]);
+        const o = rint(-25, 30), u = o - T;
+        const Go = N + o, Gu = N + u;
+        const gross = Math.random() < 0.5;
+        const d = rint(1, 9);
+        const ist = gross ? Go + d : Gu - d;
+        const tun = (bohrung ? !gross : gross) ? 'nacharbeiten' : 'Ausschuss';
+        return {
+            type: 'num',
+            q: 'Eine <strong>' + (bohrung ? 'Bohrung' : 'Welle') + '</strong> hat das Höchstmaß <strong>' + mm(Go, 3) +
+               ' mm</strong> und das Mindestmaß <strong>' + mm(Gu, 3) + ' mm</strong>. Gemessen wurden <strong>' + mm(ist, 3) + ' mm</strong>.',
+            fields: [
+                { label: 'Das Istmaß ist ...', kind: 'select', options: ['in Ordnung', 'zu groß', 'zu klein'], ans: gross ? 'zu groß' : 'zu klein' },
+                { label: 'Um wie viel?', unit: 'mm', ans: d },
+                { label: 'Was tun?', kind: 'select', options: ['nacharbeiten', 'Ausschuss'], ans: tun }
+            ],
+            hint: 'Vergleiche das Istmaß mit dem Grenzmaß, das am nächsten liegt. Rechne den Unterschied aus.',
+            explanation: mm(ist, 3) + ' mm liegt ' + (gross ? 'über dem Höchstmaß' : 'unter dem Mindestmaß') + '. Unterschied: <strong>' +
+                         mm(d, 3) + ' mm</strong>. ' + (bohrung ? 'Bohrung ' : 'Welle ') + (gross ? 'zu groß' : 'zu klein') + ' → <strong>' + tun + '</strong>.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Mindestmaß 29,8 mm, Höchstmaß 30,2 mm. Das Istmaß ist genau 29,80 mm. Ist das Maß in Ordnung?',
+        options: ['Nein, es ist zu klein.', 'Ja, das Mindestmaß ist noch erlaubt.', 'Nein, Grenzmaße sind verboten.', 'Das kann man nicht sagen.'],
+        correct: 1,
+        hint: 'In der Prüfregel steht „kleiner oder gleich“ (≤).',
+        explanation: 'Das Mindestmaß ist das kleinste erlaubte Maß. Ein Istmaß genau auf dem Grenzmaß ist in Ordnung.'
+    }
+],
+// ---------------------------------------------------------------- Modul 5
+5: [
+    {
+        type: 'match',
+        q: 'Am Beispiel <strong>Ø30 h6</strong>: Was legt welcher Teil fest?',
+        options: ['Größe des Bauteils (Nennmaß)', 'Lage des Toleranzfeldes (Grundabmaß)', 'Größe der Toleranz (Toleranzgrad)'],
+        items: [
+            { left: '30', answer: 'Größe des Bauteils (Nennmaß)' },
+            { left: 'h', answer: 'Lage des Toleranzfeldes (Grundabmaß)' },
+            { left: '6', answer: 'Größe der Toleranz (Toleranzgrad)' }
+        ],
+        hint: 'Der Buchstabe sagt „wo“, die Zahl dahinter sagt „wie viel“.',
+        explanation: '30 = Nennmaß, h = Grundabmaß (Lage), 6 = Toleranzgrad (Größe der Toleranz).'
+    },
+    function () {
+        const B = ['H7', 'G7', 'F8', 'K6', 'M6', 'N7', 'H8', 'JS7', 'P7'];
+        const W = ['h6', 'g6', 'f7', 'k6', 'm6', 'js6', 'h9', 'p6', 'r6'];
+        const d = () => rnd([6, 10, 12, 16, 20, 25, 30, 40, 50, 60, 80]);
+        const nb = rint(2, 3);
+        const items = shuffle([
+            ...pickN(B, nb).map(x => ({ left: 'Ø' + d() + ' ' + x, answer: 'Bohrung' })),
+            ...pickN(W, 5 - nb).map(x => ({ left: 'Ø' + d() + ' ' + x, answer: 'Welle' }))
+        ]);
+        return {
+            type: 'match', q: 'Bohrung oder Welle?', options: ['Bohrung', 'Welle'], items,
+            hint: 'Achte nur auf den Buchstaben: groß oder klein?',
+            explanation: 'Großbuchstaben (H, G, K ...) stehen für Bohrungen. Kleinbuchstaben (h, g, k ...) für Wellen.'
+        };
+    },
+    function () {
+        const a = rint(2, 60), b = rint(100, 160), c = rint(5, 99);
+        return {
+            type: 'num',
+            q: 'Rechne um. Denk daran: <strong>1 µm = 0,001 mm</strong>.',
+            fields: [
+                { label: a + ' µm =', unit: 'mm', ans: a, errors: [{ v: a * 10, msg: 'Eine Null zu wenig: 1 µm = 0,001 mm.' }, { v: Math.round(a / 10), msg: 'Eine Null zu viel.' }] },
+                { label: b + ' µm =', unit: 'mm', ans: b, errors: [{ v: b * 10, msg: 'Eine Null zu wenig: 1 µm = 0,001 mm.' }] },
+                { label: mm(c, 3) + ' mm =', unit: 'µm', ans: c }
+            ],
+            hint: 'Von µm zu mm: durch 1000 teilen, also das Komma um 3 Stellen nach links schieben.',
+            explanation: a + ' µm = ' + mm(a, 3) + ' mm. ' + b + ' µm = ' + mm(b, 3) + ' mm. ' + mm(c, 3) + ' mm = ' + c + ' µm.'
+        };
+    },
+    function () {
+        const art = rnd(['grad', 'nenn', 'buchst']);
+        const NS = [5, 8, 12, 25, 40, 60, 100];
+        let A, B, corr, expl;
+        if (art === 'grad') {
+            const n = rnd(NS), L1 = rnd(['H', 'h', 'G', 'f']);
+            const [g1, g2] = pickN([6, 7, 8, 9, 11], 2).sort((x, y) => x - y);
+            A = 'Ø' + n + ' ' + L1 + g1; B = 'Ø' + n + ' ' + L1 + g2; corr = B;
+            expl = 'Gleiches Nennmaß, aber ' + B + ' hat den größeren Toleranzgrad. Deshalb ist die Toleranz größer.';
+        } else if (art === 'nenn') {
+            const [n1, n2] = pickN(NS, 2).sort((x, y) => x - y);
+            const tk = rnd(['H7', 'h6', 'g6', 'H8']);
+            A = 'Ø' + n1 + ' ' + tk; B = 'Ø' + n2 + ' ' + tk; corr = B;
+            expl = 'Gleiche Toleranzklasse, aber ' + B + ' hat das größere Nennmaß. Deshalb ist die Toleranz größer.';
+        } else {
+            const n = rnd(NS), g = rnd([6, 7, 8]);
+            const [l1, l2] = pickN(['H', 'G', 'F', 'K'], 2);
+            A = 'Ø' + n + ' ' + l1 + g; B = 'Ø' + n + ' ' + l2 + g; corr = 'beide gleich';
+            expl = 'Gleiches Nennmaß und gleicher Toleranzgrad. Der Buchstabe ändert nur die Lage, nicht die Größe.';
+        }
+        const opts = shuffle([A, B]).concat(['beide gleich']);
+        return {
+            type: 'mc', q: 'Welches Maß hat die größere Toleranz? <strong>' + A + '</strong> oder <strong>' + B + '</strong>?',
+            options: opts, correct: opts.indexOf(corr),
+            hint: 'Vergleiche: Nennmaß, Buchstabe und Zahl. Was ist gleich, was ist anders?',
+            explanation: expl
+        };
+    },
+    function () {
+        const bohr = Math.random() < 0.5;
+        const n = rnd([10, 20, 25, 30, 40, 50, 60]);
+        const g = rnd([6, 7, 8]);
+        const opts = ['das Höchstmaß', 'das Mindestmaß', 'keines von beiden'];
+        return {
+            type: 'mc',
+            q: '<strong>Ø' + n + ' ' + (bohr ? 'H' : 'h') + g + '</strong>: Welches Grenzmaß ist genau gleich dem Nennmaß ' + n + ' mm?',
+            options: opts, correct: bohr ? 1 : 0,
+            hint: 'Bei H und h ist das Grundabmaß 0. Bei der Bohrung H ist EI = 0, bei der Welle h ist es = 0.',
+            explanation: bohr ? 'Bohrung H: EI = 0. Das Mindestmaß ist ' + n + ' mm, das Toleranzfeld liegt darüber.'
+                              : 'Welle h: es = 0. Das Höchstmaß ist ' + n + ' mm, das Toleranzfeld liegt darunter.'
+        };
+    }
+],
+// ---------------------------------------------------------------- Modul 6
+6: [
+    {
+        type: 'match',
+        q: 'Welche Toleranzart hat welches Maß auf Tims Zeichnung?',
+        options: ['frei gewählte Toleranz', 'Allgemeintoleranz', 'ISO-Toleranz'],
+        items: TIM.map(x => ({
+            left: x.m,
+            answer: /[a-zA-Z]\d$/.test(x.m) ? 'ISO-Toleranz' : (x.m.indexOf('±') >= 0 ? 'frei gewählte Toleranz' : 'Allgemeintoleranz')
+        })),
+        hint: 'Buchstabe und Zahl = ISO-Toleranz. Abmaße direkt dahinter = frei gewählt. Gar keine Angabe = Allgemeintoleranz.',
+        explanation: 'ISO-Toleranzen: Ø30 h6, Ø25 g6, Ø6 H7. Frei gewählt: 15 ±0,1. Alle anderen sind Freimaße mit Allgemeintoleranz ISO 2768-m.'
+    },
+    {
+        type: 'order',
+        q: 'In welcher Reihenfolge prüfst du ein Maß?',
+        steps: [
+            'Die Toleranzart des Maßes bestimmen.',
+            'Die Abmaße ermitteln (aus der Zeichnung oder dem Tabellenbuch).',
+            'Höchstmaß und Mindestmaß berechnen.',
+            'Das Istmaß mit Höchst- und Mindestmaß vergleichen.',
+            'Entscheiden: Ist das Maß in Ordnung?'
+        ],
+        hint: 'Bevor du rechnen kannst, musst du wissen, wo die Abmaße stehen. Die Entscheidung kommt ganz am Ende.',
+        explanation: 'Toleranzart → Abmaße → Grenzmaße → Vergleich → Entscheidung.'
+    },
+    isoTask,
+    {
+        type: 'num', book: true,
+        q: 'Jetzt Tims Welle: Bestimme Höchstmaß und Mindestmaß der drei ISO-Toleranzen mit deinem Tabellenbuch.',
+        note: 'Alle Werte in mm mit drei Nachkommastellen, z. B. 29,987.',
+        fields: [
+            { label: 'Ø30 h6 Höchstmaß', unit: 'mm', ans: 30000 },
+            { label: 'Ø30 h6 Mindestmaß', unit: 'mm', ans: 29987, errors: [{ v: 29979, msg: 'Das ist IT7. Bei h6 brauchst du IT6.' }] },
+            { label: 'Ø25 g6 Höchstmaß', unit: 'mm', ans: 24993, errors: [{ v: 25007, msg: 'Prüfe das Vorzeichen: Bei g ist es negativ.' }] },
+            { label: 'Ø25 g6 Mindestmaß', unit: 'mm', ans: 24980, errors: [{ v: 24994, msg: 'ei = es − IT. Beide Werte sind negativ.' }] },
+            { label: 'Ø6 H7 Höchstmaß', unit: 'mm', ans: 6012, errors: [{ v: 6015, msg: 'Achtung: Ø6 gehört zum Bereich 3 ... 6, denn „bis“ heißt „bis einschließlich“.' }] },
+            { label: 'Ø6 H7 Mindestmaß', unit: 'mm', ans: 6000 }
+        ],
+        hint: 'h6 und g6 sind Wellen (es steht im Tabellenbuch). H7 ist eine Bohrung (EI = 0).',
+        explanation: 'Ø30 h6: es = 0, ei = −13 µm → 30,000 / 29,987 mm.<br>Ø25 g6: es = −7 µm, ei = −20 µm → 24,993 / 24,980 mm.<br>Ø6 H7: EI = 0, ES = +12 µm → 6,012 / 6,000 mm.'
+    },
+    {
+        type: 'match', shuffle: false,
+        q: 'Vergleiche Tims Istmaße mit den Grenzmaßen. Für die Freimaße gilt ISO 2768-m. Welche Maße sind in Ordnung?',
+        options: ['in Ordnung', 'nicht in Ordnung'],
+        items: TIM.map(x => ({ left: x.m + ' (Istmaß ' + mm(x.ist, x.ist % 10 ? 3 : 2) + ' mm)', answer: (x.ist >= x.Gu && x.ist <= x.Go) ? 'in Ordnung' : 'nicht in Ordnung' })),
+        hint: 'Rechne für jedes Maß Höchst- und Mindestmaß aus. Für Ø40, 40 und 120 gilt ±0,3 mm, für 10 und die Fase ±0,2 mm.',
+        explanation: '8 von 9 Maßen sind in Ordnung. Nur Ø25 g6 passt nicht: Istmaß 24,996 mm, Höchstmaß 24,993 mm.'
+    },
+    {
+        type: 'num',
+        q: 'Ø25 g6 ist nicht in Ordnung. Frau Keller fragt: „Müssen wir die Welle verschrotten?“',
+        fields: [
+            { label: 'Das Istmaß ist ...', kind: 'select', options: ['zu groß', 'zu klein'], ans: 'zu groß' },
+            { label: 'Um wie viel?', unit: 'mm', ans: 3, errors: [{ v: 16, msg: 'Vergleiche mit dem Höchstmaß 24,993 mm, nicht mit dem Mindestmaß.' }] },
+            { label: 'Was tun?', kind: 'select', options: ['nacharbeiten', 'verschrotten', 'so in die Montage geben'], ans: 'nacharbeiten',
+              errors: [{ v: 'so in die Montage geben', msg: 'Auch 0,003 mm zu viel sind zu viel. Das Kugellager passt sonst nicht richtig.' }] }
+        ],
+        hint: 'Rechne Istmaß minus Höchstmaß. Und: Kann man von einer zu dicken Welle noch Material wegnehmen?',
+        explanation: '24,996 − 24,993 = <strong>0,003 mm</strong> zu groß. Die Welle ist zu dick. Man kann sie nacharbeiten, z. B. schleifen.'
+    },
+    {
+        type: 'mc',
+        q: 'Warum bekommen nicht alle Maße der Welle eine enge ISO-Toleranz wie h6?',
+        options: ['Weil enge Toleranzen teuer sind. Man toleriert nur so eng, wie es für die Funktion nötig ist.',
+                  'Weil der Zeichner sonst zu viel schreiben müsste.',
+                  'Weil ISO-Toleranzen nur für Bohrungen gelten.',
+                  'Weil man enge Toleranzen nicht messen kann.'],
+        correct: 0,
+        hint: 'Denk an Maschinen, Messmittel und Arbeitszeit.',
+        explanation: 'Enge Toleranzen brauchen genauere Maschinen, genauere Messmittel und mehr Zeit. Deshalb nur dort, wo es nötig ist, z. B. am Lagersitz.'
+    }
+]
+};
+
+// =====================================================================
+// Aufgaben-Engine für die Lernmodule (Aufbau wie die C#-Vorlage)
+// Aufgabentypen: mc (Auswahl), num (Zahlen eingeben, auch mit Auswahlfeldern),
+//                match (Zuordnen), order (Reihenfolge)
+// Eine Aufgabe ist ein Objekt oder eine Funktion, die ein Objekt liefert.
+// Funktionen erzeugen bei jedem Öffnen neue Zahlen ("Neue Zahlen"-Knopf).
+// Längen werden intern als ganze Zahlen in µm gespeichert (keine Rundungsfehler).
+// =====================================================================
+
+let completedModules = new Set();
+let basicQuizPassed = false;
+let current = {};
+
+// ---------- Hilfsfunktionen ----------
+function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function rint(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function shuffle(a) {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+function pickN(arr, n) { return shuffle(arr).slice(0, n); }
+
+// µm -> "24,9" (mm). dec = Nachkommastellen, sonst so wenig wie nötig (mind. 1)
+function mm(um, dec) {
+    if (dec === undefined) {
+        const a = Math.abs(um);
+        dec = (a % 100 === 0) ? 1 : (a % 10 === 0) ? 2 : 3;
+    }
+    return (um < 0 ? '−' : '') + (Math.abs(um) / 1000).toFixed(dec).replace('.', ',');
+}
+// mit Vorzeichen: +0,2 / −0,1 / 0
+function mmS(um, dec) { return um === 0 ? '0' : (um > 0 ? '+' : '') + mm(um, dec); }
+// µm mit Vorzeichen: +15 / −7 / 0
+function umS(v) { return v === 0 ? '0' : (v > 0 ? '+' : '−') + Math.abs(v); }
+function num(n) { return String(n).replace('.', ','); }
+
+function parseNum(s) {
+    s = (s || '').trim().replace(/\s+/g, '').replace(/(mm|µm|um)$/i, '')
+        .replace(/[−–]/g, '-').replace('±', '').replace(',', '.');
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+    return parseFloat(s);
+}
+
+const TYPE_LABEL = {
+    mc: '✅ Auswählen',
+    num: '🔢 Rechnen',
+    match: '🔗 Zuordnen',
+    order: '↕️ Reihenfolge'
+};
+const TYPE_NOTE = {
+    mc: 'Klicke die richtige Antwort an.',
+    num: 'Tippe deine Ergebnisse ein. Komma oder Punkt ist egal.',
+    match: 'Wähle bei jeder Zeile die passende Antwort aus.',
+    order: 'Bringe die Schritte mit ▲ und ▼ in die richtige Reihenfolge.'
+};
+
+// ---------- Aufgabe vorbereiten ----------
+function resolveTask(def) {
+    const generated = (typeof def === 'function');
+    const t = generated ? def() : JSON.parse(JSON.stringify(def));
+    t.regen = generated;
+    if (t.type === 'match') {
+        const items = (t.shuffle === false) ? t.items : shuffle(t.items);
+        t.fields = items.map(it => ({ label: it.left, kind: 'select', options: t.options, ans: it.answer, errors: it.errors }));
+    }
+    // typische Fehlerwerte, die zufällig gleich der Lösung sind, entfernen
+    (t.fields || []).forEach(f => { if (f.errors) f.errors = f.errors.filter(e => e.v !== f.ans); });
+    if (t.type === 'order') {
+        let cur;
+        do { cur = shuffle(t.steps.map((s, k) => k)); } while (cur.every((v, k) => v === k));
+        t.cur = cur;
+    }
+    return t;
+}
+
+function qDiv(n, i) { return document.querySelector('.quiz-question[data-module="' + n + '"][data-question="' + i + '"]'); }
+
+// ---------- Darstellung ----------
+function renderTask(n, i) {
+    const t = current[n][i];
+    const id = n + '_' + i;
+    let h = '<div class="quiz-question task-' + t.type + '" data-module="' + n + '" data-question="' + i + '">';
+    h += '<div class="task-head"><span class="task-type">' + TYPE_LABEL[t.type] + '</span>' +
+         (t.book ? '<span class="task-book">📘 Tabellenbuch</span>' : '') + '</div>';
+    h += '<p>' + (i + 1) + '. ' + t.q + '</p>';
+    if (t.svg) h += '<div class="sketch">' + t.svg + '</div>';
+    h += '<div class="task-note">' + (t.note || TYPE_NOTE[t.type]) + '</div>';
+
+    if (t.type === 'mc') {
+        t.options.forEach((opt, j) => {
+            h += '<div class="quiz-option" onclick="answerMC(' + n + ',' + i + ',' + j + ')">' +
+                 '<input type="radio" name="q' + id + '" id="q' + id + '_' + j + '">' +
+                 '<label for="q' + id + '_' + j + '">' + opt + '</label></div>';
+        });
+    } else if (t.type === 'order') {
+        h += '<ol class="order-list">';
+        t.cur.forEach((si, pos) => {
+            h += '<li class="order-item"><span class="order-text">' + t.steps[si] + '</span>' +
+                 '<span class="order-btns">' +
+                 '<button type="button" onclick="moveStep(' + n + ',' + i + ',' + pos + ',-1)" aria-label="nach oben"' + (pos === 0 ? ' disabled' : '') + '>▲</button>' +
+                 '<button type="button" onclick="moveStep(' + n + ',' + i + ',' + pos + ',1)" aria-label="nach unten"' + (pos === t.cur.length - 1 ? ' disabled' : '') + '>▼</button>' +
+                 '</span></li>';
+        });
+        h += '</ol>';
+    } else {
+        h += '<div class="fields">';
+        t.fields.forEach((f, k) => {
+            const fid = 'in' + id + '_' + k;
+            h += '<div class="field-row" id="row' + id + '_' + k + '">' +
+                 '<label class="field-label" for="' + fid + '">' + f.label + '</label><div class="field-input">';
+            if (f.kind === 'select') {
+                h += '<select id="' + fid + '"><option value="">– bitte wählen –</option>' +
+                     f.options.map(o => '<option>' + o + '</option>').join('') + '</select>';
             } else {
-                feedback.classList.remove('correct');
-                feedback.classList.add('wrong');
-                feedback.textContent = '✗ Noch nicht richtig. Hinweis: ' + question.hint;
-                questionDiv.classList.remove('correct');
-                questionDiv.classList.add('wrong');
+                if (f.prefix) h += '<span class="field-pre">' + f.prefix + '</span>';
+                h += '<input type="text" inputmode="decimal" autocomplete="off" id="' + fid + '"' +
+                     ' onkeydown="if(event.key===\'Enter\')checkTask(' + n + ',' + i + ')">';
+                h += '<span class="field-unit">' + f.unit + '</span>';
             }
-        }
+            h += '</div><div class="field-msg"></div></div>';
+        });
+        h += '</div>';
+    }
 
-        function completeModule(moduleNum) {
-            const module = modules[moduleNum];
-            let allCorrect = true;
-            
-            for (let i = 0; i < module.quiz.length; i++) {
-                const questionDiv = document.querySelector('[data-module="' + moduleNum + '"][data-question="' + i + '"]');
-                if (!questionDiv || !questionDiv.classList.contains('correct')) {
-                    allCorrect = false;
-                    break;
+    h += '<div class="task-buttons">';
+    if (t.type !== 'mc') h += '<button type="button" class="btn-check" onclick="checkTask(' + n + ',' + i + ')">Prüfen</button>';
+    if (t.regen) h += '<button type="button" class="btn-new" onclick="newTask(' + n + ',' + i + ')">🎲 ' + (t.type === 'num' ? 'Neue Zahlen' : 'Neue Aufgabe') + '</button>';
+    h += '</div>';
+    h += '<div class="quiz-feedback" data-feedback="' + n + '-' + i + '"></div></div>';
+    return h;
+}
+
+function setResult(n, i, ok, extra) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    const fb = qd.querySelector('.quiz-feedback');
+    fb.classList.add('show');
+    fb.classList.toggle('correct', ok);
+    fb.classList.toggle('wrong', !ok);
+    qd.classList.toggle('correct', ok);
+    qd.classList.toggle('wrong', !ok);
+    fb.innerHTML = ok ? '✓ Richtig! ' + t.explanation
+                      : '✗ Noch nicht ganz richtig. ' + (extra || '') + 'Hinweis: ' + t.hint;
+    if (ok) qd.querySelectorAll('input[type=text], select').forEach(el => el.disabled = true);
+}
+
+// ---------- Antworten prüfen ----------
+function answerMC(n, i, j) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    qd.querySelectorAll('input[type="radio"]').forEach((r, k) => { r.checked = (k === j); });
+    setResult(n, i, j === t.correct);
+}
+
+function checkTask(n, i) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    let ok = true, empty = false;
+
+    if (t.type === 'order') {
+        ok = t.cur.every((v, k) => v === k);
+        qd.querySelectorAll('.order-item').forEach((li, pos) => {
+            li.classList.toggle('ok', t.cur[pos] === pos);
+            li.classList.toggle('bad', t.cur[pos] !== pos);
+        });
+        setResult(n, i, ok);
+        return;
+    }
+
+    t.fields.forEach((f, k) => {
+        const row = document.getElementById('row' + n + '_' + i + '_' + k);
+        const el = row.querySelector('input, select');
+        const msgEl = row.querySelector('.field-msg');
+        let good = false, msg = '';
+        if (f.kind === 'select') {
+            if (!el.value) { msg = 'Bitte wähle etwas aus.'; empty = true; }
+            else {
+                good = (el.value === f.ans);
+                const e = !good && f.errors && f.errors.find(e => e.v === el.value);
+                if (e) msg = e.msg;
+            }
+        } else {
+            const v = parseNum(el.value);
+            if (el.value.trim() === '') { msg = 'Bitte trage eine Zahl ein.'; empty = true; }
+            else if (isNaN(v)) { msg = 'Das ist keine Zahl. Beispiel: 24,98'; }
+            else {
+                let x = (f.unit === 'µm') ? Math.round(v) : Math.round(v * 1000);
+                if (f.prefix === '±') x = Math.abs(x);
+                good = (x === f.ans) && (f.unit !== 'µm' || Math.abs(v - Math.round(v)) < 1e-9);
+                if (!good) {
+                    const e = f.errors && f.errors.find(e => e.v === x);
+                    if (e) msg = e.msg;
+                    else if (f.positive && x === -f.ans) msg = 'Die Toleranz ist immer positiv.';
                 }
             }
-            
-            if (!allCorrect) {
-                alert('Bitte beantworte zuerst alle Fragen richtig. Dann kannst du das Modul abschließen.');
-                return;
-            }
-            
-            completedModules.add(moduleNum);
-            checkUnlocks();
-            updateProgress();
-            
-            alert('🎉 Modul ' + moduleNum + ' geschafft!');
-            backToOverview();
         }
+        row.classList.toggle('ok', good);
+        row.classList.toggle('bad', !good);
+        msgEl.textContent = msg;
+        if (!good) ok = false;
+    });
+    setResult(n, i, ok, empty ? 'Es fehlen noch Eingaben. ' : '');
+}
 
-        function backToOverview() {
-            document.getElementById('module-grid').style.display = 'grid';
-            document.getElementById('module-content-container').innerHTML = '';
-            window.scrollTo(0, 0);
-        }
+function moveStep(n, i, pos, dir) {
+    const t = current[n][i];
+    const p2 = pos + dir;
+    if (p2 < 0 || p2 >= t.cur.length) return;
+    [t.cur[pos], t.cur[p2]] = [t.cur[p2], t.cur[pos]];
+    qDiv(n, i).outerHTML = renderTask(n, i);
+}
 
-        function checkUnlocks() {
-            if (completedModules.has(1) && completedModules.has(2) && completedModules.has(3) && completedModules.has(4)) {
-                if (!basicQuizPassed) {
-                    basicQuizPassed = true;
-                    alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module 5 und 6 sind jetzt frei!');
-                    
-                    const card5 = document.getElementById('card-5');
-                    card5.classList.remove('locked');
-                    card5.querySelector('.module-description').textContent = "Was bedeutet Ø30 h6? Grundabmaß, Toleranzgrad und Mikrometer.";
-                    
-                    const card6 = document.getElementById('card-6');
-                    card6.classList.remove('locked');
-                    card6.querySelector('.module-description').textContent = "Abmaße mit dem Tabellenbuch bestimmen und Tims Welle prüfen.";
-                }
-            }
-        }
+function newTask(n, i) {
+    current[n][i] = resolveTask(TASKS[n][i]);
+    qDiv(n, i).outerHTML = renderTask(n, i);
+}
 
-        function updateProgress() {
-            const totalModules = 6;
-            const progress = (completedModules.size / totalModules) * 100;
-            document.getElementById('progress').style.width = progress + '%';
-            document.getElementById('progress').textContent = completedModules.size + ' von ' + totalModules + ' Modulen abgeschlossen';
-            
-            for (let i = 1; i <= totalModules; i++) {
-                const card = document.getElementById('card-' + i);
-                if (card && completedModules.has(i)) {
-                    card.classList.add('completed');
-                }
-            }
-            
-            if (completedModules.size === totalModules) {
-                document.getElementById('badge').classList.add('show');
-            }
+// ---------- Module öffnen und abschließen ----------
+function openModule(moduleNum) {
+    if (moduleNum > 4 && !basicQuizPassed) {
+        alert('🔒 Dieses Modul ist noch gesperrt. Schließe zuerst die Module 1 bis 4 ab!');
+        return;
+    }
+    document.getElementById('module-grid').style.display = 'none';
+    const module = modules[moduleNum];
+    current[moduleNum] = TASKS[moduleNum].map(resolveTask);
+
+    let html = '<div class="module-content active">' +
+               '<h2>' + module.title + '</h2>' + module.content +
+               '<div class="quiz-section"><h3>📝 Verständnis-Check</h3>';
+    for (let i = 0; i < current[moduleNum].length; i++) html += renderTask(moduleNum, i);
+    html += '</div>' +
+            '<button class="btn btn-back" onclick="backToOverview()">← Übersicht</button>' +
+            '<button class="btn" onclick="completeModule(' + moduleNum + ')">Modul abschließen →</button>' +
+            '</div>';
+    document.getElementById('module-content-container').innerHTML = html;
+    window.scrollTo(0, 0);
+}
+
+function completeModule(moduleNum) {
+    for (let i = 0; i < current[moduleNum].length; i++) {
+        const qd = qDiv(moduleNum, i);
+        if (!qd || !qd.classList.contains('correct')) {
+            alert('Aufgabe ' + (i + 1) + ' ist noch nicht richtig gelöst. Löse zuerst alle Aufgaben. Dann kannst du das Modul abschließen.');
+            qd.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
         }
+    }
+    completedModules.add(moduleNum);
+    checkUnlocks();
+    updateProgress();
+    alert('🎉 Modul ' + moduleNum + ' geschafft!');
+    backToOverview();
+}
+
+function backToOverview() {
+    document.getElementById('module-grid').style.display = 'grid';
+    document.getElementById('module-content-container').innerHTML = '';
+    window.scrollTo(0, 0);
+}
+
+function checkUnlocks() {
+    if ([1, 2, 3, 4].every(m => completedModules.has(m)) && !basicQuizPassed) {
+        basicQuizPassed = true;
+        alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module 5 und 6 sind jetzt frei!');
+        [5, 6].forEach(m => {
+            const card = document.getElementById('card-' + m);
+            card.classList.remove('locked');
+            card.querySelector('.module-description').textContent = UNLOCK_TEXT[m];
+        });
+    }
+}
+
+function updateProgress() {
+    const total = Object.keys(modules).length;
+    const bar = document.getElementById('progress');
+    bar.style.width = (completedModules.size / total * 100) + '%';
+    bar.textContent = completedModules.size + ' von ' + total + ' Modulen abgeschlossen';
+    completedModules.forEach(m => {
+        const card = document.getElementById('card-' + m);
+        if (card) card.classList.add('completed');
+    });
+    if (completedModules.size === total) document.getElementById('badge').classList.add('show');
+}
+
     </script>
 </body>
 </html>
