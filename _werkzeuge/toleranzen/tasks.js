@@ -2,6 +2,7 @@
 // Aufgaben für das Modul "Toleranzen"
 // Alle Längen intern in µm (ganze Zahlen). Hilfsfunktionen aus engine.js.
 // Aus dem Tabellenbuch stehen hier nur einzelne Lösungswerte für die Übungsfälle.
+// Keine Seitenzahlen nennen: Das Modul soll mit jeder Auflage funktionieren.
 // =====================================================================
 
 const UNLOCK_TEXT = {
@@ -103,7 +104,7 @@ function allgTask(pool) {
     return {
         type: 'num', book: true,
         q: 'Maß <strong>' + c.txt + '</strong> ohne Toleranzangabe. Im Schriftfeld steht <strong>ISO 2768-' + c.k + '</strong>. ' +
-           'Bestimme die Werte mit deinem Tabellenbuch (S. 98).',
+           'Bestimme die Werte mit der Tabelle „Allgemeintoleranzen“ in deinem Tabellenbuch.',
         fields: [
             { label: 'Anwendungsbereich', kind: 'select', options: [L, K, 'Winkelmaß'], ans: c.typ,
               errors: [{ v: L, msg: 'Rundungen (R) und Fasen sind gebrochene Kanten.' }, { v: K, msg: 'Längen und Durchmesser sind Längenmaße.' }] },
@@ -161,7 +162,7 @@ function isoTask() {
     return {
         type: 'num', book: true,
         q: 'Bestimme für <strong>' + c.a + '</strong> die Grundtoleranz, die Abmaße und die Grenzmaße. ' +
-           'Nimm dein Tabellenbuch (S. 90 bis 92).',
+           'Nimm dein Tabellenbuch (Grundtoleranzen und Grundabmaße).',
         note: 'Abmaße in µm mit Vorzeichen eingeben, z. B. −25 oder +15. Grenzmaße in mm.',
         fields: [
             { label: 'Grundtoleranz IT', unit: 'µm', ans: c.IT, errors: itErr },

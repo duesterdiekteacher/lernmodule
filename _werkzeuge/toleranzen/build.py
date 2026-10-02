@@ -321,7 +321,7 @@ M[3] = dict(
 <li>Grenzabmaße ablesen.</li>
 </ol>
 <div class="info-box"><h4>⚠️ Achtung beim Ablesen</h4><p>„über 30 bis 120“ heißt: größer als 30 mm und <strong>bis einschließlich</strong> 120 mm. Das Maß 30 mm gehört also noch zum Bereich „über 6 bis 30“.</p></div>
-{BOOK("Tabelle „Allgemeintoleranzen für Längen- und Winkelmaße“. In eurem Tabellenbuch auf Seite 98.")}
+{BOOK("Suche im Tabellenbuch die Tabelle „Allgemeintoleranzen“. Tipp: Schau im Inhaltsverzeichnis oder im Sachwortverzeichnis nach.")}
 
 <h3>Beispiel: Längenmaß 75 mm, ISO 2768-m</h3>
 {table(["Schritt", "Vorgehen"], [
@@ -338,7 +338,7 @@ M[3] = dict(
 <p>Klassen: <strong>f</strong> fein, <strong>m</strong> mittel, <strong>c</strong> grob, <strong>v</strong> sehr grob. Die Abmaße sind immer symmetrisch (±).</p>
 <p>Drei Teile der Tabelle: <strong>Längenmaße</strong> (auch Durchmesser), <strong>gebrochene Kanten</strong> (Rundungen, Fasen), <strong>Winkelmaße</strong>.</p>
 <div class="info-box"><h4>⚠️ Achtung</h4><p>„über 30 bis 120“ heißt: bis <strong>einschließlich</strong> 120. 30 mm gehört noch zu „über 6 bis 30“.</p></div>
-{BOOK("Tabelle „Allgemeintoleranzen für Längen- und Winkelmaße“, Seite 98.")}
+{BOOK("Tabelle „Allgemeintoleranzen“. Tipp: Sachwortverzeichnis.")}
 <p><strong>Beispiel:</strong> 75 mm, ISO 2768-m → ±0,3 mm → Höchstmaß 75,3 mm, Mindestmaß 74,7 mm.</p>
 """,
  )
@@ -441,7 +441,7 @@ M[6] = dict(
 <li><strong>Grundtoleranzen:</strong> Dort steht die Toleranz IT (in µm). Zeile = Nennmaßbereich, Spalte = Toleranzgrad.</li>
 <li><strong>Grundabmaße</strong> für Wellen oder Bohrungen: Dort steht <strong>ein</strong> Abmaß. Das zweite Abmaß rechnest du aus.</li>
 </ul>
-{BOOK("Grundtoleranzen: Seite 90. Grundabmaße für Wellen: Seite 91. Grundabmaße für Bohrungen: Seite 92.")}
+{BOOK("Du brauchst drei Tabellen: „Grundtoleranzen“, „Grundabmaße für Wellen“ und „Grundabmaße für Bohrungen“. Tipp: Schau im Inhaltsverzeichnis oder im Sachwortverzeichnis unter „ISO-Passungen“ oder „Toleranzen“ nach.")}
 {table(["Toleranzklasse", "Im Tabellenbuch steht ...", "Zweites Abmaß"], [
   ["Wellen a bis h", "es (oberes Abmaß)", "ei = es − IT"],
   ["Wellen j bis s", "ei (unteres Abmaß)", "es = ei + IT"],
@@ -473,7 +473,7 @@ M[6] = dict(
 """,
  short=f"""
 <h3>Abmaße bestimmen</h3>
-{BOOK("Grundtoleranzen: S. 90. Grundabmaße Wellen: S. 91. Grundabmaße Bohrungen: S. 92.")}
+{BOOK("Tabellen „Grundtoleranzen“, „Grundabmaße für Wellen“ und „Grundabmaße für Bohrungen“. Tipp: Sachwortverzeichnis.")}
 {table(["Toleranzklasse", "Im Tabellenbuch", "Zweites Abmaß"], [
   ["Wellen a bis h", "es", "ei = es − IT"],
   ["Wellen j bis s", "ei", "es = ei + IT"],

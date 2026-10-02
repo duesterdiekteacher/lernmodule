@@ -15,7 +15,8 @@
 - Vorher fragen, zu welchem Bereich es gehört: Metall oder SHK.
 - Erst nach OK der Lehrkraft nach `main` pushen.
 - Keine personenbezogenen Daten. Das Repository ist öffentlich.
-- Nichts aus Fachkundebuch oder Tabellenbuch hochladen: keine Scans, keine abgeschriebenen Tabellen oder Texte. Die Schüler arbeiten mit ihrem eigenen Tabellenbuch. Im Modul nur Hinweise wie „Tabellenbuch S. 91“ und einzelne Werte in Beispielen und Lösungen.
+- Nichts aus Fachkundebuch oder Tabellenbuch hochladen: keine Scans, keine abgeschriebenen Tabellen oder Texte. Die Schüler arbeiten mit ihrem eigenen Tabellenbuch. Im Modul nur einzelne Werte in Beispielen und Lösungen.
+- Keine Seitenzahlen aus dem Tabellenbuch nennen. Das Modul soll auch mit einer neuen Auflage funktionieren. Stattdessen den Namen der Tabelle nennen und auf Inhalts- oder Sachwortverzeichnis verweisen.
 - Lerntexte selbst formulieren (kurze Sätze, LRS-freundlich), nicht aus Büchern übernehmen.
 
 ## Erzeugung
