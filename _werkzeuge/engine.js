@@ -1,6 +1,6 @@
 // =====================================================================
 // Aufgaben-Engine für die Lernmodule (Aufbau wie die C#-Vorlage)
-// Aufgabentypen: mc (Auswahl), num (Zahlen eingeben, auch mit Auswahlfeldern),
+// Aufgabentypen: mc (Auswahl), num (Zahlen eingeben, auch mit Auswahlfeldern; tol = Spielraum),
 //                match (Zuordnen), order (Reihenfolge)
 // Eine Aufgabe ist ein Objekt oder eine Funktion, die ein Objekt liefert.
 // Funktionen erzeugen bei jedem Öffnen neue Zahlen ("Neue Zahlen"-Knopf).
@@ -190,7 +190,9 @@ function checkTask(n, i) {
             else {
                 let x = (f.unit === 'µm') ? Math.round(v) : Math.round(v * 1000);
                 if (f.prefix === '±') x = Math.abs(x);
-                good = (x === f.ans) && (f.unit !== 'µm' || Math.abs(v - Math.round(v)) < 1e-9);
+                // tol: erlaubter Spielraum (gleiche Einheit wie ans), z. B. für Werte aus verschiedenen Tabellenbüchern
+                good = f.tol ? Math.abs(x - f.ans) <= f.tol
+                             : (x === f.ans) && (f.unit !== 'µm' || Math.abs(v - Math.round(v)) < 1e-9);
                 if (!good) {
                     const e = f.errors && f.errors.find(e => e.v === x);
                     if (e) msg = e.msg;

@@ -23,6 +23,7 @@
 ## Erzeugung
 - Die drei Varianten eines Moduls werden aus einer gemeinsamen Quelle erzeugt, damit die Aufgaben überall gleich sind.
 - `_werkzeuge/engine.js`: gemeinsame Aufgaben-Engine für alle Module. Typen: `mc` (Auswahl), `num` (Zahlen eingeben, auch mit Auswahlfeldern), `match` (Zuordnen), `order` (Reihenfolge). Aufgaben als Funktion erzeugen neue Zufallszahlen („Neue Zahlen“). Längen intern als ganze Zahlen in µm.
+  - `num`-Felder können `tol` haben (erlaubter Spielraum). Nötig für Werte, die je nach Tabellenbuch leicht abweichen, z. B. die Dichte.
 - `_werkzeuge/<thema>/build.py` + `tasks.js`: Lerntexte und Aufgaben eines Themas. Bauen mit `python3 _werkzeuge/<thema>/build.py`, das schreibt die drei HTML-Dateien in den Themenordner.
 - Lösungswerte aus Tabellen (ISO 2768, ISO 286) nur als einzelne Übungsfälle in `tasks.js`, nie ganze Tabellen. Vor dem Hochladen gegen unabhängige Nachrechnung prüfen.
 - Vor jedem Hochladen im Browser testen: alle Generatoren mehrfach erzeugen, jedes Modul automatisch lösen, Handybreite 375 px.

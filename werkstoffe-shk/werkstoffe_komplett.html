@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Werkstoffe im SHK – Lernmodul</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #38bdf8;
+        }
+        
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #0ea5e9, #22c55e);
+            height: 30px;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .module-card {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #334155;
+        }
+        
+        .module-card:hover:not(.locked) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
+        
+        /* Module 5 und 6 farblich dezent abgesetzt (dunkles Indigo) */
+        .module-card.advanced-card {
+            background: #16122c;
+            border-color: #4c1d95;
+        }
+        
+        .module-card.advanced-card:hover:not(.locked) {
+            border-color: #a855f7;
+            box-shadow: 0 8px 15px rgba(168, 85, 247, 0.2);
+        }
+        
+        .module-card.completed {
+            border-color: #22c55e !important;
+        }
+        
+        .module-card.completed::before {
+            content: "✓";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #22c55e;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .module-card.locked {
+            background: #0f111a;
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        
+        .module-card.locked::before {
+            content: "🔒";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+        }
+        
+        .module-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .module-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #f1f5f9;
+            margin-bottom: 10px;
+        }
+        
+        .module-description {
+            color: #94a3b8;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .module-content {
+            display: none;
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        
+        .module-content.active {
+            display: block;
+        }
+        
+        .module-content h2 {
+            color: #38bdf8;
+            font-size: 32px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+        }
+        
+        .module-content h3 {
+            color: #38bdf8;
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .module-content p {
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        /* Nebeneinander-Layout für Code und UML */
+        .split-layout {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+            table-layout: fixed;
+        }
+        
+        .split-cell-code {
+            display: table-cell;
+            width: 55%;
+            vertical-align: top;
+            padding-right: 20px;
+        }
+        
+        .split-cell-diagram {
+            display: table-cell;
+            width: 45%;
+            vertical-align: top;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.4);
+        }
+        
+        @media (max-width: 850px) {
+            .split-layout, .split-cell-code, .split-cell-diagram {
+                display: block;
+                width: 100%;
+                padding-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Visual Studio Code Dark Highlighting mit Zeilenumbrüchen */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdcdc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            border-left: 4px solid #569cd6;
+            overflow-x: auto;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre; /* Behält Zeilenumbrüche zwingend bei */
+        }
+        
+        .code-keyword { color: #569cd6; }
+        .code-type { color: #4ec9b0; }
+        .code-string { color: #d69d85; }
+        .code-comment { color: #57a64a; font-style: italic; }
+        .code-number { color: #b5cea8; }
+        
+        .info-box {
+            background: #0c4a6e;
+            border-left: 5px solid #0ea5e9;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h4 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .info-box p {
+            color: #e2e8f0;
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+        
+        /* Farbschema für das Quiz bleibt in allen Modulen identisch */
+        .quiz-section {
+            background: #0f172a;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+            border: 1px solid #334155;
+        }
+        
+        .quiz-section h3 {
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-question {
+            background: #1e293b;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 2px solid #334155;
+        }
+        
+        .quiz-question.correct {
+            border-color: #22c55e;
+            background: #064e3b;
+        }
+        
+        .quiz-question.wrong {
+            border-color: #ef4444;
+            background: #7f1d1d;
+        }
+        
+        .quiz-question p {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #f8fafc;
+        }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #334155;
+            transition: background 0.2s, transform 0.1s;
+        }
+        
+        .quiz-option:hover {
+            background: #475569;
+            transform: scale(1.01);
+        }
+        
+        .quiz-option input {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .quiz-option label {
+            cursor: pointer;
+            color: #f1f5f9;
+            width: 100%;
+        }
+        
+        .quiz-feedback {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .quiz-feedback.show {
+            display: block;
+        }
+        
+        .quiz-feedback.correct {
+            background: #10b981;
+            color: white;
+        }
+        
+        .quiz-feedback.wrong {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+        }
+        
+        .btn-back {
+            background: #64748b;
+            margin-right: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #475569;
+        }
+        
+        .badge {
+            display: none;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+        }
+        
+        .badge.show {
+            display: block;
+        }
+        
+        .badge h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+        
+        .badge-icon {
+            font-size: 80px;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        ul li, ol li {
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #1f2937;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #374151;
+        }
+        
+        th {
+            background: #111827;
+            color: #38bdf8;
+        }
+        
+        tr:nth-child(even) {
+            background: #283548;
+        }
+        
+        /* UML Design via SVG */
+        .uml-class-box {
+            fill: #1e293b;
+            stroke: #38bdf8;
+            stroke-width: 2;
+        }
+        .uml-text {
+            fill: #f8fafc;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        .uml-title {
+            font-weight: bold;
+            fill: #38bdf8;
+        }
+        .uml-line {
+            stroke: #334155;
+            stroke-width: 1.5;
+        }
+        .uml-arrow {
+            stroke: #38bdf8;
+            stroke-width: 2;
+            fill: #0f172a;
+        }
+        .uml-arrow-conflict {
+            stroke: #ef4444;
+            stroke-width: 2;
+            fill: #7f1d1d;
+            stroke-dasharray: 4;
+        }
+    
+        .table-wrap { overflow-x: auto; }
+        .table-wrap table { min-width: 420px; }
+        .sketch {
+            text-align: center;
+            margin: 25px 0;
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #334155;
+        }
+        .sketch svg { width: 100%; max-width: 560px; height: auto; }
+        .sketch .caption { font-size: 14px; color: #94a3b8; margin: 10px 0 0 0; }
+        .book-box {
+            background: #3b2a0a;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .book-box h4 { color: #fbbf24; margin-bottom: 10px; font-size: 18px; }
+        .book-box p { color: #fde68a; font-size: 16px; margin-bottom: 0; }
+        .formula {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            color: #e2e8f0;
+            font-size: 18px;
+            line-height: 1.9;
+        }
+        .ok { color: #4ade80; font-weight: bold; }
+        .nok { color: #f87171; font-weight: bold; }
+        .header .book-hint {
+            display: inline-block;
+            margin-top: 15px;
+            background: #3b2a0a;
+            border: 1px solid #f59e0b;
+            color: #fde68a;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 17px;
+        }
+        .progress-fill { min-width: fit-content; padding: 0 14px; white-space: nowrap; }
+        @media (max-width: 600px) {
+            .sketch { overflow-x: auto; padding: 15px 10px; }
+            .sketch svg { min-width: 500px; }
+            .module-content { padding: 22px 16px; }
+            .header h1 { font-size: 32px; }
+            .module-content h2 { font-size: 26px; }
+        }
+
+        /* ---------- Aufgabentypen ---------- */
+        .task-head { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .task-type, .task-book {
+            font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+            background: #0f172a; border: 1px solid #475569; color: #cbd5e1;
+        }
+        .task-book { border-color: #f59e0b; color: #fde68a; background: #3b2a0a; }
+        .task-note { color: #94a3b8; font-size: 15px; margin: -5px 0 12px 0; }
+        .quiz-question .sketch { margin: 10px 0 15px 0; }
+        .fields { display: flex; flex-direction: column; gap: 10px; }
+        .field-row {
+            display: grid; grid-template-columns: minmax(150px, 1fr) minmax(170px, 1.3fr);
+            gap: 4px 14px; align-items: center;
+            background: #273449; border: 2px solid transparent; border-radius: 8px; padding: 10px 12px;
+        }
+        .field-row.ok { border-color: #22c55e; }
+        .field-row.bad { border-color: #ef4444; }
+        .field-label { color: #f1f5f9; font-size: 17px; }
+        .field-input { display: flex; align-items: center; gap: 8px; }
+        .field-input input, .field-input select {
+            background: #0f172a; color: #f8fafc; border: 2px solid #475569; border-radius: 6px;
+            font-size: 18px; padding: 8px 10px; font-family: inherit;
+        }
+        .field-input input { width: 9em; font-family: 'Consolas', 'Courier New', monospace; }
+        .field-input select { width: 100%; max-width: 320px; font-size: 16px; }
+        .field-input input:focus, .field-input select:focus { outline: none; border-color: #38bdf8; }
+        .field-input input:disabled, .field-input select:disabled { opacity: 0.85; }
+        .field-pre, .field-unit { color: #cbd5e1; font-size: 17px; }
+        .field-msg { grid-column: 1 / -1; color: #fecaca; font-size: 15px; }
+        .field-msg:empty { display: none; }
+        .order-list { list-style: decimal; margin-left: 28px; }
+        .order-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: #273449; border: 2px solid transparent; border-radius: 8px;
+            padding: 8px 10px; margin-bottom: 8px; color: #f1f5f9;
+        }
+        .order-item.ok { border-color: #22c55e; }
+        .order-item.bad { border-color: #ef4444; }
+        .order-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .order-btns button {
+            background: #334155; color: #f8fafc; border: 1px solid #64748b; border-radius: 6px;
+            width: 38px; height: 34px; font-size: 15px; cursor: pointer;
+        }
+        .order-btns button:hover:not(:disabled) { background: #475569; }
+        .order-btns button:disabled { opacity: 0.3; cursor: default; }
+        .task-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+        .btn-check, .btn-new {
+            border: none; border-radius: 8px; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+        .btn-check { background: #0ea5e9; color: white; }
+        .btn-check:hover { background: #0284c7; }
+        .btn-new { background: #334155; color: #f1f5f9; border: 1px solid #64748b; }
+        .btn-new:hover { background: #475569; }
+        .quiz-feedback { line-height: 1.6; }
+        @media (max-width: 600px) {
+            .field-row { grid-template-columns: 1fr; }
+            .field-input input { width: 100%; }
+            .quiz-section { padding: 18px 10px; }
+            .quiz-question { padding: 14px 10px; }
+        }
+
+        /* ---------- Werkstoffgruppen (Fehler finden) ---------- */
+        .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; text-align: left; }
+        .group { background: #1e293b; border: 2px solid #475569; border-radius: 10px; padding: 10px; }
+        .group-name { font-weight: bold; font-size: 15px; margin-bottom: 6px; }
+        .group-item { background: #273449; border-radius: 6px; padding: 5px 8px; margin-top: 5px; font-size: 15px; color: #f1f5f9; }
+        .quiz-question .sketch:has(.groups) { padding: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Werkstoffe im SHK 🔧</h1>
+            <p>Welche Werkstoffe gibt es, und wie teilt man sie ein? Am Ende wählst du selbst den passenden Werkstoff.</p>
+            <div class="book-hint">📘 Für Modul 6 brauchst du dein Tabellenbuch.</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%;">0 von 6 Modulen abgeschlossen</div>
+        </div>
+
+        <!-- MODULE GRID -->
+        <div class="module-grid" id="module-grid">
+            <div class="module-card" id="card-1" onclick="openModule(1)">
+                <div class="module-icon">🗂️</div>
+                <div class="module-title">Modul 1: Einteilung der Werkstoffe</div>
+                <div class="module-description">Metalle, Nichtmetalle und Verbundwerkstoffe. Das große Schema.</div>
+            </div>
+
+            <div class="module-card" id="card-2" onclick="openModule(2)">
+                <div class="module-icon">⚙️</div>
+                <div class="module-title">Modul 2: Eisenmetalle</div>
+                <div class="module-description">Stahl, Edelstahl und Gusseisen. Wo setzt man sie im SHK ein?</div>
+            </div>
+
+            <div class="module-card" id="card-3" onclick="openModule(3)">
+                <div class="module-icon">🟠</div>
+                <div class="module-title">Modul 3: Nichteisenmetalle</div>
+                <div class="module-description">Schwermetalle und Leichtmetalle. Kupfer, Zink, Aluminium und Legierungen.</div>
+            </div>
+
+            <div class="module-card" id="card-4" onclick="openModule(4)">
+                <div class="module-icon">🧪</div>
+                <div class="module-title">Modul 4: Kunststoffe</div>
+                <div class="module-description">Thermoplaste, Duroplaste und Elastomere. PE, PP, PVC-U, PE-X und EPDM.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-5" onclick="openModule(5)">
+                <div class="module-icon">🧱</div>
+                <div class="module-title">Modul 5: Verbund und andere Nichtmetalle</div>
+                <div class="module-description">Gesperrt. Schließe zuerst die Module 1 bis 4 ab.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-6" onclick="openModule(6)">
+                <div class="module-icon">🔧</div>
+                <div class="module-title">Modul 6: Den richtigen Werkstoff wählen</div>
+                <div class="module-description">Gesperrt. Danach wählst du Werkstoffe aus und rechnest mit dem Tabellenbuch.</div>
+            </div>
+        </div>
+
+        <!-- MODULE CONTENT SECTIONS -->
+        <div id="module-content-container"></div>
+
+        <!-- BADGE -->
+        <div class="badge" id="badge">
+            <div class="badge-icon">🏅</div>
+            <h2>Herzlichen Glückwunsch!</h2>
+            <p style="font-size: 20px;">Du hast alle Grundlagen- und Profi-Module geschafft.</p>
+            <h2 id="expert-title" style="margin-top: 20px; color: #f8fafc;">WERKSTOFF-PROFI!</h2>
+        </div>
+    </div>
+
+    <script>
+const modules = {
+  "1": {
+    "title": "Modul 1: Einteilung der Werkstoffe",
+    "content": "\n<h3>Was ist ein Werkstoff?</h3>\n<p>Ein <strong>Werkstoff</strong> ist ein Material, aus dem man Bauteile herstellt. Im SHK-Handwerk sind das zum Beispiel Rohre, Fittings, Armaturen, Heizkörper und Dichtungen.</p>\n<p>Es gibt sehr viele Werkstoffe. Damit man den Überblick behält, teilt man sie in <strong>Gruppen</strong> ein.</p>\n\n<h3>Die drei Hauptgruppen</h3>\n<ul>\n<li><strong>Metalle:</strong> z. B. Stahl, Kupfer, Aluminium. Sie leiten Wärme und Strom gut.</li>\n<li><strong>Nichtmetalle:</strong> z. B. Kunststoffe, Glas, Keramik, Holz, Hanf.</li>\n<li><strong>Verbundwerkstoffe:</strong> Mehrere Werkstoffe sind fest miteinander verbunden. Beispiel: das Mehrschichtverbundrohr aus Kunststoff und Aluminium.</li>\n</ul>\n\n<h3>Die Metalle genauer</h3>\n<p>Metalle teilt man nach dem <strong>Eisen</strong> ein:</p>\n<ul>\n<li><strong>Eisenmetalle:</strong> Eisen ist der Hauptbestandteil. Dazu gehören Stahl und Gusseisen.</li>\n<li><strong>Nichteisenmetalle (NE-Metalle):</strong> alle anderen Metalle, z. B. Kupfer, Zink, Aluminium.</li>\n</ul>\n<p>Die Nichteisenmetalle teilt man nach der <strong>Dichte</strong> ein:</p>\n<ul>\n<li><strong>Leichtmetalle:</strong> Dichte <strong>unter 5 kg/dm³</strong>, z. B. Aluminium.</li>\n<li><strong>Schwermetalle:</strong> Dichte <strong>über 5 kg/dm³</strong>, z. B. Kupfer.</li>\n</ul>\n<div class=\"sketch\"><h4 style=\"color:#38bdf8; margin-bottom:10px;\">Einteilung der Werkstoffe</h4><svg viewBox=\"0 0 410 432\" style=\"max-width:520px; min-width:0\" role=\"img\" aria-label=\"Einteilungs-Schema der Werkstoffe\"><path d=\"M22 40 V66 H42\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 82 V108 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 82 V150 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M90 166 V192 H110\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M90 166 V234 H110\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M22 40 V276 H42\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 292 V318 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 292 V360 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M22 40 V402 H42\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><rect x=\"8\" y=\"8\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"20\" y=\"29\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Werkstoffe</text><rect x=\"42\" y=\"50\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#fbbf24\" stroke-width=\"2\"/><text x=\"54\" y=\"71\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Metalle</text><rect x=\"76\" y=\"92\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"113\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Eisenmetalle</text><text x=\"244\" y=\"113\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Stahl, Gusseisen</text><rect x=\"76\" y=\"134\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"155\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Nichteisenmetalle</text><rect x=\"110\" y=\"176\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"122\" y=\"197\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Schwermetalle</text><text x=\"278\" y=\"197\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Kupfer, Zink, Blei</text><rect x=\"110\" y=\"218\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"122\" y=\"239\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Leichtmetalle</text><text x=\"278\" y=\"239\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Aluminium, Titan</text><rect x=\"42\" y=\"260\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#fbbf24\" stroke-width=\"2\"/><text x=\"54\" y=\"281\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Nichtmetalle</text><rect x=\"76\" y=\"302\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"323\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Naturstoffe</text><text x=\"244\" y=\"323\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Holz, Hanf, Naturstein</text><rect x=\"76\" y=\"344\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"365\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">künstliche Stoffe</text><text x=\"244\" y=\"365\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Kunststoffe, Glas, Keramik</text><rect x=\"42\" y=\"386\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#fbbf24\" stroke-width=\"2\"/><text x=\"54\" y=\"407\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Verbundwerkstoffe</text><text x=\"210\" y=\"407\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Verbundrohr, GFK</text></svg><p class=\"caption\">Leichtmetalle: Dichte unter 5 kg/dm³. Schwermetalle: Dichte über 5 kg/dm³.</p></div>\n<div class=\"info-box\"><h4>🧠 Merkhilfe</h4><p>Erste Frage: Metall, Nichtmetall oder Verbund? Bei Metallen: Ist Eisen der Hauptbestandteil? Wenn nein: leichter oder schwerer als 5 kg/dm³?</p></div>\n"
+  },
+  "2": {
+    "title": "Modul 2: Eisenmetalle",
+    "content": "\n<h3>Stahl und Gusseisen</h3>\n<p>Bei Eisenmetallen ist <strong>Eisen</strong> der Hauptbestandteil. Dazu kommt immer etwas <strong>Kohlenstoff</strong>. Der Kohlenstoff entscheidet, ob es Stahl oder Gusseisen ist.</p>\n<div class=\"table-wrap\"><table><tr><th></th><th>Stahl</th><th>Gusseisen</th></tr><tr><td>Kohlenstoff</td><td>bis etwa 2 %</td><td>über 2 %</td></tr><tr><td>Eigenschaften</td><td>zäh, gut verformbar, schweißbar</td><td>spröde, gut gießbar, dämpft Geräusche</td></tr><tr><td>Im SHK z. B.</td><td>Heizkörper, Heizungsrohre, Speicher</td><td>SML-Abwasserrohre, Gussheizkessel</td></tr></table></div>\n\n<h3>Unlegierter Stahl</h3>\n<p>Unlegierter Stahl ist preiswert und fest. Er <strong>rostet</strong> aber, wenn Wasser und Sauerstoff dran kommen.</p>\n<ul>\n<li><strong>C-Stahl-Rohre</strong> sind aus unlegiertem Stahl. Sie sind außen verzinkt oder mit Kunststoff ummantelt. Man verbindet sie mit Pressfittings.</li>\n<li>C-Stahl nimmt man nur für <strong>geschlossene Heizungsanlagen</strong>. Im Heizungswasser ist kaum Sauerstoff.</li>\n<li>Für <strong>Trinkwasser</strong> ist C-Stahl verboten. Trinkwasser enthält viel Sauerstoff. Das Rohr würde innen rosten.</li>\n</ul>\n\n<h3>Edelstahl</h3>\n<p>Edelstahl ist ein <strong>legierter Stahl</strong>. Er enthält viel <strong>Chrom</strong> (mindestens 10,5 %). Das Chrom bildet eine sehr dünne Schutzschicht. Deshalb rostet Edelstahl nicht.</p>\n<p>Im SHK nimmt man Edelstahl z. B. für <strong>Trinkwasser-Pressrohre</strong>, Duschrinnen und Spülen.</p>\n<div class=\"info-box\"><h4>⚠️ Merke</h4><p>Edelstahl ist auch ein Eisenmetall. Er ist kein Nichteisenmetall, obwohl er nicht rostet.</p></div>\n\n<h3>Gusseisen</h3>\n<p>Gusseisen wird flüssig in eine Form gegossen. So kann man auch schwierige Formen herstellen, z. B. die Glieder eines Heizkessels.</p>\n<p><strong>SML-Rohre</strong> für Abwasser sind aus Gusseisen. Sie sind schwer, aber sehr <strong>leise</strong> und <strong>nicht brennbar</strong>.</p>\n"
+  },
+  "3": {
+    "title": "Modul 3: Nichteisenmetalle",
+    "content": "\n<h3>Schwer oder leicht?</h3>\n<p>Nichteisenmetalle teilt man nach der <strong>Dichte</strong> ein. Die Dichte sagt, wie schwer 1 dm³ eines Stoffes ist. 1 dm³ ist so groß wie ein Liter.</p>\n<div class=\"formula\">Dichte unter 5 kg/dm³ → Leichtmetall<br>Dichte über 5 kg/dm³ → Schwermetall</div>\n<div class=\"table-wrap\"><table><tr><th>Metall</th><th>Dichte (ungefähr)</th><th>Gruppe</th></tr><tr><td>Aluminium</td><td>2,7 kg/dm³</td><td>Leichtmetall</td></tr><tr><td>Titan</td><td>4,5 kg/dm³</td><td>Leichtmetall</td></tr><tr><td>Zink</td><td>7,1 kg/dm³</td><td>Schwermetall</td></tr><tr><td>Kupfer</td><td>8,9 kg/dm³</td><td>Schwermetall</td></tr><tr><td>Blei</td><td>11,3 kg/dm³</td><td>Schwermetall</td></tr></table></div>\n\n<h3>Wichtige NE-Metalle im SHK</h3>\n<ul>\n<li><strong>Kupfer:</strong> der klassische Rohrwerkstoff für Trinkwasser, Heizung und Gas. Kupfer lässt sich gut biegen, löten und pressen.</li>\n<li><strong>Zink:</strong> schützt Stahl vor Rost (Verzinken). Dachrinnen sind oft aus <strong>Titanzink</strong>.</li>\n<li><strong>Aluminium:</strong> sehr leicht. Man findet es im Mehrschichtverbundrohr und in leichten Heizkörpern.</li>\n<li><strong>Blei:</strong> früher für Wasserleitungen. Blei ist <strong>giftig</strong>. Für Trinkwasser ist es nicht mehr erlaubt.</li>\n</ul>\n\n<h3>Legierungen</h3>\n<p>Eine <strong>Legierung</strong> ist eine Mischung aus mehreren Metallen. Sie hat oft bessere Eigenschaften als die reinen Metalle.</p>\n<div class=\"table-wrap\"><table><tr><th>Legierung</th><th>besteht aus</th><th>Im SHK z. B.</th></tr><tr><td>Messing</td><td>Kupfer + Zink</td><td>Armaturen, Fittings, Ventile</td></tr><tr><td>Bronze</td><td>Kupfer + Zinn</td><td>Lager, Gleitteile</td></tr><tr><td>Rotguss</td><td>Kupfer + Zinn + Zink (oft etwas Blei)</td><td>Fittings und Armaturen für Trinkwasser</td></tr></table></div>\n"
+  },
+  "4": {
+    "title": "Modul 4: Kunststoffe",
+    "content": "\n<h3>Drei Gruppen</h3>\n<p>Kunststoffe gehören zu den <strong>Nichtmetallen</strong>. Sie werden künstlich hergestellt, meistens aus Erdöl. Kunststoffe bestehen aus langen Ketten (Molekülen). Wie diese Ketten verbunden sind, bestimmt die Gruppe.</p>\n<div class=\"table-wrap\"><table><tr><th></th><th>Thermoplaste</th><th>Duroplaste</th><th>Elastomere</th></tr><tr><td>Ketten</td><td>nicht verbunden</td><td>eng vernetzt</td><td>weit vernetzt</td></tr><tr><td>Bei Wärme</td><td>werden weich und formbar</td><td>bleiben hart</td><td>bleiben elastisch</td></tr><tr><td>Schweißen</td><td>meistens möglich</td><td>nicht möglich</td><td>nicht möglich</td></tr><tr><td>Im SHK z. B.</td><td>Rohre aus PE, PP, PVC-U, PE-X</td><td>WC-Sitz, Harz-Beschichtungen</td><td>Dichtungen aus EPDM, Schläuche</td></tr></table></div>\n<div class=\"info-box\"><h4>🧠 Merkhilfe</h4><p><strong>Thermo</strong> heißt Wärme: wird bei Wärme weich. <strong>Duro</strong> heißt hart: bleibt hart. <strong>Elasto</strong>: elastisch wie Gummi.</p></div>\n\n<h3>Kunststoffe im SHK</h3>\n<ul>\n<li><strong>PE</strong> (Polyethylen): Rohre für Wasser- und Gas-Hausanschlüsse in der Erde.</li>\n<li><strong>PP</strong> (Polypropylen): HT-Abwasserrohre im Haus. Leicht und steckbar.</li>\n<li><strong>PVC-U</strong> (hartes PVC, ohne Weichmacher): KG-Rohre in der Erde.</li>\n<li><strong>PE-X</strong> (vernetztes PE): Rohre für Fußbodenheizung und Trinkwasser.</li>\n<li><strong>EPDM</strong> (synthetischer Gummi): O-Ringe in Pressfittings, Dichtungen.</li>\n</ul>\n\n<h3>Sonderfall PE-X</h3>\n<p>PE-X ist ein <strong>Thermoplast</strong>. Seine Ketten sind aber zusätzlich vernetzt. Dadurch ist es fester und hält mehr Wärme aus.</p>\n<p>Aber: PE-X kann man <strong>nicht schweißen</strong>. Man verbindet es mit Press- oder Klemmverbindern.</p>\n"
+  },
+  "5": {
+    "title": "Modul 5: Verbundwerkstoffe und andere Nichtmetalle",
+    "content": "\n<h3>Verbundwerkstoffe</h3>\n<p>Super, du hast das Profi-Modul freigeschaltet! Bei einem <strong>Verbundwerkstoff</strong> sind mehrere Werkstoffe fest verbunden. Jeder bringt seine guten Eigenschaften mit.</p>\n<p>Das wichtigste Beispiel im SHK ist das <strong>Mehrschichtverbundrohr</strong>:</p>\n\n<div class=\"sketch\">\n<h4 style=\"color:#38bdf8; margin-bottom:10px;\">Mehrschichtverbundrohr im Schnitt</h4>\n<svg viewBox=\"0 0 520 260\" role=\"img\" aria-label=\"Schnitt durch ein Mehrschichtverbundrohr\">\n  <circle cx=\"160\" cy=\"130\" r=\"110\" fill=\"#94a3b8\"/>\n  <circle cx=\"160\" cy=\"130\" r=\"88\" fill=\"#e2e8f0\"/>\n  <circle cx=\"160\" cy=\"130\" r=\"80\" fill=\"#cbd5e1\"/>\n  <circle cx=\"160\" cy=\"130\" r=\"58\" fill=\"#0ea5e9\" fill-opacity=\"0.55\"/>\n  <text x=\"160\" y=\"136\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">Wasser</text>\n  <line x1=\"160\" y1=\"62\" x2=\"330\" y2=\"62\" stroke=\"#f8fafc\" stroke-width=\"1.5\"/><circle cx=\"160\" cy=\"62\" r=\"3\" fill=\"#f8fafc\"/>\n  <text x=\"336\" y=\"67\" fill=\"#f8fafc\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Kunststoff innen</text>\n  <line x1=\"160\" y1=\"46\" x2=\"330\" y2=\"125\" stroke=\"#f8fafc\" stroke-width=\"1.5\"/><circle cx=\"160\" cy=\"46\" r=\"3\" fill=\"#f8fafc\"/>\n  <text x=\"336\" y=\"130\" fill=\"#f8fafc\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Aluminium</text>\n  <line x1=\"248\" y1=\"180\" x2=\"330\" y2=\"188\" stroke=\"#f8fafc\" stroke-width=\"1.5\"/><circle cx=\"248\" cy=\"180\" r=\"3\" fill=\"#f8fafc\"/>\n  <text x=\"336\" y=\"193\" fill=\"#f8fafc\" font-size=\"14\" font-family=\"Segoe UI, Arial\">Kunststoff außen</text>\n</svg>\n<p class=\"caption\">Zwischen den Schichten liegt ein dünner Kleber (Haftvermittler).</p>\n</div>\n\n<ul>\n<li><strong>Kunststoff innen:</strong> Er berührt das Wasser. Er ist glatt und korrodiert nicht.</li>\n<li><strong>Aluminium in der Mitte:</strong> Es hält das Rohr nach dem Biegen in Form. Es lässt keinen Sauerstoff durch. Und das Rohr dehnt sich bei Wärme weniger aus.</li>\n<li><strong>Kunststoff außen:</strong> Er schützt das Aluminium.</li>\n</ul>\n<p>Weitere Verbundwerkstoffe: <strong>GFK</strong> (glasfaserverstärkter Kunststoff, z. B. unter Acryl-Badewannen) und <strong>Stahlbeton</strong>.</p>\n\n<h3>Naturstoffe und künstliche Stoffe</h3>\n<p>Die Nichtmetalle teilt man in zwei Gruppen:</p>\n<ul>\n<li><strong>Naturstoffe</strong> kommen in der Natur vor oder wachsen. Im SHK: <strong>Hanf</strong> zum Abdichten von Gewinden, Holz, Naturstein.</li>\n<li><strong>Künstliche Stoffe</strong> stellt der Mensch her: Kunststoffe, <strong>Sanitärkeramik</strong> (WC, Waschtisch), <strong>Glas</strong> (Duschwand), <strong>Mineralwolle</strong> (Dämmung).</li>\n</ul>\n\n<h3>Alles zusammen</h3>\n<div class=\"sketch\"><h4 style=\"color:#38bdf8; margin-bottom:10px;\">Einteilung der Werkstoffe</h4><svg viewBox=\"0 0 410 432\" style=\"max-width:520px; min-width:0\" role=\"img\" aria-label=\"Einteilungs-Schema der Werkstoffe\"><path d=\"M22 40 V66 H42\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 82 V108 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 82 V150 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M90 166 V192 H110\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M90 166 V234 H110\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M22 40 V276 H42\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 292 V318 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M56 292 V360 H76\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><path d=\"M22 40 V402 H42\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><rect x=\"8\" y=\"8\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"2\"/><text x=\"20\" y=\"29\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Werkstoffe</text><rect x=\"42\" y=\"50\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#fbbf24\" stroke-width=\"2\"/><text x=\"54\" y=\"71\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Metalle</text><rect x=\"76\" y=\"92\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"113\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Eisenmetalle</text><text x=\"244\" y=\"113\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Stahl, Gusseisen</text><rect x=\"76\" y=\"134\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"155\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Nichteisenmetalle</text><rect x=\"110\" y=\"176\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"122\" y=\"197\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Schwermetalle</text><text x=\"278\" y=\"197\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Kupfer, Zink, Blei</text><rect x=\"110\" y=\"218\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"122\" y=\"239\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Leichtmetalle</text><text x=\"278\" y=\"239\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Aluminium, Titan</text><rect x=\"42\" y=\"260\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#fbbf24\" stroke-width=\"2\"/><text x=\"54\" y=\"281\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Nichtmetalle</text><rect x=\"76\" y=\"302\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"323\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">Naturstoffe</text><text x=\"244\" y=\"323\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Holz, Hanf, Naturstein</text><rect x=\"76\" y=\"344\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"2\"/><text x=\"88\" y=\"365\" fill=\"#f8fafc\" font-size=\"15\" font-family=\"Segoe UI, Arial\">künstliche Stoffe</text><text x=\"244\" y=\"365\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Kunststoffe, Glas, Keramik</text><rect x=\"42\" y=\"386\" width=\"160\" height=\"32\" rx=\"8\" fill=\"#1e293b\" stroke=\"#fbbf24\" stroke-width=\"2\"/><text x=\"54\" y=\"407\" fill=\"#f8fafc\" font-size=\"15\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Verbundwerkstoffe</text><text x=\"210\" y=\"407\" fill=\"#94a3b8\" font-size=\"13\" font-family=\"Segoe UI, Arial\">Verbundrohr, GFK</text></svg><p class=\"caption\">Leichtmetalle: Dichte unter 5 kg/dm³. Schwermetalle: Dichte über 5 kg/dm³.</p></div>\n"
+  },
+  "6": {
+    "title": "Modul 6: Den richtigen Werkstoff wählen",
+    "content": "\n<h3>Welcher Werkstoff passt?</h3>\n<p>Für jede Aufgabe gibt es einen passenden Werkstoff. Du fragst dich:</p>\n<ul>\n<li>Welches <strong>Medium</strong> fließt durch? Trinkwasser, Heizungswasser, Abwasser oder Gas?</li>\n<li>Wie <strong>warm</strong> wird es? Kunststoffe halten weniger Wärme aus als Metalle.</li>\n<li>Kann der Werkstoff <strong>korrodieren</strong> (rosten)?</li>\n<li>Wie wird <strong>verbunden</strong>? Löten, pressen, stecken, schweißen?</li>\n<li>Wie <strong>schwer</strong> ist das Bauteil, und was kostet es?</li>\n</ul>\n\n<h3>Längenausdehnung</h3>\n<p>Alle Rohre werden bei Wärme länger. <strong>Kunststoffrohre</strong> dehnen sich aber viel stärker aus als Metallrohre, etwa zehnmal so stark wie Kupfer. Darum braucht man bei Kunststoffrohren mehr Platz für die Ausdehnung. Das Mehrschichtverbundrohr dehnt sich wegen des Aluminiums weniger aus.</p>\n\n<h3>Die Fließregel</h3>\n<p>Wasser nimmt aus Kupferrohren winzige Kupferteilchen mit. Treffen diese Teilchen auf <strong>verzinkten Stahl</strong>, entstehen dort kleine Löcher. Das Rohr wird undicht (Lochfraß).</p>\n\n<div class=\"sketch\">\n<h4 style=\"color:#38bdf8; margin-bottom:10px;\">Fließregel</h4>\n<svg viewBox=\"0 0 520 170\" role=\"img\" aria-label=\"Fließregel: verzinkter Stahl vor Kupfer ist erlaubt, Kupfer vor verzinktem Stahl nicht\">\n  <defs><marker id=\"arF\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"#38bdf8\"/></marker></defs>\n  <rect x=\"20\" y=\"25\" width=\"170\" height=\"30\" rx=\"6\" fill=\"#94a3b8\"/><text x=\"105\" y=\"45\" fill=\"#0f172a\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">verzinkter Stahl</text>\n  <rect x=\"190\" y=\"25\" width=\"170\" height=\"30\" rx=\"6\" fill=\"#d97706\"/><text x=\"275\" y=\"45\" fill=\"#0f172a\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">Kupfer</text>\n  <line x1=\"40\" y1=\"70\" x2=\"340\" y2=\"70\" stroke=\"#38bdf8\" stroke-width=\"2\" marker-end=\"url(#arF)\"/>\n  <text x=\"440\" y=\"47\" fill=\"#4ade80\" font-size=\"17\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">✓ erlaubt</text>\n  <rect x=\"20\" y=\"105\" width=\"170\" height=\"30\" rx=\"6\" fill=\"#d97706\"/><text x=\"105\" y=\"125\" fill=\"#0f172a\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">Kupfer</text>\n  <rect x=\"190\" y=\"105\" width=\"170\" height=\"30\" rx=\"6\" fill=\"#94a3b8\"/><text x=\"275\" y=\"125\" fill=\"#0f172a\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">verzinkter Stahl</text>\n  <line x1=\"40\" y1=\"150\" x2=\"340\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"2\" marker-end=\"url(#arF)\"/>\n  <text x=\"440\" y=\"127\" fill=\"#f87171\" font-size=\"17\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">✗ verboten</text>\n</svg>\n<p class=\"caption\">Der blaue Pfeil zeigt die Fließrichtung des Wassers.</p>\n</div>\n\n<div class=\"info-box\"><h4>⚠️ Fließregel</h4><p>In Fließrichtung darf verzinkter Stahl <strong>nie hinter Kupfer</strong> eingebaut werden. Das gilt auch, wenn ein anderes Rohr dazwischen ist.</p></div>\n\n<h3>Masse berechnen</h3>\n<p>Wie schwer ist eine Lieferung Rohre oder ein Blech? Das brauchst du z. B. für den Transport. Du rechnest mit der <strong>Dichte ρ</strong> (sprich: rho).</p>\n<div class=\"formula\">m = V · ρ<br><span style=\"color:#94a3b8;\">m = Masse in kg, V = Volumen in dm³, ρ = Dichte in kg/dm³</span></div>\n<div class=\"book-box\"><h4>📘 Nimm dein Tabellenbuch</h4><p>Die Dichte findest du im Tabellenbuch. Tipp: Schau im Sachwortverzeichnis unter „Dichte“ nach. Achtung: In verschiedenen Büchern stehen manchmal leicht andere Werte, z. B. 8,9 oder 8,93 kg/dm³ für Kupfer. Beides ist richtig.</p></div>\n<h3>Beispiel: Kupferblech</h3>\n<p>Ein Kupferblech ist 2 m lang, 1 m breit und 0,8 mm dick.</p>\n<div class=\"table-wrap\"><table><tr><th>Schritt</th><th>Rechnung</th></tr><tr><td>① In dm umrechnen</td><td>2 m = 20 dm, 1 m = 10 dm, 0,8 mm = 0,008 dm</td></tr><tr><td>② Volumen</td><td>V = 20 dm · 10 dm · 0,008 dm = <strong>1,6 dm³</strong></td></tr><tr><td>③ Dichte (Tabellenbuch)</td><td>Kupfer: ρ ≈ 8,93 kg/dm³</td></tr><tr><td>④ Masse</td><td>m = 1,6 dm³ · 8,93 kg/dm³ ≈ <strong>14,29 kg</strong></td></tr></table></div>\n<div class=\"info-box\"><h4>💡 Tipp</h4><p>Merke dir: 1 m = 10 dm und 1 mm = 0,01 dm.</p></div>\n"
+  }
+};
+
+// =====================================================================
+// Aufgaben für das Modul "Werkstoffe im SHK-Handwerk und ihre Einteilung"
+// Hilfsfunktionen aus engine.js. Zahlen bei num-Feldern: ans in Tausendsteln
+// der Einheit (8,93 kg/dm³ -> 8930). tol = erlaubter Spielraum, weil die
+// Dichtewerte in verschiedenen Tabellenbüchern leicht abweichen.
+// Keine Seitenzahlen nennen: Das Modul soll mit jeder Auflage funktionieren.
+// =====================================================================
+
+const UNLOCK_TEXT = {
+    5: 'Mehrschichtverbundrohr, Keramik, Glas und Hanf. Und: Findest du den Fehler?',
+    6: 'Den passenden Werkstoff wählen. Fließregel. Masse mit dem Tabellenbuch berechnen.'
+};
+
+const RF = ['richtig', 'falsch'];
+function richtigFalsch(all, n, expl) {
+    return function () {
+        return {
+            type: 'match', q: 'Richtig oder falsch?', options: RF, items: pickN(all, n),
+            hint: 'Rot markierte Aussagen hast du noch falsch eingeschätzt. Lies den Lerntext dazu noch einmal.',
+            explanation: expl
+        };
+    };
+}
+
+// ---------- Skizze: Einteilungs-Schema mit Nummern (Modul 1) ----------
+// Senkrechter Baum, damit er auch auf dem Handy ganz sichtbar ist (gleiche Form wie im Lerntext)
+const BAUM = [
+    ['Werkstoffe', 0, ''], ['Metalle', 1, '1'], ['Eisenmetalle', 2, '4'], ['Nichteisenmetalle', 2, '5'],
+    ['Schwermetalle', 3, '6'], ['Leichtmetalle', 3, '7'], ['Nichtmetalle', 1, '2'], ['Naturstoffe', 2, ''],
+    ['künstliche Stoffe', 2, ''], ['Verbundwerkstoffe', 1, '3']
+];
+const SVG_BAUM = (function () {
+    const F = 'font-family="Segoe UI, Arial"';
+    const X = l => 8 + l * 34, Y = r => 8 + r * 42;
+    let lines = '', boxes = '';
+    BAUM.forEach((row, r) => {
+        const [label, l, nr] = row;
+        if (l > 0) {
+            let pr = r - 1; while (BAUM[pr][1] !== l - 1) pr--;
+            const px = X(l - 1) + 14;
+            lines += '<path d="M' + px + ' ' + (Y(pr) + 32) + ' V' + (Y(r) + 16) + ' H' + X(l) + '" fill="none" stroke="#64748b" stroke-width="2"/>';
+        }
+        if (nr) boxes += '<rect x="' + X(l) + '" y="' + Y(r) + '" width="70" height="32" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>' +
+                         '<text x="' + (X(l) + 35) + '" y="' + (Y(r) + 22) + '" fill="#fbbf24" font-size="17" font-weight="bold" text-anchor="middle" ' + F + '>' + nr + '</text>';
+        else boxes += '<rect x="' + X(l) + '" y="' + Y(r) + '" width="160" height="32" rx="8" fill="#1e293b" stroke="' + (l ? '#64748b' : '#38bdf8') + '" stroke-width="2"/>' +
+                      '<text x="' + (X(l) + 12) + '" y="' + (Y(r) + 21) + '" fill="#f8fafc" font-size="15" ' + F + '>' + label + '</text>';
+    });
+    return '<svg viewBox="0 0 280 432" style="max-width:340px; min-width:0" role="img" aria-label="Einteilungs-Schema der Werkstoffe mit sieben Nummern">' + lines + boxes + '</svg>';
+})();
+
+// ---------- Skizze: Mehrschichtverbundrohr im Schnitt (Modul 5) ----------
+const SVG_MVR = (function () {
+    const F = 'font-family="Segoe UI, Arial"';
+    const c = (x, y, n) => '<circle cx="' + x + '" cy="' + y + '" r="15" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>' +
+        '<text x="' + x + '" y="' + (y + 6) + '" fill="#fbbf24" font-size="16" font-weight="bold" text-anchor="middle" ' + F + '>' + n + '</text>';
+    return '<svg viewBox="0 0 520 260" role="img" aria-label="Schnitt durch ein Mehrschichtverbundrohr mit drei Nummern">' +
+        '<circle cx="180" cy="130" r="110" fill="#94a3b8"/>' +       // außen Kunststoff
+        '<circle cx="180" cy="130" r="88" fill="#e2e8f0"/>' +        // Aluminium
+        '<circle cx="180" cy="130" r="80" fill="#cbd5e1"/>' +        // innen Kunststoff
+        '<circle cx="180" cy="130" r="58" fill="#0ea5e9" fill-opacity="0.55"/>' +  // Wasser
+        '<text x="180" y="136" fill="#f8fafc" font-size="15" text-anchor="middle" ' + F + '>Wasser</text>' +
+        '<line x1="180" y1="62" x2="380" y2="62" stroke="#f8fafc" stroke-width="1.5"/>' + c(400, 62, '1') +
+        '<line x1="180" y1="46" x2="380" y2="118" stroke="#f8fafc" stroke-width="1.5"/>' + c(400, 125, '2') +
+        '<line x1="268" y1="180" x2="380" y2="188" stroke="#f8fafc" stroke-width="1.5"/>' + c(400, 188, '3') +
+        '<circle cx="180" cy="62" r="3" fill="#f8fafc"/><circle cx="180" cy="46" r="3" fill="#f8fafc"/><circle cx="268" cy="180" r="3" fill="#f8fafc"/>' +
+        '</svg>';
+})();
+
+// ---------- Fehler finden: Werkstoffgruppen mit einem falschen Eintrag ----------
+const GRUPPEN = [
+    { name: 'Eisenmetalle', farbe: '#94a3b8', items: ['unlegierter Stahl', 'Edelstahl', 'Gusseisen', 'C-Stahl'] },
+    { name: 'Schwermetalle', farbe: '#f59e0b', items: ['Kupfer', 'Zink', 'Blei', 'Zinn'] },
+    { name: 'Leichtmetalle', farbe: '#38bdf8', items: ['Aluminium', 'Magnesium', 'Titan'] },
+    { name: 'Kunststoffe', farbe: '#a855f7', items: ['PE-X', 'PP', 'PVC-U', 'EPDM'] },
+    { name: 'Verbundwerkstoffe', farbe: '#22c55e', items: ['Mehrschichtverbundrohr', 'GFK', 'Stahlbeton'] }
+];
+function fehlerTask() {
+    const shown = GRUPPEN.map(g => ({ name: g.name, farbe: g.farbe, items: pickN(g.items, 2) }));
+    // Der falsche Eintrag kommt nie aus den Verbundwerkstoffen (z. B. GFK bei Kunststoffen wäre strittig).
+    const from = rint(0, 3);
+    let to; do { to = rint(0, 4); } while (to === from);
+    const pool = GRUPPEN[from].items.filter(x => shown[from].items.indexOf(x) < 0);
+    const wrong = rnd(pool);
+    shown[to].items.splice(rint(0, 2), 0, wrong);
+    let h = '<div class="groups">';
+    shown.forEach(g => {
+        h += '<div class="group" style="border-color:' + g.farbe + '"><div class="group-name" style="color:' + g.farbe + '">' + g.name + '</div>' +
+             g.items.map(i => '<div class="group-item">' + i + '</div>').join('') + '</div>';
+    });
+    h += '</div>';
+    const others = shuffle(shown.flatMap(g => g.items).filter(i => i !== wrong)).slice(0, 3);
+    const opts = shuffle([wrong].concat(others));
+    return {
+        type: 'mc', svg: h,
+        q: 'Ein Schüler hat die Werkstoffe einsortiert. Ein Werkstoff steht in der falschen Gruppe. Welcher?',
+        options: opts, correct: opts.indexOf(wrong),
+        hint: 'Prüfe jede Gruppe einzeln. Eisenmetall oder nicht? Dichte über oder unter 5 kg/dm³? Metall oder Kunststoff?',
+        explanation: '<strong>' + wrong + '</strong> gehört nicht zu den ' + GRUPPEN[to].name + ', sondern zu den <strong>' + GRUPPEN[from].name + '</strong>.'
+    };
+}
+
+// ---------- Dichte (Werte schwanken je nach Tabellenbuch, daher tol) ----------
+// rho und tol in Tausendsteln kg/dm³
+const DICHTE = {
+    Kupfer:      { rho: 8930, tol: 40 },   // 8,89 ... 8,97
+    Stahl:       { rho: 7850, tol: 50 },   // 7,80 ... 7,90
+    Edelstahl:   { rho: 7950, tol: 60 },   // 7,89 ... 8,01
+    Aluminium:   { rho: 2700, tol: 20 },   // 2,68 ... 2,72
+    Zink:        { rho: 7130, tol: 70 }    // 7,06 ... 7,20 (auch Titanzink 7,2)
+};
+const BOOK_RHO = 'Suche die Dichte in deinem Tabellenbuch. Tipp: Sachwortverzeichnis unter „Dichte“.';
+function kg(x) { return num((x / 1000).toFixed(2)); }       // Tausendstel -> "12,34"
+function rhoTxt(name) { return num((DICHTE[name].rho / 1000).toFixed(2)); }
+
+function blechTask() {
+    const art = rnd([['Kupfer', 'Kupferblech'], ['Zink', 'Titanzinkblech'], ['Aluminium', 'Aluminiumblech'], ['Stahl', 'Stahlblech']]);
+    const l = rnd([1000, 1500, 2000, 2500, 3000]);           // mm
+    const b = rnd([500, 600, 800, 1000]);                    // mm
+    const s = rnd([6, 7, 8, 10, 12, 15, 20]);                // Zehntel mm
+    const V = l * b * s / 10000;                             // Tausendstel dm³ (exakt)
+    const d = DICHTE[art[0]];
+    const m = V * d.rho / 1000;                              // Tausendstel kg
+    const mTol = Math.round(V * d.tol / 1000) + 20;
+    return {
+        type: 'num', book: true,
+        q: 'Ein <strong>' + art[1] + '</strong> ist ' + num(l / 1000) + ' m lang, ' + num(b / 1000) + ' m breit und ' + num(s / 10) +
+           ' mm dick. Berechne das Volumen und die Masse.',
+        note: 'Rechne in dm: 1 m = 10 dm, 1 mm = 0,01 dm. Runde die Masse auf zwei Nachkommastellen. ' + BOOK_RHO,
+        fields: [
+            { label: 'Volumen V', unit: 'dm³', ans: V, tol: 5,
+              errors: [{ v: V * 1000, msg: 'Rechne alle Maße zuerst in dm um.' }, { v: V * 100, msg: 'Prüfe die Dicke: 1 mm = 0,01 dm.' }] },
+            { label: 'Dichte ρ (' + (art[0] === 'Zink' ? 'Zink' : art[0]) + ')', unit: 'kg/dm³', ans: d.rho, tol: d.tol },
+            { label: 'Masse m', unit: 'kg', ans: m, tol: mTol }
+        ],
+        hint: 'V = Länge · Breite · Dicke, alles in dm. Dann m = V · ρ.',
+        explanation: 'V = ' + num(l / 100) + ' dm · ' + num(b / 100) + ' dm · ' + num(s / 1000) + ' dm = <strong>' + num(V / 1000) + ' dm³</strong>.<br>' +
+                     'ρ ≈ ' + rhoTxt(art[0]) + ' kg/dm³.<br>m = ' + num(V / 1000) + ' dm³ · ' + rhoTxt(art[0]) + ' kg/dm³ ≈ <strong>' + kg(m) + ' kg</strong>.' +
+                     '<br><span style="color:#94a3b8;">Steht in deinem Buch ein etwas anderer Wert, ist das auch richtig.</span>'
+    };
+}
+
+function rohrTask() {
+    const ROHRE = {
+        Kupfer: [[15, 1], [18, 1], [22, 1], [28, 1.5]],
+        Stahl: [[15, 1.2], [18, 1.2], [22, 1.5], [28, 1.5]],
+        Edelstahl: [[15, 1], [18, 1], [22, 1.2], [28, 1.2]]
+    };
+    const name = rnd(Object.keys(ROHRE));
+    const [D, s] = rnd(ROHRE[name]);
+    const stangen = rint(4, 20);
+    const L = stangen * 6;                                   // m (Stangen à 6 m)
+    const di = D - 2 * s;
+    const Vexakt = Math.PI / 4 * (D * D - di * di) * L / 1000;   // dm³
+    const V = Math.round(Vexakt * 100) * 10;                 // Tausendstel, gerundet auf 0,01 dm³
+    const d = DICHTE[name];
+    const m = V * d.rho / 1000;
+    const mTol = Math.round(V * d.tol / 1000) + 20;
+    const roh = name === 'Stahl' ? 'C-Stahl-Rohre' : name + 'rohre';
+    return {
+        type: 'num', book: true,
+        q: 'Für eine Baustelle werden <strong>' + stangen + ' Stangen ' + roh + ' ' + D + ' × ' + num(s) + '</strong> geliefert. Jede Stange ist 6 m lang. ' +
+           'Das Material aller Rohre hat zusammen ein Volumen von <strong>' + num(V / 1000) + ' dm³</strong>. Wie schwer ist die Lieferung?',
+        note: 'Runde die Masse auf zwei Nachkommastellen. ' + BOOK_RHO + (name === 'Stahl' ? ' C-Stahl ist unlegierter Stahl.' : ''),
+        fields: [
+            { label: 'Dichte ρ (' + (name === 'Stahl' ? 'unlegierter Stahl' : name) + ')', unit: 'kg/dm³', ans: d.rho, tol: d.tol },
+            { label: 'Masse m', unit: 'kg', ans: m, tol: mTol }
+        ],
+        hint: 'm = V · ρ. Das Volumen ist schon in dm³ angegeben. Dann kommt die Masse in kg heraus.',
+        explanation: 'ρ ≈ ' + rhoTxt(name) + ' kg/dm³.<br>m = ' + num(V / 1000) + ' dm³ · ' + rhoTxt(name) + ' kg/dm³ ≈ <strong>' + kg(m) + ' kg</strong>.' +
+                     '<br><span style="color:#94a3b8;">Steht in deinem Buch ein etwas anderer Wert, ist das auch richtig.</span>'
+    };
+}
+
+// =====================================================================
+const TASKS = {
+// ---------------------------------------------------------------- Modul 1
+1: [
+    {
+        type: 'match', shuffle: false, svg: SVG_BAUM,
+        q: 'Das Schema zeigt die Einteilung der Werkstoffe. Welcher Begriff gehört zu welcher Nummer?',
+        options: ['Metalle', 'Nichtmetalle', 'Verbundwerkstoffe', 'Eisenmetalle', 'Nichteisenmetalle', 'Schwermetalle', 'Leichtmetalle'],
+        items: [
+            { left: 'Nummer 1', answer: 'Metalle' }, { left: 'Nummer 2', answer: 'Nichtmetalle' },
+            { left: 'Nummer 3', answer: 'Verbundwerkstoffe' }, { left: 'Nummer 4', answer: 'Eisenmetalle' },
+            { left: 'Nummer 5', answer: 'Nichteisenmetalle',
+              errors: [{ v: 'Eisenmetalle', msg: 'Unter Nummer 5 hängen Schwer- und Leichtmetalle. Das sind keine Eisenmetalle.' }] },
+            { left: 'Nummer 6', answer: 'Schwermetalle' }, { left: 'Nummer 7', answer: 'Leichtmetalle' }
+        ],
+        hint: 'Ganz links stehen die drei großen Gruppen. Unter den Nichtmetallen stehen schon Naturstoffe und künstliche Stoffe. Die Metalle teilt man nach Eisen auf, die Nichteisenmetalle nach der Dichte.',
+        explanation: '1 Metalle, 2 Nichtmetalle, 3 Verbundwerkstoffe. Metalle: 4 Eisenmetalle und 5 Nichteisenmetalle. Nichteisenmetalle: 6 Schwermetalle und 7 Leichtmetalle.'
+    },
+    function () {
+        const met = ['Kupfer', 'Stahl', 'Aluminium', 'Zink', 'Gusseisen'];
+        const nm = ['PE-X', 'Glas', 'Sanitärkeramik', 'Holz', 'Hanf', 'PVC-U'];
+        const vb = ['Mehrschichtverbundrohr', 'GFK', 'Stahlbeton'];
+        const items = shuffle([
+            ...pickN(met, 2).map(x => ({ left: x, answer: 'Metall' })),
+            ...pickN(nm, 2).map(x => ({ left: x, answer: 'Nichtmetall' })),
+            ...pickN(vb, 1).map(x => ({ left: x, answer: 'Verbundwerkstoff' }))
+        ]);
+        return {
+            type: 'match', q: 'Zu welcher Hauptgruppe gehört der Werkstoff?', options: ['Metall', 'Nichtmetall', 'Verbundwerkstoff'], items,
+            hint: 'Kunststoffe, Glas und Keramik sind Nichtmetalle. Ein Verbundwerkstoff besteht aus mehreren Werkstoffen, die fest verbunden sind.',
+            explanation: 'Metalle: z. B. Kupfer, Stahl, Aluminium. Nichtmetalle: z. B. Kunststoffe, Glas, Keramik, Holz, Hanf. Verbundwerkstoffe: z. B. Mehrschichtverbundrohr, GFK, Stahlbeton.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Was ist ein Verbundwerkstoff?',
+        options: ['Ein Metall, das aus einem einzigen Element besteht.',
+                  'Mehrere verschiedene Werkstoffe, die fest miteinander verbunden sind.',
+                  'Zwei Rohre, die mit einem Fitting verbunden sind.',
+                  'Ein Kunststoff, der beim Erwärmen weich wird.'],
+        correct: 1,
+        hint: 'Denk an das Mehrschichtverbundrohr: Kunststoff und Aluminium in einem Rohr.',
+        explanation: 'Ein Verbundwerkstoff besteht aus zwei oder mehr Werkstoffen. Sie sind fest verbunden. So kombiniert man die guten Eigenschaften.'
+    },
+    richtigFalsch([
+        { left: 'Kupfer ist ein Nichteisenmetall.', answer: 'richtig' },
+        { left: 'Stahl ist ein Nichteisenmetall.', answer: 'falsch' },
+        { left: 'Kunststoffe gehören zu den Metallen.', answer: 'falsch' },
+        { left: 'Ein Verbundwerkstoff besteht aus mindestens zwei verschiedenen Werkstoffen.', answer: 'richtig' },
+        { left: 'Leichtmetalle haben eine Dichte unter 5 kg/dm³.', answer: 'richtig' },
+        { left: 'Aluminium ist ein Schwermetall.', answer: 'falsch' },
+        { left: 'Gusseisen ist ein Eisenmetall.', answer: 'richtig' },
+        { left: 'Glas ist ein Metall.', answer: 'falsch' }
+    ], 5, 'Merke: Eisenmetalle haben Eisen als Hauptbestandteil. Alle anderen Metalle sind Nichteisenmetalle. Die Grenze zwischen Leicht- und Schwermetall liegt bei 5 kg/dm³.')
+],
+// ---------------------------------------------------------------- Modul 2
+2: [
+    function () {
+        const st = [{ left: 'Kohlenstoff bis etwa 2 %', answer: 'Stahl' }, { left: 'zäh und gut verformbar', answer: 'Stahl' },
+                    { left: 'gut schweißbar', answer: 'Stahl' }];
+        const ge = [{ left: 'Kohlenstoff über 2 %', answer: 'Gusseisen' }, { left: 'spröde, kann bei einem Schlag brechen', answer: 'Gusseisen' },
+                    { left: 'dämpft Geräusche gut', answer: 'Gusseisen' }];
+        return {
+            type: 'match', q: 'Stahl oder Gusseisen? Welche Eigenschaft passt?', options: ['Stahl', 'Gusseisen'],
+            items: shuffle(pickN(st, 2).concat(pickN(ge, 2))),
+            hint: 'Der Kohlenstoff macht den Unterschied. Viel Kohlenstoff macht das Eisen hart und spröde.',
+            explanation: 'Stahl: bis etwa 2 % Kohlenstoff, zäh, verformbar, schweißbar. Gusseisen: über 2 % Kohlenstoff, spröde, gut gießbar, dämpft Schall.'
+        };
+    },
+    function () {
+        const all = [
+            { left: 'SML-Abwasserrohr', answer: 'Gusseisen' },
+            { left: 'Glieder eines Gussheizkessels', answer: 'Gusseisen' },
+            { left: 'Plattenheizkörper', answer: 'unlegierter Stahl' },
+            { left: 'C-Stahl-Rohr für die Heizung', answer: 'unlegierter Stahl' },
+            { left: 'rostfreies Pressrohr für Trinkwasser', answer: 'Edelstahl' },
+            { left: 'Duschrinne', answer: 'Edelstahl' }
+        ];
+        const items = ['Gusseisen', 'unlegierter Stahl', 'Edelstahl'].map(a => rnd(all.filter(x => x.answer === a)));
+        const rest = all.filter(x => items.indexOf(x) < 0);
+        return {
+            type: 'match', q: 'Aus welchem Eisenmetall ist das Bauteil meistens?', options: ['Gusseisen', 'unlegierter Stahl', 'Edelstahl'],
+            items: shuffle(items.concat(pickN(rest, 2))),
+            hint: 'Gusseisen ist schwer und leise. Edelstahl rostet nicht. Unlegierter Stahl ist preiswert, rostet aber in sauerstoffreichem Wasser.',
+            explanation: 'Gusseisen: SML-Rohre, Gussheizkessel. Unlegierter Stahl: Heizkörper, C-Stahl-Rohre für die Heizung. Edelstahl: Trinkwasser-Pressrohre, Duschrinnen.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Warum darf man C-Stahl-Rohre (unlegierter Stahl) <strong>nicht</strong> für Trinkwasser verwenden?',
+        options: ['Weil C-Stahl zu schwer ist.',
+                  'Weil Trinkwasser viel Sauerstoff enthält. Das Rohr würde innen rosten.',
+                  'Weil man C-Stahl nicht pressen kann.',
+                  'Weil C-Stahl ein Nichteisenmetall ist.'],
+        correct: 1,
+        hint: 'Rost entsteht aus Eisen, Wasser und Sauerstoff. Wo ist viel Sauerstoff drin: im Heizungswasser oder im Trinkwasser?',
+        explanation: 'Frisches Trinkwasser enthält viel Sauerstoff. Unlegierter Stahl würde innen rosten. Im geschlossenen Heizkreis ist kaum Sauerstoff. Dort ist C-Stahl gut geeignet.'
+    },
+    richtigFalsch([
+        { left: 'Edelstahl ist ein Eisenmetall.', answer: 'richtig' },
+        { left: 'Bei Eisenmetallen ist Eisen der Hauptbestandteil.', answer: 'richtig' },
+        { left: 'Gusseisen enthält weniger Kohlenstoff als Stahl.', answer: 'falsch' },
+        { left: 'Edelstahl rostet nicht, weil er viel Chrom enthält.', answer: 'richtig' },
+        { left: 'Gusseisen ist zäh und lässt sich gut biegen.', answer: 'falsch' },
+        { left: 'C-Stahl ist für Trinkwasser geeignet.', answer: 'falsch' }
+    ], 5, 'Edelstahl ist ein legierter Stahl und damit ein Eisenmetall. Das Chrom bildet eine dünne Schutzschicht. Gusseisen hat mehr Kohlenstoff als Stahl und ist spröde.')
+],
+// ---------------------------------------------------------------- Modul 3
+3: [
+    function () {
+        const all = [
+            ['Aluminium', '2,7', 'Leichtmetall'], ['Magnesium', '1,7', 'Leichtmetall'], ['Titan', '4,5', 'Leichtmetall'],
+            ['Kupfer', '8,9', 'Schwermetall'], ['Zink', '7,1', 'Schwermetall'], ['Blei', '11,3', 'Schwermetall'],
+            ['Zinn', '7,3', 'Schwermetall'], ['Nickel', '8,9', 'Schwermetall'], ['Chrom', '7,2', 'Schwermetall']
+        ].map(x => ({ left: x[0] + ' (Dichte ' + x[1] + ' kg/dm³)', answer: x[2] }));
+        const leicht = all.filter(x => x.answer === 'Leichtmetall'), schwer = all.filter(x => x.answer === 'Schwermetall');
+        const nl = rint(2, 3);
+        return {
+            type: 'match', q: 'Leichtmetall oder Schwermetall? Achte auf die Dichte.', options: ['Leichtmetall', 'Schwermetall'],
+            items: shuffle(pickN(leicht, nl).concat(pickN(schwer, 5 - nl))),
+            hint: 'Die Grenze liegt bei 5 kg/dm³. Darunter: Leichtmetall. Darüber: Schwermetall.',
+            explanation: 'Unter 5 kg/dm³: Leichtmetalle (Aluminium, Magnesium, Titan). Über 5 kg/dm³: Schwermetalle (Kupfer, Zink, Blei, Zinn, Nickel, Chrom).'
+        };
+    },
+    {
+        type: 'match',
+        q: 'Viele Armaturen und Fittings sind aus einer Kupferlegierung. Woraus besteht die Legierung?',
+        options: ['Kupfer + Zink', 'Kupfer + Zinn', 'Kupfer + Zinn + Zink'],
+        items: [{ left: 'Messing', answer: 'Kupfer + Zink' }, { left: 'Bronze', answer: 'Kupfer + Zinn' }, { left: 'Rotguss', answer: 'Kupfer + Zinn + Zink' }],
+        hint: 'Messing ist gelb und enthält Zink. Bronze enthält Zinn. Rotguss enthält beides.',
+        explanation: 'Messing = Kupfer + Zink. Bronze = Kupfer + Zinn. Rotguss = Kupfer + Zinn + Zink (oft mit etwas Blei).'
+    },
+    function () {
+        const all = [
+            { left: 'Trinkwasser- und Heizungsrohre, gut lötbar', answer: 'Kupfer' },
+            { left: 'Dachrinne aus Titanzink', answer: 'Zink' },
+            { left: 'Rostschutz-Schicht auf Stahlrohren', answer: 'Zink' },
+            { left: 'Mittelschicht im Mehrschichtverbundrohr', answer: 'Aluminium' },
+            { left: 'sehr leichter Heizkörper', answer: 'Aluminium' },
+            { left: 'Gehäuse von Armaturen und Fittings', answer: 'Messing' }
+        ];
+        const base = ['Kupfer', 'Zink', 'Aluminium', 'Messing'].map(a => rnd(all.filter(x => x.answer === a)));
+        const rest = all.filter(x => base.indexOf(x) < 0);
+        return {
+            type: 'match', q: 'Welches Nichteisenmetall wird hier verwendet?', options: ['Kupfer', 'Zink', 'Aluminium', 'Messing'],
+            items: shuffle(base.concat(pickN(rest, 1))),
+            hint: 'Zink schützt Stahl vor Rost. Aluminium ist sehr leicht. Messing ist eine Kupferlegierung für Armaturen.',
+            explanation: 'Kupfer: Rohre. Zink: Verzinkung und Dachrinnen. Aluminium: Verbundrohr und leichte Heizkörper. Messing: Armaturen und Fittings.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Warum verlegt man heute keine Trinkwasserleitungen aus Blei mehr?',
+        options: ['Weil Blei zu leicht ist.', 'Weil Blei giftig ist. Es kann sich im Wasser lösen.',
+                  'Weil Blei zu teuer ist.', 'Weil Blei ein Eisenmetall ist.'],
+        correct: 1,
+        hint: 'Denk an die Gesundheit der Menschen, die das Wasser trinken.',
+        explanation: 'Blei ist giftig. Es löst sich im Trinkwasser. Deshalb sind Bleileitungen für Trinkwasser nicht mehr erlaubt. Alte Bleileitungen müssen ausgetauscht werden.'
+    }
+],
+// ---------------------------------------------------------------- Modul 4
+4: [
+    function () {
+        const T = 'Thermoplast', D = 'Duroplast', E = 'Elastomer';
+        const all = [
+            { left: 'wird beim Erwärmen weich und formbar', answer: T }, { left: 'kann man meistens schweißen', answer: T },
+            { left: 'bleibt nach dem Aushärten hart, auch bei Wärme', answer: D }, { left: 'kann man nicht mehr verformen und nicht schweißen', answer: D },
+            { left: 'gummielastisch, geht nach dem Dehnen in die Form zurück', answer: E }, { left: 'gut für Dichtungen', answer: E }
+        ];
+        return {
+            type: 'match', q: 'Welche Kunststoffgruppe hat diese Eigenschaft?', options: [T, D, E],
+            items: (function () {
+                const base = [T, D, E].map(g => rnd(all.filter(x => x.answer === g)));
+                return shuffle(base.concat(pickN(all.filter(x => base.indexOf(x) < 0), 1)));
+            })(),
+            hint: 'Thermo heißt Wärme: wird bei Wärme weich. Duro heißt hart. Elastisch heißt dehnbar wie Gummi.',
+            explanation: 'Thermoplaste werden bei Wärme weich. Duroplaste bleiben hart. Elastomere sind gummielastisch.'
+        };
+    },
+    function () {
+        const T = 'Thermoplast', D = 'Duroplast', E = 'Elastomer';
+        const all = [
+            { left: 'PE-X-Rohr für die Fußbodenheizung', answer: T }, { left: 'HT-Abwasserrohr aus PP', answer: T },
+            { left: 'KG-Rohr aus PVC-U', answer: T },
+            { left: 'O-Ring aus EPDM im Pressfitting', answer: E }, { left: 'Gummischlauch', answer: E },
+            { left: 'WC-Sitz aus Melaminharz', answer: D }, { left: 'Beschichtung aus Epoxidharz', answer: D }
+        ];
+        const base = [T, D, E].map(g => rnd(all.filter(x => x.answer === g)));
+        const rest = all.filter(x => base.indexOf(x) < 0);
+        return {
+            type: 'match', q: 'Zu welcher Kunststoffgruppe gehört das Bauteil?', options: [T, D, E],
+            items: shuffle(base.concat(pickN(rest, 2))),
+            hint: 'Fast alle Kunststoffrohre sind Thermoplaste. Dichtungen sind Elastomere. Harze härten aus: Duroplaste.',
+            explanation: 'Rohre aus PE-X, PP und PVC-U: Thermoplaste. EPDM und Gummi: Elastomere. Melaminharz und Epoxidharz: Duroplaste.'
+        };
+    },
+    {
+        type: 'match',
+        q: 'Was bedeuten die Kurzzeichen?',
+        options: ['Polyethylen', 'Polypropylen', 'Polyvinylchlorid, hart (ohne Weichmacher)', 'vernetztes Polyethylen', 'Gummi für Dichtungen'],
+        items: [
+            { left: 'PE', answer: 'Polyethylen' }, { left: 'PP', answer: 'Polypropylen' },
+            { left: 'PVC-U', answer: 'Polyvinylchlorid, hart (ohne Weichmacher)' },
+            { left: 'PE-X', answer: 'vernetztes Polyethylen', errors: [{ v: 'Polyethylen', msg: 'Das X steht für „vernetzt“.' }] },
+            { left: 'EPDM', answer: 'Gummi für Dichtungen' }
+        ],
+        hint: 'PE und PP sind die „Poly“-Kunststoffe. Das X steht für „vernetzt“, das U für „ohne Weichmacher“.',
+        explanation: 'PE = Polyethylen, PP = Polypropylen, PVC-U = hartes PVC ohne Weichmacher, PE-X = vernetztes PE, EPDM = synthetischer Kautschuk für Dichtungen.'
+    },
+    {
+        type: 'mc',
+        q: 'Warum kann man Rohre aus PP oder PE schweißen, aber Duroplaste nicht?',
+        options: ['Weil Thermoplaste beim Erwärmen weich werden und danach wieder fest.',
+                  'Weil Duroplaste aus Metall sind.',
+                  'Weil Thermoplaste nicht brennen können.',
+                  'Weil Duroplaste zu weich sind.'],
+        correct: 0,
+        hint: 'Schweißen heißt: erwärmen, zusammendrücken, abkühlen lassen.',
+        explanation: 'Thermoplaste werden bei Wärme weich. Die Teile fließen zusammen und werden beim Abkühlen wieder fest. Duroplaste bleiben hart. Bei starker Hitze zersetzen sie sich.'
+    },
+    richtigFalsch([
+        { left: 'Thermoplaste werden beim Erwärmen weich.', answer: 'richtig' },
+        { left: 'Duroplaste kann man schweißen.', answer: 'falsch' },
+        { left: 'EPDM ist ein Elastomer.', answer: 'richtig' },
+        { left: 'PVC-U ist ein Duroplast.', answer: 'falsch' },
+        { left: 'PE-X ist ein Thermoplast.', answer: 'richtig' },
+        { left: 'PE-X kann man genauso schweißen wie PE.', answer: 'falsch' },
+        { left: 'Kunststoffe gehören zu den Nichtmetallen.', answer: 'richtig' }
+    ], 5, 'PE-X ist ein Thermoplast. Weil es vernetzt ist, kann man es nicht schweißen. Man verbindet es mit Press- oder Klemmverbindern.')
+],
+// ---------------------------------------------------------------- Modul 5
+5: [
+    {
+        type: 'match', shuffle: false, svg: SVG_MVR,
+        q: 'Die Skizze zeigt ein Mehrschichtverbundrohr im Schnitt. Welche Schicht ist welche?',
+        options: ['Innenschicht aus Kunststoff', 'Mittelschicht aus Aluminium', 'Außenschicht aus Kunststoff'],
+        items: [{ left: 'Nummer 1', answer: 'Innenschicht aus Kunststoff' }, { left: 'Nummer 2', answer: 'Mittelschicht aus Aluminium' },
+                { left: 'Nummer 3', answer: 'Außenschicht aus Kunststoff' }],
+        hint: 'Die dünne helle Schicht in der Mitte ist das Metall. Die Innenschicht berührt das Wasser.',
+        explanation: '1 Innenschicht aus Kunststoff (berührt das Wasser), 2 Mittelschicht aus Aluminium, 3 Außenschicht aus Kunststoff.'
+    },
+    function () {
+        const I = 'Innenschicht (Kunststoff)', A = 'Mittelschicht (Aluminium)', O = 'Außenschicht (Kunststoff)';
+        const all = [
+            { left: 'hält das Rohr nach dem Biegen in Form', answer: A }, { left: 'lässt keinen Sauerstoff durch', answer: A },
+            { left: 'sorgt für geringe Längenausdehnung', answer: A },
+            { left: 'hat Kontakt zum Wasser und korrodiert nicht', answer: I },
+            { left: 'schützt das Aluminium von außen', answer: O }
+        ];
+        const items = [rnd(all.filter(x => x.answer === A)), all[3], all[4]];
+        return {
+            type: 'match', q: 'Welche Schicht hat welche Aufgabe?', options: [I, A, O], items: shuffle(items),
+            hint: 'Das Metall macht das Rohr stabil und dicht. Der Kunststoff schützt innen und außen.',
+            explanation: 'Aluminium: formstabil, sauerstoffdicht, wenig Ausdehnung. Kunststoff innen: berührt das Wasser, korrodiert nicht. Kunststoff außen: Schutz.'
+        };
+    },
+    function () {
+        const N = 'Naturstoff', K = 'künstlicher Stoff', V = 'Verbundwerkstoff';
+        const all = [
+            { left: 'Hanf zum Abdichten von Gewinden', answer: N }, { left: 'Holz', answer: N }, { left: 'Naturstein', answer: N },
+            { left: 'Sanitärkeramik (WC, Waschtisch)', answer: K }, { left: 'Glas einer Duschwand', answer: K },
+            { left: 'Mineralwolle zur Dämmung', answer: K },
+            { left: 'Mehrschichtverbundrohr', answer: V }, { left: 'GFK (glasfaserverstärkter Kunststoff)', answer: V },
+            { left: 'Stahlbeton', answer: V }
+        ];
+        const base = [N, K, V].map(g => rnd(all.filter(x => x.answer === g)));
+        const rest = all.filter(x => base.indexOf(x) < 0);
+        return {
+            type: 'match', q: 'Naturstoff, künstlicher Stoff oder Verbundwerkstoff?', options: [N, K, V],
+            items: shuffle(base.concat(pickN(rest, 2))),
+            hint: 'Naturstoffe wachsen oder kommen so in der Natur vor. Künstliche Stoffe stellt der Mensch her. Verbundwerkstoffe bestehen aus mehreren Werkstoffen.',
+            explanation: 'Naturstoffe: Hanf, Holz, Naturstein. Künstliche Stoffe: Keramik, Glas, Mineralwolle. Verbundwerkstoffe: Mehrschichtverbundrohr, GFK, Stahlbeton.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Was ist ein Vorteil vom Mehrschichtverbundrohr gegenüber einem reinen Kunststoffrohr?',
+        options: ['Es ist komplett aus Metall.',
+                  'Es bleibt nach dem Biegen in Form und dehnt sich weniger aus.',
+                  'Man kann es schweißen.',
+                  'Es ist schwerer und dadurch stabiler.'],
+        correct: 1,
+        hint: 'Was macht die Aluminiumschicht?',
+        explanation: 'Die Aluminiumschicht hält das Rohr in Form. Es dehnt sich bei Wärme weniger aus als ein reines Kunststoffrohr. Und es lässt keinen Sauerstoff durch.'
+    },
+    fehlerTask
+],
+// ---------------------------------------------------------------- Modul 6
+6: [
+    function () {
+        const all = [['Magnesium', 1740], ['Aluminium', 2700], ['Titan', 4500], ['Zink', 7130], ['Stahl', 7850], ['Kupfer', 8930], ['Blei', 11340]];
+        const sel = pickN(all, 4).sort((a, b) => a[1] - b[1]);
+        return {
+            type: 'order', book: true,
+            q: 'Sortiere die Metalle nach ihrer Dichte. Das leichteste kommt nach oben. Schlage die Werte im Tabellenbuch nach.',
+            note: 'Bringe die Metalle mit ▲ und ▼ in die richtige Reihenfolge. ' + BOOK_RHO,
+            steps: sel.map(x => x[0]),
+            hint: 'Schreibe dir zu jedem Metall die Dichte auf. Dann sortieren.',
+            explanation: sel.map(x => x[0] + ' (etwa ' + num((x[1] / 1000).toFixed(2)) + ' kg/dm³)').join(' → ')
+        };
+    },
+    blechTask,
+    rohrTask,
+    function () {
+        const E = 'erlaubt', N = 'nicht erlaubt';
+        const all = [
+            { left: 'verzinkter Stahl → Kupfer', answer: E },
+            { left: 'Kupfer → verzinkter Stahl', answer: N },
+            { left: 'Kupfer → Edelstahl', answer: E },
+            { left: 'Edelstahl → Kupfer', answer: E },
+            { left: 'Kupfer → Kunststoff', answer: E },
+            { left: 'Kupfer → Kunststoff → verzinkter Stahl', answer: N }
+        ];
+        const items = shuffle(pickN(all.filter(x => x.answer === N), 1).concat(pickN(all.filter(x => x.answer === E), 3)));
+        return {
+            type: 'match', q: 'Trinkwasser fließt in Pfeilrichtung (→) durch die Rohre. Ist die Reihenfolge der Werkstoffe erlaubt?',
+            options: [E, N], items,
+            hint: 'Fließregel: Kupfer darf nicht vor verzinktem Stahl liegen. Das gilt auch, wenn ein anderes Rohr dazwischen ist.',
+            explanation: 'Wasser nimmt kleine Kupferteilchen mit. Treffen sie danach auf verzinkten Stahl, rostet der Stahl durch (Lochfraß). Deshalb: <strong>verzinkter Stahl nie in Fließrichtung hinter Kupfer</strong>.'
+        };
+    },
+    function () {
+        const all = [
+            { left: 'Trinkwasserleitung aus Metall, die man löten kann', answer: 'Kupfer' },
+            { left: 'Rohr für die Fußbodenheizung: biegsam, lange Stücke ohne Verbindung', answer: 'PE-X' },
+            { left: 'Abwasserrohr im Haus: leicht, preiswert, steckbar', answer: 'PP' },
+            { left: 'Abwasserrohr: besonders leise und nicht brennbar', answer: 'Gusseisen' },
+            { left: 'Heizungsrohr mit Pressfitting, preiswert, nicht für Trinkwasser', answer: 'C-Stahl' },
+            { left: 'Dichtring im Pressfitting', answer: 'EPDM' },
+            { left: 'Dichtung für ein Gewinde', answer: 'Hanf' }
+        ];
+        return {
+            type: 'match', q: 'Welcher Werkstoff passt am besten zur Anforderung?',
+            options: ['Kupfer', 'PE-X', 'PP', 'Gusseisen', 'C-Stahl', 'EPDM', 'Hanf'],
+            items: pickN(all, 5),
+            hint: 'Lies jede Anforderung genau. Welches Wort passt zu welchem Werkstoff: lötbar, biegsam, leise, Dichtring?',
+            explanation: 'Kupfer: lötbar. PE-X: biegsam, lange Rollen. PP: leichte Steckrohre. Gusseisen: leise, nicht brennbar. C-Stahl: Heizung. EPDM: Dichtringe. Hanf: Gewinde.'
+        };
+    },
+    {
+        type: 'mc',
+        q: 'Ein Kunststoffrohr und ein Kupferrohr werden gleich stark erwärmt. Was passiert?',
+        options: ['Beide werden gleich viel länger.',
+                  'Das Kunststoffrohr wird viel länger als das Kupferrohr.',
+                  'Das Kupferrohr wird viel länger als das Kunststoffrohr.',
+                  'Rohre werden bei Wärme nicht länger.'],
+        correct: 1,
+        hint: 'Denk an die Aluminiumschicht im Verbundrohr. Warum braucht man sie?',
+        explanation: 'Kunststoffrohre dehnen sich bei Wärme viel stärker aus als Metallrohre, etwa zehnmal so stark wie Kupfer. Darum plant man bei Kunststoffrohren mehr Platz für die Ausdehnung ein.'
+    }
+]
+};
+
+// =====================================================================
+// Aufgaben-Engine für die Lernmodule (Aufbau wie die C#-Vorlage)
+// Aufgabentypen: mc (Auswahl), num (Zahlen eingeben, auch mit Auswahlfeldern; tol = Spielraum),
+//                match (Zuordnen), order (Reihenfolge)
+// Eine Aufgabe ist ein Objekt oder eine Funktion, die ein Objekt liefert.
+// Funktionen erzeugen bei jedem Öffnen neue Zahlen ("Neue Zahlen"-Knopf).
+// Längen werden intern als ganze Zahlen in µm gespeichert (keine Rundungsfehler).
+// =====================================================================
+
+let completedModules = new Set();
+let basicQuizPassed = false;
+let current = {};
+
+// ---------- Hilfsfunktionen ----------
+function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function rint(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function shuffle(a) {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+function pickN(arr, n) { return shuffle(arr).slice(0, n); }
+
+// µm -> "24,9" (mm). dec = Nachkommastellen, sonst so wenig wie nötig (mind. 1)
+function mm(um, dec) {
+    if (dec === undefined) {
+        const a = Math.abs(um);
+        dec = (a % 100 === 0) ? 1 : (a % 10 === 0) ? 2 : 3;
+    }
+    return (um < 0 ? '−' : '') + (Math.abs(um) / 1000).toFixed(dec).replace('.', ',');
+}
+// mit Vorzeichen: +0,2 / −0,1 / 0
+function mmS(um, dec) { return um === 0 ? '0' : (um > 0 ? '+' : '') + mm(um, dec); }
+// µm mit Vorzeichen: +15 / −7 / 0
+function umS(v) { return v === 0 ? '0' : (v > 0 ? '+' : '−') + Math.abs(v); }
+function num(n) { return String(n).replace('.', ','); }
+
+function parseNum(s) {
+    s = (s || '').trim().replace(/\s+/g, '').replace(/(mm|µm|um)$/i, '')
+        .replace(/[−–]/g, '-').replace('±', '').replace(',', '.');
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+    return parseFloat(s);
+}
+
+const TYPE_LABEL = {
+    mc: '✅ Auswählen',
+    num: '🔢 Rechnen',
+    match: '🔗 Zuordnen',
+    order: '↕️ Reihenfolge'
+};
+const TYPE_NOTE = {
+    mc: 'Klicke die richtige Antwort an.',
+    num: 'Tippe deine Ergebnisse ein. Komma oder Punkt ist egal.',
+    match: 'Wähle bei jeder Zeile die passende Antwort aus.',
+    order: 'Bringe die Schritte mit ▲ und ▼ in die richtige Reihenfolge.'
+};
+
+// ---------- Aufgabe vorbereiten ----------
+function resolveTask(def) {
+    const generated = (typeof def === 'function');
+    const t = generated ? def() : JSON.parse(JSON.stringify(def));
+    t.regen = generated;
+    if (t.type === 'match') {
+        const items = (t.shuffle === false) ? t.items : shuffle(t.items);
+        t.fields = items.map(it => ({ label: it.left, kind: 'select', options: t.options, ans: it.answer, errors: it.errors }));
+    }
+    // typische Fehlerwerte, die zufällig gleich der Lösung sind, entfernen
+    (t.fields || []).forEach(f => { if (f.errors) f.errors = f.errors.filter(e => e.v !== f.ans); });
+    if (t.type === 'order') {
+        let cur;
+        do { cur = shuffle(t.steps.map((s, k) => k)); } while (cur.every((v, k) => v === k));
+        t.cur = cur;
+    }
+    return t;
+}
+
+function qDiv(n, i) { return document.querySelector('.quiz-question[data-module="' + n + '"][data-question="' + i + '"]'); }
+
+// ---------- Darstellung ----------
+function renderTask(n, i) {
+    const t = current[n][i];
+    const id = n + '_' + i;
+    let h = '<div class="quiz-question task-' + t.type + '" data-module="' + n + '" data-question="' + i + '">';
+    h += '<div class="task-head"><span class="task-type">' + TYPE_LABEL[t.type] + '</span>' +
+         (t.book ? '<span class="task-book">📘 Tabellenbuch</span>' : '') + '</div>';
+    h += '<p>' + (i + 1) + '. ' + t.q + '</p>';
+    if (t.svg) h += '<div class="sketch">' + t.svg + '</div>';
+    h += '<div class="task-note">' + (t.note || TYPE_NOTE[t.type]) + '</div>';
+
+    if (t.type === 'mc') {
+        t.options.forEach((opt, j) => {
+            h += '<div class="quiz-option" onclick="answerMC(' + n + ',' + i + ',' + j + ')">' +
+                 '<input type="radio" name="q' + id + '" id="q' + id + '_' + j + '">' +
+                 '<label for="q' + id + '_' + j + '">' + opt + '</label></div>';
+        });
+    } else if (t.type === 'order') {
+        h += '<ol class="order-list">';
+        t.cur.forEach((si, pos) => {
+            h += '<li class="order-item"><span class="order-text">' + t.steps[si] + '</span>' +
+                 '<span class="order-btns">' +
+                 '<button type="button" onclick="moveStep(' + n + ',' + i + ',' + pos + ',-1)" aria-label="nach oben"' + (pos === 0 ? ' disabled' : '') + '>▲</button>' +
+                 '<button type="button" onclick="moveStep(' + n + ',' + i + ',' + pos + ',1)" aria-label="nach unten"' + (pos === t.cur.length - 1 ? ' disabled' : '') + '>▼</button>' +
+                 '</span></li>';
+        });
+        h += '</ol>';
+    } else {
+        h += '<div class="fields">';
+        t.fields.forEach((f, k) => {
+            const fid = 'in' + id + '_' + k;
+            h += '<div class="field-row" id="row' + id + '_' + k + '">' +
+                 '<label class="field-label" for="' + fid + '">' + f.label + '</label><div class="field-input">';
+            if (f.kind === 'select') {
+                h += '<select id="' + fid + '"><option value="">– bitte wählen –</option>' +
+                     f.options.map(o => '<option>' + o + '</option>').join('') + '</select>';
+            } else {
+                if (f.prefix) h += '<span class="field-pre">' + f.prefix + '</span>';
+                h += '<input type="text" inputmode="decimal" autocomplete="off" id="' + fid + '"' +
+                     ' onkeydown="if(event.key===\'Enter\')checkTask(' + n + ',' + i + ')">';
+                h += '<span class="field-unit">' + f.unit + '</span>';
+            }
+            h += '</div><div class="field-msg"></div></div>';
+        });
+        h += '</div>';
+    }
+
+    h += '<div class="task-buttons">';
+    if (t.type !== 'mc') h += '<button type="button" class="btn-check" onclick="checkTask(' + n + ',' + i + ')">Prüfen</button>';
+    if (t.regen) h += '<button type="button" class="btn-new" onclick="newTask(' + n + ',' + i + ')">🎲 ' + (t.type === 'num' ? 'Neue Zahlen' : 'Neue Aufgabe') + '</button>';
+    h += '</div>';
+    h += '<div class="quiz-feedback" data-feedback="' + n + '-' + i + '"></div></div>';
+    return h;
+}
+
+function setResult(n, i, ok, extra) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    const fb = qd.querySelector('.quiz-feedback');
+    fb.classList.add('show');
+    fb.classList.toggle('correct', ok);
+    fb.classList.toggle('wrong', !ok);
+    qd.classList.toggle('correct', ok);
+    qd.classList.toggle('wrong', !ok);
+    fb.innerHTML = ok ? '✓ Richtig! ' + t.explanation
+                      : '✗ Noch nicht ganz richtig. ' + (extra || '') + 'Hinweis: ' + t.hint;
+    if (ok) qd.querySelectorAll('input[type=text], select').forEach(el => el.disabled = true);
+}
+
+// ---------- Antworten prüfen ----------
+function answerMC(n, i, j) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    qd.querySelectorAll('input[type="radio"]').forEach((r, k) => { r.checked = (k === j); });
+    setResult(n, i, j === t.correct);
+}
+
+function checkTask(n, i) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    let ok = true, empty = false;
+
+    if (t.type === 'order') {
+        ok = t.cur.every((v, k) => v === k);
+        qd.querySelectorAll('.order-item').forEach((li, pos) => {
+            li.classList.toggle('ok', t.cur[pos] === pos);
+            li.classList.toggle('bad', t.cur[pos] !== pos);
+        });
+        setResult(n, i, ok);
+        return;
+    }
+
+    t.fields.forEach((f, k) => {
+        const row = document.getElementById('row' + n + '_' + i + '_' + k);
+        const el = row.querySelector('input, select');
+        const msgEl = row.querySelector('.field-msg');
+        let good = false, msg = '';
+        if (f.kind === 'select') {
+            if (!el.value) { msg = 'Bitte wähle etwas aus.'; empty = true; }
+            else {
+                good = (el.value === f.ans);
+                const e = !good && f.errors && f.errors.find(e => e.v === el.value);
+                if (e) msg = e.msg;
+            }
+        } else {
+            const v = parseNum(el.value);
+            if (el.value.trim() === '') { msg = 'Bitte trage eine Zahl ein.'; empty = true; }
+            else if (isNaN(v)) { msg = 'Das ist keine Zahl. Beispiel: 24,98'; }
+            else {
+                let x = (f.unit === 'µm') ? Math.round(v) : Math.round(v * 1000);
+                if (f.prefix === '±') x = Math.abs(x);
+                // tol: erlaubter Spielraum (gleiche Einheit wie ans), z. B. für Werte aus verschiedenen Tabellenbüchern
+                good = f.tol ? Math.abs(x - f.ans) <= f.tol
+                             : (x === f.ans) && (f.unit !== 'µm' || Math.abs(v - Math.round(v)) < 1e-9);
+                if (!good) {
+                    const e = f.errors && f.errors.find(e => e.v === x);
+                    if (e) msg = e.msg;
+                    else if (f.positive && x === -f.ans) msg = 'Die Toleranz ist immer positiv.';
+                }
+            }
+        }
+        row.classList.toggle('ok', good);
+        row.classList.toggle('bad', !good);
+        msgEl.textContent = msg;
+        if (!good) ok = false;
+    });
+    setResult(n, i, ok, empty ? 'Es fehlen noch Eingaben. ' : '');
+}
+
+function moveStep(n, i, pos, dir) {
+    const t = current[n][i];
+    const p2 = pos + dir;
+    if (p2 < 0 || p2 >= t.cur.length) return;
+    [t.cur[pos], t.cur[p2]] = [t.cur[p2], t.cur[pos]];
+    qDiv(n, i).outerHTML = renderTask(n, i);
+}
+
+function newTask(n, i) {
+    current[n][i] = resolveTask(TASKS[n][i]);
+    qDiv(n, i).outerHTML = renderTask(n, i);
+}
+
+// ---------- Module öffnen und abschließen ----------
+function openModule(moduleNum) {
+    if (moduleNum > 4 && !basicQuizPassed) {
+        alert('🔒 Dieses Modul ist noch gesperrt. Schließe zuerst die Module 1 bis 4 ab!');
+        return;
+    }
+    document.getElementById('module-grid').style.display = 'none';
+    const module = modules[moduleNum];
+    current[moduleNum] = TASKS[moduleNum].map(resolveTask);
+
+    let html = '<div class="module-content active">' +
+               '<h2>' + module.title + '</h2>' + module.content +
+               '<div class="quiz-section"><h3>📝 Verständnis-Check</h3>';
+    for (let i = 0; i < current[moduleNum].length; i++) html += renderTask(moduleNum, i);
+    html += '</div>' +
+            '<button class="btn btn-back" onclick="backToOverview()">← Übersicht</button>' +
+            '<button class="btn" onclick="completeModule(' + moduleNum + ')">Modul abschließen →</button>' +
+            '</div>';
+    document.getElementById('module-content-container').innerHTML = html;
+    window.scrollTo(0, 0);
+}
+
+function completeModule(moduleNum) {
+    for (let i = 0; i < current[moduleNum].length; i++) {
+        const qd = qDiv(moduleNum, i);
+        if (!qd || !qd.classList.contains('correct')) {
+            alert('Aufgabe ' + (i + 1) + ' ist noch nicht richtig gelöst. Löse zuerst alle Aufgaben. Dann kannst du das Modul abschließen.');
+            qd.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+    }
+    completedModules.add(moduleNum);
+    checkUnlocks();
+    updateProgress();
+    alert('🎉 Modul ' + moduleNum + ' geschafft!');
+    backToOverview();
+}
+
+function backToOverview() {
+    document.getElementById('module-grid').style.display = 'grid';
+    document.getElementById('module-content-container').innerHTML = '';
+    window.scrollTo(0, 0);
+}
+
+function checkUnlocks() {
+    if ([1, 2, 3, 4].every(m => completedModules.has(m)) && !basicQuizPassed) {
+        basicQuizPassed = true;
+        alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module 5 und 6 sind jetzt frei!');
+        [5, 6].forEach(m => {
+            const card = document.getElementById('card-' + m);
+            card.classList.remove('locked');
+            card.querySelector('.module-description').textContent = UNLOCK_TEXT[m];
+        });
+    }
+}
+
+function updateProgress() {
+    const total = Object.keys(modules).length;
+    const bar = document.getElementById('progress');
+    bar.style.width = (completedModules.size / total * 100) + '%';
+    bar.textContent = completedModules.size + ' von ' + total + ' Modulen abgeschlossen';
+    completedModules.forEach(m => {
+        const card = document.getElementById('card-' + m);
+        if (card) card.classList.add('completed');
+    });
+    if (completedModules.size === total) document.getElementById('badge').classList.add('show');
+}
+
+    </script>
+</body>
+</html>
