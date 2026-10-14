@@ -24,6 +24,8 @@
 - Die drei Varianten eines Moduls werden aus einer gemeinsamen Quelle erzeugt, damit die Aufgaben überall gleich sind.
 - `_werkzeuge/engine.js`: gemeinsame Aufgaben-Engine für alle Module. Typen: `mc` (Auswahl), `num` (Zahlen eingeben, auch mit Auswahlfeldern), `match` (Zuordnen), `order` (Reihenfolge). Aufgaben als Funktion erzeugen neue Zufallszahlen („Neue Zahlen“). Längen intern als ganze Zahlen in µm.
   - `num`-Felder können `tol` haben (erlaubter Spielraum). Nötig für Werte, die je nach Tabellenbuch leicht abweichen, z. B. die Dichte.
+  - Bei Rechnungen mit π oder Zwischenergebnissen: im Aufgabentext sagen, wie gerundet wird, und die Spielräume aufeinanderfolgender Felder gleich streng setzen (z. B. m³ und Liter). Mit Schülerwegen testen: π = 3,14 und π-Taste, Zwischenergebnisse wie angegeben gerundet.
+  - Standard: Module 1–4 sind Grundlagen, danach Profi-Module. Ein Thema kann in `tasks.js` `const BASIC_MODULES = [1, 2, 3, 4, 5];` setzen (so bei `mathe-grundlagen-metall`).
 - `_werkzeuge/<thema>/build.py` + `tasks.js`: Lerntexte und Aufgaben eines Themas. Bauen mit `python3 _werkzeuge/<thema>/build.py`, das schreibt die drei HTML-Dateien in den Themenordner.
 - Lösungswerte aus Tabellen (ISO 2768, ISO 286) nur als einzelne Übungsfälle in `tasks.js`, nie ganze Tabellen. Vor dem Hochladen gegen unabhängige Nachrechnung prüfen.
 - Vor jedem Hochladen im Browser testen: alle Generatoren mehrfach erzeugen, jedes Modul automatisch lösen, Handybreite 375 px.

@@ -7,6 +7,8 @@
 // Längen werden intern als ganze Zahlen in µm gespeichert (keine Rundungsfehler).
 // =====================================================================
 
+// Grundlagen-Module: Standard 1–4. Ein Thema kann in tasks.js BASIC_MODULES setzen (z. B. [1, 2, 3, 4, 5]).
+const BASIC = (typeof BASIC_MODULES !== 'undefined') ? BASIC_MODULES : [1, 2, 3, 4];
 let completedModules = new Set();
 let basicQuizPassed = false;
 let current = {};
@@ -223,8 +225,8 @@ function newTask(n, i) {
 
 // ---------- Module öffnen und abschließen ----------
 function openModule(moduleNum) {
-    if (moduleNum > 4 && !basicQuizPassed) {
-        alert('🔒 Dieses Modul ist noch gesperrt. Schließe zuerst die Module 1 bis 4 ab!');
+    if (moduleNum > BASIC.length && !basicQuizPassed) {
+        alert('🔒 Dieses Modul ist noch gesperrt. Schließe zuerst die Module 1 bis ' + BASIC.length + ' ab!');
         return;
     }
     document.getElementById('module-grid').style.display = 'none';
@@ -266,10 +268,11 @@ function backToOverview() {
 }
 
 function checkUnlocks() {
-    if ([1, 2, 3, 4].every(m => completedModules.has(m)) && !basicQuizPassed) {
+    if (BASIC.every(m => completedModules.has(m)) && !basicQuizPassed) {
         basicQuizPassed = true;
-        alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module 5 und 6 sind jetzt frei!');
-        [5, 6].forEach(m => {
+        const profi = Object.keys(modules).map(Number).filter(m => m > BASIC.length);
+        alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module ' + profi.join(' und ') + ' sind jetzt frei!');
+        profi.forEach(m => {
             const card = document.getElementById('card-' + m);
             card.classList.remove('locked');
             card.querySelector('.module-description').textContent = UNLOCK_TEXT[m];

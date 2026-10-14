@@ -84,7 +84,7 @@ const TASKS = {
                     return { t: '(' + a + ' + ' + b + ') · ' + c, r: (a + b) * c, e: [{ v: a + b * c, msg: 'Die Klammer kommt zuerst.' }] }; },
             () => { const b = rint(2, 6), c = rint(2, 6), a = b * c + rint(3, 30);
                     return { t: a + ' − ' + b + ' · ' + c, r: a - b * c, e: [{ v: (a - b) * c, msg: 'Punkt vor Strich: Zuerst ' + b + ' · ' + c + ' rechnen.' }] }; },
-            () => { const d = rint(2, 6), k = rint(2, 9), c = d * k, a = rint(2, 9), b = rint(2, 9);
+            () => { const d = rint(2, 6), k = rint(2, 9), c = d * k, a = rint(2, 9), b = rint(Math.ceil((k + 1) / a), 9);
                     return { t: a + ' · ' + b + ' − ' + c + ' : ' + d, r: a * b - k, e: [] }; },
             () => { const c = rint(2, 5), b = rint(1, 8), a = b + rint(2, 9);
                     return { t: c + ' · (' + a + ' − ' + b + ')', r: c * (a - b), e: [{ v: c * a - b, msg: 'Die Klammer kommt zuerst.' }] }; }
@@ -438,7 +438,7 @@ const TASKS = {
         return {
             type: 'num',
             q: 'Eine Kupferleitung <strong>' + name + '</strong> ist <strong>' + L + ' m</strong> lang. Innen hat sie den Durchmesser <strong>' + di + ' mm</strong>. Wie viel Wasser ist in der Leitung?',
-            note: 'Rechne in dm, dann kommt das Volumen in Liter heraus (1 dm³ = 1 l). Formeln: A = π/4 · d² und V = A · l. Runde erst am Ende auf zwei Nachkommastellen.',
+            note: 'Rechne in dm, dann kommt das Volumen in Liter heraus (1 dm³ = 1 l). Formeln: A = π/4 · d² und V = A · l. Wenn du A aufschreibst: vier Nachkommastellen. Runde erst am Ende auf zwei Nachkommastellen.',
             fields: [
                 { label: 'd in dm', unit: 'dm', ans: T(ddm), errors: [{ v: T(di / 10), msg: '1 dm = 100 mm. Teile durch 100.' }] },
                 { label: 'l in dm', unit: 'dm', ans: T(Ldm), errors: [{ v: T(L * 100), msg: '1 m = 10 dm.' }] },
@@ -478,13 +478,14 @@ const TASKS = {
         return {
             type: 'num',
             q: 'Ein runder Warmwasserspeicher ist innen <strong>' + de(d) + ' m</strong> breit (Durchmesser) und <strong>' + de(h) + ' m</strong> hoch. Wie viele Liter fasst er?',
-            note: 'Formeln: A = π/4 · d² und V = A · h. 1 m³ = 1000 l. Runde erst am Ende.',
+            note: 'Formeln: A = π/4 · d² und V = A · h. 1 m³ = 1000 l. Runde A auf drei Nachkommastellen.',
             fields: [
-                { label: 'Grundfläche A', unit: 'm²', ans: T(A), tol: Math.round(T(A) * 0.01) + 2 },
-                { label: 'Volumen V', unit: 'm³', ans: T(V), tol: Math.round(T(V) * 0.01) + 2 },
-                { label: 'Volumen V', unit: 'l', ans: T(V * 1000), tol: Math.round(T(V * 1000) * 0.01) + 500, errors: [{ v: T(V * 100), msg: '1 m³ = 1000 l.' }] }
+                { label: 'Grundfläche A', unit: 'm²', ans: T(A), tol: 2 },
+                // V in m³ und in l gleich streng: 1 % Spielraum (π = 3,14 oder Taste, A auf drei Stellen gerundet)
+                { label: 'Volumen V', unit: 'm³', ans: T(V), tol: Math.round(T(V) * 0.01) + 1 },
+                { label: 'Volumen V', unit: 'l', ans: T(V * 1000), tol: (Math.round(T(V) * 0.01) + 1) * 1000, errors: [{ v: T(V * 100), msg: '1 m³ = 1000 l.' }] }
             ],
-            hint: 'Erst die Kreisfläche A, dann V = A · h, dann mal 1000.',
+            hint: 'Erst die Kreisfläche A, auf drei Nachkommastellen gerundet. Dann V = A · h. Dann mal 1000.',
             explanation: 'A = π/4 · (' + de(d) + ' m)² ≈ ' + de(A, 3) + ' m².<br>V = ' + de(A, 3) + ' m² · ' + de(h) + ' m ≈ ' + de(V, 3) + ' m³ ≈ <strong>' + de(Math.round(V * 1000)) + ' l</strong>.'
         };
     },
