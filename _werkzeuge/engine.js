@@ -130,7 +130,7 @@ function renderTask(n, i) {
 
     h += '<div class="task-buttons">';
     if (t.type !== 'mc') h += '<button type="button" class="btn-check" onclick="checkTask(' + n + ',' + i + ')">Prüfen</button>';
-    if (t.regen) h += '<button type="button" class="btn-new" onclick="newTask(' + n + ',' + i + ')">🎲 ' + (t.type === 'num' ? 'Neue Zahlen' : 'Neue Aufgabe') + '</button>';
+    if (t.regen) h += '<button type="button" class="btn-new" onclick="newTask(' + n + ',' + i + ')">🎲 ' + (t.newLabel || (t.type === 'num' ? 'Neue Zahlen' : 'Neue Aufgabe')) + '</button>';
     h += '</div>';
     h += '<div class="quiz-feedback" data-feedback="' + n + '-' + i + '"></div></div>';
     return h;
