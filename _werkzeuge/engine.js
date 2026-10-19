@@ -70,7 +70,16 @@ function resolveTask(def) {
     t.regen = generated;
     if (t.type === 'match') {
         const items = (t.shuffle === false) ? t.items : shuffle(t.items);
-        t.fields = items.map(it => ({ label: it.left, kind: 'select', options: t.options, ans: it.answer, errors: it.errors }));
+        // Auswahlliste mischen, damit ihre Reihenfolge nicht die Lösung verrät.
+        // Nicht bei nur 2 Möglichkeiten (z. B. richtig/falsch) oder mit keepOptionOrder: true.
+        let opts = t.options;
+        if (t.keepOptionOrder !== true && opts.length > 2) {
+            const sol = items.map(it => it.answer).join('|');
+            let k = 0;
+            do { opts = shuffle(t.options); k++; }
+            while (k < 20 && opts.slice(0, items.length).join('|') === sol);
+        }
+        t.fields = items.map(it => ({ label: it.left, kind: 'select', options: opts, ans: it.answer, errors: it.errors }));
     }
     // typische Fehlerwerte, die zufällig gleich der Lösung sind, entfernen
     (t.fields || []).forEach(f => { if (f.errors) f.errors = f.errors.filter(e => e.v !== f.ans); });
