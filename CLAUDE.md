@@ -26,6 +26,7 @@
   - `num`-Felder können `tol` haben (erlaubter Spielraum). Nötig für Werte, die je nach Tabellenbuch leicht abweichen, z. B. die Dichte.
   - Bei Rechnungen mit π oder Zwischenergebnissen: im Aufgabentext sagen, wie gerundet wird, und die Spielräume aufeinanderfolgender Felder gleich streng setzen (z. B. m³ und Liter). Mit Schülerwegen testen: π = 3,14 und π-Taste, Zwischenergebnisse wie angegeben gerundet.
   - Knopf „Neue Zahlen“ heißt bei `num` automatisch so; mit `newLabel: 'Neue Aufgabe'` ändern, wenn nicht die Zahlen, sondern die Aufgabe wechselt.
+  - Fortschritt wird automatisch im Browser gespeichert (localStorage, nur auf dem Gerät des Schülers): abgeschlossene Module, offenes Modul, Aufgaben samt Eingaben. Schlüssel = Dateipfad + Fingerabdruck der Aufgabenzahl, also getrennt pro Thema und Variante. Knopf „Von vorne anfangen“ unter dem Fortschrittsbalken. Neue Module bekommen das über die Engine von selbst. Aufgaben-Objekte müssen dafür reine Daten sein (keine Funktionen als Eigenschaften).
   - Standard: Module 1–4 sind Grundlagen, danach Profi-Module. Ein Thema kann in `tasks.js` `const BASIC_MODULES = [1, 2, 3, 4, 5];` setzen (so bei `mathe-grundlagen-metall` und `werkstoffe-metall`).
 - `_werkzeuge/<thema>/build.py` + `tasks.js`: Lerntexte und Aufgaben eines Themas. Bauen mit `python3 _werkzeuge/<thema>/build.py`, das schreibt die drei HTML-Dateien in den Themenordner.
 - Lösungswerte aus Tabellen (ISO 2768, ISO 286) nur als einzelne Übungsfälle in `tasks.js`, nie ganze Tabellen. Vor dem Hochladen gegen unabhängige Nachrechnung prüfen.
