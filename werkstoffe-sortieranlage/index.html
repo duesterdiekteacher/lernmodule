@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Werkstoff-Sortieranlage</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    padding: 1.5rem 1rem 3rem;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 920px; margin: 0 auto; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2.1rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.5rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.15rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card {
+    background: #1e293b; border: 2px solid #334155; border-radius: 16px;
+    padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.25rem;
+}
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+
+/* Level-Auswahl */
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.level {
+    background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+}
+.level.done { border-color: #22c55e; }
+.level.locked { opacity: 0.55; }
+.level .lv-top { display: flex; justify-content: space-between; align-items: center; }
+.level .lv-name { color: #38bdf8; font-weight: 700; font-size: 1.2rem; }
+.level .lv-desc { color: #cbd5e1; font-size: 0.98rem; flex-grow: 1; }
+.level .lv-best { color: #94a3b8; font-size: 0.9rem; }
+.btn {
+    display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600;
+    padding: 0.75rem 1.3rem; border-radius: 10px; color: white;
+    background: linear-gradient(90deg, #0ea5e9, #22c55e);
+}
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.small { padding: 0.45rem 0.9rem; font-size: 0.95rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.switch { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: #cbd5e1; }
+.switch input { width: 1.3rem; height: 1.3rem; accent-color: #22c55e; }
+
+/* Spielfeld */
+.hud { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+.hud .pill {
+    background: #0f172a; border: 1px solid #334155; border-radius: 999px;
+    padding: 0.3rem 0.85rem; font-size: 0.98rem; white-space: nowrap;
+}
+.progress-container { background: #0f172a; border-radius: 999px; height: 12px; overflow: hidden; border: 1px solid #334155; margin-bottom: 1rem; }
+.progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #0ea5e9, #22c55e); transition: width 0.3s; }
+
+.machine { position: relative; margin-bottom: 1rem; }
+.belt {
+    position: relative; height: 185px; border-radius: 14px; overflow: hidden;
+    background: #0f172a; border: 2px solid #334155;
+}
+.belt::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 18px; height: 22px;
+    background: repeating-linear-gradient(90deg, #475569 0 18px, #334155 18px 36px);
+    animation: run 1s linear infinite;
+}
+.belt.paused::after { animation-play-state: paused; }
+@keyframes run { from { background-position: 0 0; } to { background-position: 36px 0; } }
+.belt .end-zone {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 14%;
+    background: linear-gradient(90deg, transparent, rgba(239,68,68,0.25));
+}
+.item {
+    position: absolute; bottom: 42px; left: 0; width: 210px; max-width: 70%;
+    background: #f8fafc; color: #0f172a; border-radius: 12px; padding: 0.55rem 0.75rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5); text-align: center; z-index: 2;
+}
+.item .emo { font-size: 1.9rem; line-height: 1.1; }
+.item .name { font-weight: 700; font-size: 1.02rem; line-height: 1.25; }
+.item .rho { font-size: 0.9rem; color: #0369a1; font-weight: 600; }
+.item.shake { animation: shake 0.35s; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+.timebar { height: 6px; background: #334155; border-radius: 999px; margin-top: 0.4rem; overflow: hidden; }
+.timebar div { height: 100%; width: 100%; background: #f59e0b; }
+
+.bins { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.bin {
+    border: 2px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 12px;
+    padding: 0.7rem 0.6rem; font: inherit; font-weight: 600; cursor: pointer; text-align: center;
+    min-height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1.25; hyphens: manual; transition: transform 0.1s, border-color 0.2s;
+}
+.bin:hover, .bin:focus-visible { border-color: #38bdf8; outline: none; transform: translateY(-2px); }
+.bin .key { font-size: 0.78rem; color: #94a3b8; font-weight: 400; }
+.bin .ico { font-size: 1.4rem; }
+.bin.right { border-color: #22c55e; background: #14532d; }
+.bin.wrong { border-color: #ef4444; background: #7f1d1d; }
+.bin:disabled { cursor: default; transform: none; }
+
+.feedback { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.2rem; border: 2px solid #334155; background: #0f172a; min-height: 3.2rem; }
+.feedback.ok { border-color: #22c55e; }
+.feedback.bad { border-color: #ef4444; }
+.feedback.info { border-color: #f59e0b; }
+.feedback b { display: block; margin-bottom: 0.2rem; }
+.feedback .row { margin-top: 0.7rem; }
+
+/* Dichte-Abfrage */
+.book { background: #0f172a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+.inp { font: inherit; font-size: 1.15rem; width: 7rem; padding: 0.5rem 0.6rem; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: #f8fafc; text-align: center; }
+.inp:focus { border-color: #38bdf8; outline: none; }
+
+/* Ergebnis */
+.result { text-align: center; }
+.stars { font-size: 2.6rem; letter-spacing: 0.3rem; margin: 0.5rem 0; }
+.mistakes { text-align: left; margin-top: 1rem; }
+.mistakes li { margin: 0 0 0.5rem 1.2rem; }
+.badge {
+    text-align: center; border: 3px solid #f59e0b; border-radius: 20px; padding: 1.75rem 1.25rem;
+    background: radial-gradient(circle at top, #422006 0%, #1e293b 70%);
+}
+.badge .medal { font-size: 4.5rem; }
+.badge h2 { color: #fbbf24; }
+footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem; }
+
+@media (max-width: 520px) {
+    body { font-size: 16px; padding: 1rem 0.75rem 2.5rem; }
+    h1 { font-size: 1.7rem; }
+    .card { padding: 1.1rem; }
+    .belt { height: 180px; }
+    .bin .key { display: none; }
+    .item { width: 170px; }
+    .bins { grid-template-columns: 1fr 1fr; }
+    .bin { min-height: 66px; font-size: 0.95rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back-link" href="../metall/#spiele">← Zurück zur Übersicht</a>
+
+<header>
+    <div class="logo">🏭</div>
+    <h1>Werkstoff-Sortieranlage</h1>
+    <p class="sub">Sortiere die Werkstoffe in die richtige Kiste.</p>
+</header>
+
+<!-- START -->
+<section id="screen-start">
+    <div class="card">
+        <h2>So geht das Spiel</h2>
+        <ul class="steps">
+            <li>Auf dem Band fährt ein Teil vorbei.</li>
+            <li>Tippe auf die passende Kiste.</li>
+            <li>Ist das Teil am Ende vom Band, ist es zu spät.</li>
+            <li>Du hast in jedem Level <b>3 Leben</b> ❤️.</li>
+            <li>Ein Fehler oder ein verpasstes Teil kostet ein Leben.</li>
+        </ul>
+        <p style="margin-top:0.8rem">Am PC kannst du auch die Zahlentasten drücken.</p>
+        <div class="row" style="margin-top:1rem">
+            <label class="switch"><input type="checkbox" id="calm"> Ohne Zeitdruck spielen (das Band hält am Ende an)</label>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Level wählen</h2>
+        <p>Jedes Level schaltet das nächste frei.</p>
+        <div class="levels" id="levels"></div>
+        <div class="row" style="margin-top:1rem">
+            <button class="btn grey small" id="reset">Von vorne anfangen</button>
+        </div>
+    </div>
+
+    <div class="card hidden" id="badge-box"></div>
+</section>
+
+<!-- DICHTE-ABFRAGE -->
+<section id="screen-density" class="hidden">
+    <div class="card">
+        <h2>Vor Level 3: Leicht oder schwer?</h2>
+        <p>In Level 3 musst du Nichteisenmetalle in <b>Leichtmetalle</b> und <b>Schwermetalle</b> sortieren.</p>
+        <p>Dafür brauchst du die Grenze für die Dichte.</p>
+        <div class="book">📘 <b>Tabellenbuch:</b> Suche das <b>Periodensystem der Elemente</b>. In der Legende oder in einer Fußnote steht die Grenze.</div>
+        <p><b>Ab welcher Dichte ist ein Metall ein Schwermetall?</b></p>
+        <div class="row" style="margin-top:0.6rem">
+            <span>über</span>
+            <input class="inp" id="rho-in" inputmode="decimal" autocomplete="off" aria-label="Dichte-Grenze in kg pro dm³">
+            <span>kg/dm³</span>
+            <button class="btn" id="rho-check">Prüfen</button>
+        </div>
+        <div class="feedback hidden" id="rho-fb"></div>
+    </div>
+</section>
+
+<!-- SPIEL -->
+<section id="screen-game" class="hidden">
+    <div class="card">
+        <div class="hud">
+            <span class="pill" id="hud-level">Level 1</span>
+            <span class="pill" id="hud-lives">❤️❤️❤️</span>
+            <span class="pill" id="hud-score">⭐ 0 Punkte</span>
+            <span class="pill" id="hud-count">Teil 1 / 10</span>
+        </div>
+        <div class="progress-container"><div class="progress-bar" id="bar"></div></div>
+
+        <div class="machine">
+            <div class="belt" id="belt">
+                <div class="end-zone"></div>
+                <div class="item hidden" id="item">
+                    <div class="emo" id="item-emo"></div>
+                    <div class="name" id="item-name"></div>
+                    <div class="rho" id="item-rho"></div>
+                    <div class="timebar" id="timebar"><div id="timefill"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bins" id="bins"></div>
+
+        <div class="feedback" id="fb">Gleich geht es los …</div>
+
+        <div class="row" style="margin-top:1rem; justify-content:flex-end">
+            <button class="btn grey small" id="quit">Level abbrechen</button>
+        </div>
+    </div>
+</section>
+
+<!-- ERGEBNIS -->
+<section id="screen-result" class="hidden">
+    <div class="card result" id="result"></div>
+</section>
+
+<footer>Lernmodule für die Berufsschule · Werkstofftechnik</footer>
+</div>
+
+<script>
+(function () {
+"use strict";
+
+/* ---------- Kisten ---------- */
+var BINS = {
+    metall:     { name: "Metalle", ico: "⚙️" },
+    nichtmetall:{ name: "Nicht&shy;metalle", ico: "🧱" },
+    verbund:    { name: "Verbund&shy;werkstoffe", ico: "🧩" },
+    eisen:      { name: "Eisen&shy;werkstoffe", ico: "🧲" },
+    ne:         { name: "Nicht&shy;eisen&shy;metalle", ico: "🟠" },
+    kunst:      { name: "Künstliche Nicht&shy;metall&shy;werkstoffe", ico: "🏭" },
+    natur:      { name: "Natur&shy;werkstoffe", ico: "🌳" },
+    stahl:      { name: "Stähle", ico: "🔩" },
+    guss:       { name: "Eisen-Guss&shy;werkstoffe", ico: "🫗" },
+    schwer:     { name: "Schwer&shy;metalle", ico: "🏋️" },
+    leicht:     { name: "Leicht&shy;metalle", ico: "🪶" }
+};
+
+/* Feine Gruppe -> Gruppe im jeweiligen Level */
+var MAP = {
+    1: { stahl: "metall", guss: "metall", schwer: "metall", leicht: "metall", kunst: "nichtmetall", natur: "nichtmetall", verbund: "verbund" },
+    2: { stahl: "eisen", guss: "eisen", schwer: "ne", leicht: "ne", kunst: "kunst", natur: "natur", verbund: "verbund" },
+    3: { stahl: "stahl", guss: "guss", schwer: "schwer", leicht: "leicht", kunst: "kunst", natur: "natur", verbund: "verbund" }
+};
+
+var LEVELS = {
+    1: { title: "Level 1: Hauptgruppen", desc: "Metall, Nichtmetall oder Verbund?", bins: ["metall", "nichtmetall", "verbund"], count: 10, time: 12 },
+    2: { title: "Level 2: Untergruppen", desc: "Eisen oder Nichteisen? Künstlich oder natürlich?", bins: ["eisen", "ne", "kunst", "natur", "verbund"], count: 12, time: 11 },
+    3: { title: "Level 3: Profi", desc: "Alle sieben Kisten. Mit Dichte und Fallen!", bins: ["stahl", "guss", "schwer", "leicht", "kunst", "natur", "verbund"], count: 14, time: 10 }
+};
+
+/* Hinweise bei falscher Antwort (ohne Lösung) */
+var HINTS = {
+    metall: "Frag dich: Besteht das Teil nur aus Metall? Metalle glänzen und leiten Strom gut.",
+    nichtmetall: "Frag dich: Ist das überhaupt ein Metall? Leitet es Strom gut?",
+    verbund: "Frag dich: Sind hier mehrere Werkstoffe fest miteinander verbunden?",
+    eisen: "Frag dich: Ist Eisen die Basis von diesem Werkstoff?",
+    ne: "Es ist ein Metall. Frag dich: Ist Eisen die Basis?",
+    kunst: "Frag dich: Gibt es den Werkstoff so in der Natur? Oder stellt ihn der Mensch her?",
+    natur: "Frag dich: Gibt es den Werkstoff so in der Natur? Oder stellt ihn der Mensch her?",
+    stahl: "Es ist ein Eisenwerkstoff. Frag dich: Wird das Teil gegossen?",
+    guss: "Es ist ein Eisenwerkstoff. Frag dich: Wird das Teil gegossen?",
+    schwer: "Es ist ein Nichteisenmetall. Schau auf die Dichte am Teil. Vergleiche sie mit der Grenze.",
+    leicht: "Es ist ein Nichteisenmetall. Schau auf die Dichte am Teil. Vergleiche sie mit der Grenze."
+};
+
+/* Teile: g = feine Gruppe, rho nur bei NE-Metallen, trap = eigener Hinweis */
+var ITEMS = [
+    { e: "🔩", n: "Schraube aus Baustahl", g: "stahl", x: "Baustahl ist ein Stahl. Eisen ist die Basis, er wird nicht gegossen." },
+    { e: "🔧", n: "Bohrer aus Werkzeugstahl", g: "stahl", x: "Werkzeugstahl ist ein Stahl. Er ist hart und verschleißfest." },
+    { e: "⚙️", n: "Antriebswelle aus Vergütungsstahl", g: "stahl", x: "Vergütungsstahl ist ein Stahl. Er ist fest und zäh, gut für Wellen." },
+    { e: "🚰", n: "Spüle aus nichtrostendem Stahl", g: "stahl", x: "Nichtrostender Stahl ist ein Stahl. Er rostet nicht, gut für Küchen." },
+    { e: "🌀", n: "Feder aus Federstahl", g: "stahl", x: "Federstahl ist ein Stahl. Er ist sehr elastisch." },
+    { e: "🏗️", n: "Stahlträger aus Baustahl", g: "stahl", x: "Baustahl ist ein Stahl. Eisen ist die Basis." },
+    { e: "📦", n: "Getriebegehäuse aus Gusseisen", g: "guss", x: "Gusseisen ist ein Eisen-Gusswerkstoff. Er ist gut vergießbar und dämpft Schwingungen." },
+    { e: "🛠️", n: "Maschinenbett aus Gusseisen", g: "guss", x: "Gusseisen ist ein Eisen-Gusswerkstoff. Es dämpft Schwingungen, darum ist es gut für Maschinenbetten." },
+    { e: "🛞", n: "Bremsscheibe aus Gusseisen", g: "guss", x: "Gusseisen ist ein Eisen-Gusswerkstoff. Eisen ist die Basis, das Teil wird gegossen." },
+    { e: "🫙", n: "Pumpengehäuse aus Stahlguss", g: "guss", trap: "Achtung, Falle! Lies das Wort genau: Stahl-GUSS. Wie wird das Teil hergestellt?", x: "Stahlguss wird gegossen. Darum gehört er zu den Eisen-Gusswerkstoffen, nicht zu den Stählen." },
+    { e: "🟤", n: "Wasserrohr aus Kupfer", g: "schwer", rho: "8,9", x: "Kupfer ist ein Nichteisenmetall." },
+    { e: "🏠", n: "Dachrinne aus Zink", g: "schwer", rho: "7,1", x: "Zink ist ein Nichteisenmetall." },
+    { e: "⚖️", n: "Auswuchtgewicht aus Blei", g: "schwer", rho: "11,3", x: "Blei ist ein Nichteisenmetall." },
+    { e: "🔌", n: "Lötdraht aus Zinn", g: "schwer", rho: "7,3", x: "Zinn ist ein Nichteisenmetall." },
+    { e: "🚪", n: "Türgriff aus Messing", g: "schwer", rho: "8,5", x: "Messing ist Kupfer und Zink, ohne Eisen. Also ein Nichteisenmetall." },
+    { e: "🚲", n: "Fahrradrahmen aus Aluminium", g: "leicht", rho: "2,7", x: "Aluminium ist ein Nichteisenmetall." },
+    { e: "🪜", n: "Leiter aus Aluminium", g: "leicht", rho: "2,7", x: "Aluminium ist ein Nichteisenmetall." },
+    { e: "🏎️", n: "Felge aus Magnesium", g: "leicht", rho: "1,7", x: "Magnesium ist ein Nichteisenmetall." },
+    { e: "🥫", n: "Getränkedose aus Aluminium", g: "leicht", rho: "2,7", x: "Aluminium ist ein Nichteisenmetall." },
+    { e: "🔌", n: "Kabelisolierung aus PVC", g: "kunst", x: "PVC ist ein Kunststoff. Den stellt der Mensch her. Er isoliert gegen Strom." },
+    { e: "⚙️", n: "Zahnrad aus Kunststoff", g: "kunst", x: "Kunststoff stellt der Mensch her: künstlicher Nichtmetallwerkstoff." },
+    { e: "🪛", n: "Schraubendreher-Griff aus Kunststoff", g: "kunst", x: "Kunststoff ist ein künstlicher Nichtmetallwerkstoff. Er isoliert gegen Strom und Wärme." },
+    { e: "🔍", n: "Schauglas aus Glas", g: "kunst", x: "Glas stellt der Mensch her: künstlicher Nichtmetallwerkstoff." },
+    { e: "🔺", n: "Schneidplatte aus Keramik", g: "kunst", trap: "Keramik ist kein Metall. Gibt es Keramik so in der Natur?", x: "Keramik stellt der Mensch her: künstlicher Nichtmetallwerkstoff. Sie ist sehr hart." },
+    { e: "⚡", n: "Isolator aus Porzellan", g: "kunst", x: "Porzellan ist eine Keramik. Der Mensch stellt sie her: künstlicher Nichtmetallwerkstoff." },
+    { e: "🪵", n: "Werkbankplatte aus Holz", g: "natur", x: "Holz wächst in der Natur: Naturwerkstoff." },
+    { e: "🔨", n: "Hammerstiel aus Holz", g: "natur", x: "Holz wächst in der Natur: Naturwerkstoff. Es federt Schläge ab." },
+    { e: "🪨", n: "Messplatte aus Granit", g: "natur", x: "Granit ist ein Naturstein: Naturwerkstoff. Er verzieht sich nicht." },
+    { e: "✏️", n: "Schmierstoff aus Grafit", g: "natur", trap: "Grafit sieht aus wie Metall. Ist es aber eins? Woher kommt es?", x: "Grafit kommt in der Natur vor: Naturwerkstoff. Er ist kein Metall." },
+    { e: "🛞", n: "Dichtung aus Leder", g: "natur", x: "Leder kommt von Tieren, also aus der Natur: Naturwerkstoff." },
+    { e: "🔷", n: "Wendeschneidplatte aus Hartmetall", g: "verbund", trap: "Achtung, Falle! Hartmetall heißt zwar „Metall“. Aus wie vielen Werkstoffen besteht es?", x: "Hartmetall ist ein Verbundwerkstoff: harte Körner und ein zähes Metall sind fest verbunden." },
+    { e: "🚴", n: "Rennrad aus CFK", g: "verbund", x: "CFK = Kohlenstofffasern + Kunststoff. Das ist ein Verbundwerkstoff." },
+    { e: "🛥️", n: "Bootsrumpf aus GFK", g: "verbund", x: "GFK = Glasfasern + Kunststoff. Das ist ein Verbundwerkstoff." },
+    { e: "🧱", n: "Fundament aus Stahlbeton", g: "verbund", trap: "Hier steckt „Stahl“ drin. Aber ist das schon alles?", x: "Stahlbeton = Stahl + Beton. Das ist ein Verbundwerkstoff." },
+    { e: "🛡️", n: "Schutzhaube aus GFK", g: "verbund", x: "GFK = Glasfasern + Kunststoff. Das ist ein Verbundwerkstoff." }
+];
+
+function explain(it) {
+    if (G && G.level === 3 && it.rho) {
+        var heavy = parseFloat(it.rho.replace(",", ".")) > 5;
+        return it.x + " Dichte " + it.rho + " kg/dm³, also " + (heavy ? "über 5: Schwermetall." : "bis 5: Leichtmetall.");
+    }
+    return it.x;
+}
+
+/* ---------- Speicher (nur auf diesem Gerät) ---------- */
+var KEY = "lernmodule:werkstoffe-sortieranlage:v1";
+var save = { done: {}, best: {}, rho: false };
+try { var raw = localStorage.getItem(KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) {}
+function store() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- Hilfen ---------- */
+function $(id) { return document.getElementById(id); }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function show(id) { ["screen-start", "screen-density", "screen-game", "screen-result"].forEach(function (s) { $(s).classList.toggle("hidden", s !== id); }); window.scrollTo(0, 0); }
+function plain(html) { var d = document.createElement("div"); d.innerHTML = html; return d.textContent.replace(/­/g, ""); }
+
+/* Teile so wählen, dass jede Kiste vorkommt */
+function pickItems(level) {
+    var L = LEVELS[level], map = MAP[level], bins = {}, out = [], used = {};
+    var pool = shuffle(ITEMS.map(function (it, i) { return i; }));
+    L.bins.forEach(function (b) { bins[b] = []; });
+    pool.forEach(function (i) { bins[map[ITEMS[i].g]].push(i); });
+    L.bins.forEach(function (b) { var i = bins[b][0]; out.push(i); used[i] = true; });
+    if (level === 3) { /* in Level 3 immer zwei Fallen dabei */
+        ITEMS.forEach(function (it, i) { if ((it.n.indexOf("Stahlguss") >= 0 || it.n.indexOf("Hartmetall") >= 0) && !used[i]) { out.push(i); used[i] = true; } });
+    }
+    pool.forEach(function (i) { if (out.length < L.count && !used[i]) { out.push(i); used[i] = true; } });
+    return shuffle(out);
+}
+
+/* ---------- Startseite ---------- */
+function renderStart() {
+    var box = $("levels"); box.innerHTML = "";
+    [1, 2, 3].forEach(function (n) {
+        var L = LEVELS[n], unlocked = n === 1 || save.done[n - 1];
+        var d = document.createElement("div");
+        d.className = "level" + (save.done[n] ? " done" : "") + (unlocked ? "" : " locked");
+        d.innerHTML = '<div class="lv-top"><span class="lv-name">' + L.title + '</span><span>' + (save.done[n] ? "✅" : unlocked ? "" : "🔒") + '</span></div>' +
+            '<div class="lv-desc">' + L.desc + '<br>' + L.count + ' Teile, ' + L.bins.length + ' Kisten.</div>' +
+            '<div class="lv-best">' + (save.best[n] ? "Dein Rekord: " + save.best[n] + " Punkte" : "Noch kein Rekord") + '</div>';
+        var b = document.createElement("button");
+        b.className = "btn"; b.textContent = unlocked ? (save.done[n] ? "Nochmal spielen" : "Starten") : "Erst Level " + (n - 1) + " schaffen";
+        b.disabled = !unlocked;
+        b.addEventListener("click", function () { if (n === 3 && !save.rho) openDensity(); else startLevel(n); });
+        d.appendChild(b); box.appendChild(d);
+    });
+    var bb = $("badge-box");
+    if (save.done[3]) {
+        bb.classList.remove("hidden");
+        bb.innerHTML = '<div class="badge"><div class="medal">🏅</div><h2>Sortier-Profi</h2><p>Du hast alle drei Level geschafft.</p><p>Du kannst Werkstoffe sicher einteilen.</p></div>';
+    } else bb.classList.add("hidden");
+}
+
+$("reset").addEventListener("click", function () {
+    if (!confirm("Wirklich von vorne anfangen? Rekorde und freigeschaltete Level werden gelöscht.")) return;
+    save = { done: {}, best: {}, rho: false }; store(); renderStart();
+});
+
+/* ---------- Dichte-Abfrage ---------- */
+function openDensity() {
+    show("screen-density"); $("rho-in").value = ""; $("rho-fb").className = "feedback hidden"; $("rho-in").focus();
+}
+$("rho-in").addEventListener("keydown", function (e) { if (e.key === "Enter") $("rho-check").click(); });
+$("rho-check").addEventListener("click", function () {
+    var v = parseFloat(String($("rho-in").value).replace(",", ".").trim());
+    var fb = $("rho-fb");
+    if (isNaN(v)) { fb.className = "feedback info"; fb.innerHTML = "<b>Bitte eine Zahl eingeben.</b>Zum Beispiel 3,5"; return; }
+    if (v >= 4.5 && v <= 5) {
+        save.rho = true; store();
+        fb.className = "feedback ok";
+        fb.innerHTML = "<b>✅ Richtig!</b>Bis 5 kg/dm³ ist ein Metall ein Leichtmetall. Darüber ist es ein Schwermetall. Im Spiel steht die Dichte auf jedem Nichteisenmetall." +
+            '<div class="row"><button class="btn" id="go3">Level 3 starten</button></div>';
+        $("go3").addEventListener("click", function () { startLevel(3); });
+    } else {
+        fb.className = "feedback bad";
+        fb.innerHTML = "<b>❌ Noch nicht.</b>" + (v > 5 ? "Die Grenze ist kleiner. " : "Die Grenze ist größer. ") +
+            "Aluminium (2,7 kg/dm³) ist ein Leichtmetall. Zink (7,1 kg/dm³) ist ein Schwermetall. Die Grenze liegt dazwischen. Schau im Tabellenbuch nach.";
+    }
+});
+
+/* ---------- Spiel ---------- */
+var G = null, raf = null;
+
+function startLevel(n) {
+    var L = LEVELS[n];
+    G = { level: n, order: pickItems(n), pos: 0, lives: 3, score: 0, streak: 0, mistakes: [], firstTry: 0,
+          calm: $("calm").checked, cur: null, t0: 0, paused: false, pausedAt: 0, locked: false, over: false };
+    var bins = $("bins"); bins.innerHTML = "";
+    L.bins.forEach(function (b, i) {
+        var btn = document.createElement("button");
+        btn.className = "bin"; btn.dataset.bin = b;
+        btn.innerHTML = '<span class="ico">' + BINS[b].ico + '</span><span>' + BINS[b].name + '</span><span class="key">Taste ' + (i + 1) + '</span>';
+        btn.addEventListener("click", function () { choose(b, btn); });
+        bins.appendChild(btn);
+    });
+    $("hud-level").textContent = "Level " + n;
+    show("screen-game");
+    $("fb").className = "feedback"; $("fb").innerHTML = "<b>Los geht's!</b>Tippe auf die richtige Kiste.";
+    hud(); nextItem();
+}
+
+function hud() {
+    var L = LEVELS[G.level];
+    $("hud-lives").textContent = G.lives > 0 ? "❤️".repeat(G.lives) + "🖤".repeat(3 - G.lives) : "🖤🖤🖤";
+    $("hud-score").textContent = "⭐ " + G.score + " Punkte";
+    $("hud-count").textContent = "Teil " + Math.min(G.pos + 1, L.count) + " / " + L.count;
+    $("bar").style.width = (G.pos / L.count * 100) + "%";
+}
+
+function nextItem() {
+    var L = LEVELS[G.level];
+    clearBins();
+    if (G.pos >= L.count) return finish(true);
+    var it = ITEMS[G.order[G.pos]];
+    G.cur = { it: it, wrong: false };
+    $("item-emo").textContent = it.e;
+    $("item-name").textContent = it.n;
+    $("item-rho").textContent = (G.level === 3 && it.rho) ? "ρ = " + it.rho + " kg/dm³" : "";
+    $("item").classList.remove("hidden");
+    G.t0 = performance.now(); G.paused = false; G.locked = false;
+    $("belt").classList.remove("paused");
+    hud(); loop();
+}
+
+function duration() { return LEVELS[G.level].time * 1000; }
+
+function loop() {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function step(now) {
+        if (!G || G.over) return;
+        if (!G.paused) {
+            var p = (now - G.t0) / duration();
+            if (G.calm && p > 0.86) { p = 0.86; G.paused = true; G.pausedAt = now; $("belt").classList.add("paused"); }
+            place(p);
+            if (p >= 1) return missed();
+        }
+        raf = requestAnimationFrame(step);
+    });
+}
+
+function place(p) {
+    var belt = $("belt"), item = $("item");
+    var max = belt.clientWidth - item.offsetWidth;
+    item.style.left = Math.max(0, Math.min(max, p * max)) + "px";
+    $("timefill").style.width = Math.max(0, (1 - p) * 100) + "%";
+    $("timebar").classList.toggle("hidden", G.calm);
+}
+
+function pause() {
+    if (G.paused) return;
+    G.paused = true; G.pausedAt = performance.now(); $("belt").classList.add("paused");
+}
+function resume() {
+    if (!G.paused) return;
+    G.t0 += performance.now() - G.pausedAt; G.paused = false; $("belt").classList.remove("paused");
+}
+
+function clearBins() {
+    Array.prototype.forEach.call(document.querySelectorAll(".bin"), function (b) { b.classList.remove("right", "wrong"); b.disabled = false; });
+}
+
+function correctBin() { return MAP[G.level][G.cur.it.g]; }
+
+function choose(bin, btn) {
+    if (!G || G.over || G.locked || !G.cur) return;
+    var it = G.cur.it, right = correctBin(), fb = $("fb");
+    if (bin === right) {
+        G.locked = true;
+        btn.classList.add("right");
+        if (!G.cur.wrong) { G.streak++; G.firstTry++; } else G.streak = 0;
+        var pts = G.cur.wrong ? 5 : 10 + (G.streak >= 3 ? 5 : 0);
+        G.score += pts;
+        fb.className = "feedback ok";
+        fb.innerHTML = "<b>✅ Richtig! +" + pts + " Punkte" + (G.streak >= 3 && !G.cur.wrong ? " (Serie 🔥)" : "") + "</b>" + it.x;
+        $("item").classList.add("hidden");
+        G.pos++; hud();
+        setTimeout(function () { if (G && !G.over) nextItem(); }, 900);
+    } else {
+        G.streak = 0;
+        btn.classList.add("wrong"); btn.disabled = true;
+        $("item").classList.remove("shake"); void $("item").offsetWidth; $("item").classList.add("shake");
+        if (!G.cur.wrong) G.mistakes.push(it);
+        G.cur.wrong = true;
+        loseLife();
+        if (G.over) return;
+        pause();
+        fb.className = "feedback bad";
+        fb.innerHTML = "<b>❌ Nicht ganz. Ein Leben weniger.</b>💡 " + (it.trap || HINTS[right]) +
+            '<div class="row"><button class="btn small" id="cont">Weiter sortieren</button></div>';
+        $("cont").addEventListener("click", function () { $("fb").innerHTML = "<b>Versuch es nochmal.</b>Das Band läuft weiter."; $("fb").className = "feedback info"; resume(); });
+        $("cont").focus();
+    }
+}
+
+function missed() {
+    var it = G.cur.it;
+    if (!G.cur.wrong) G.mistakes.push(it);
+    $("item").classList.add("hidden");
+    loseLife();
+    if (G.over) return;
+    var fb = $("fb");
+    fb.className = "feedback info";
+    fb.innerHTML = "<b>⏰ Zu spät! Ein Leben weniger.</b>Richtig wäre: " + plain(BINS[correctBin()].name) + ". " + explain(it) +
+        '<div class="row"><button class="btn small" id="cont">Nächstes Teil</button></div>';
+    G.locked = true; G.pos++; hud();
+    $("cont").addEventListener("click", function () { nextItem(); });
+    $("cont").focus();
+}
+
+function loseLife() {
+    G.lives--; hud();
+    if (G.lives <= 0) { G.over = true; cancelAnimationFrame(raf); setTimeout(function () { finish(false); }, 600); }
+}
+
+function finish(won) {
+    G.over = true; cancelAnimationFrame(raf);
+    var n = G.level, L = LEVELS[n], box = $("result");
+    var stars = won ? (G.lives === 3 ? 3 : G.lives === 2 ? 2 : 1) : 0;
+    if (won) {
+        save.done[n] = true;
+        if (!save.best[n] || G.score > save.best[n]) save.best[n] = G.score;
+        store();
+    }
+    var h = "";
+    if (won) {
+        h += "<h2>" + (n === 3 ? "🏆 Geschafft!" : "🎉 Level " + n + " geschafft!") + "</h2>";
+        h += '<div class="stars">' + "⭐".repeat(stars) + "☆".repeat(3 - stars) + "</div>";
+        h += "<p><b>" + G.score + " Punkte</b> · " + G.firstTry + " von " + L.count + " Teilen beim ersten Versuch richtig.</p>";
+    } else {
+        h += "<h2>💔 Keine Leben mehr</h2><p>Kein Problem. Lies die Tipps unten und versuch es nochmal.</p>";
+    }
+    if (G.mistakes.length) {
+        h += '<div class="mistakes"><h3>Das solltest du dir nochmal anschauen:</h3><ul>';
+        G.mistakes.forEach(function (it) { h += "<li><b>" + it.e + " " + it.n + "</b>: " + explain(it) + "</li>"; });
+        h += "</ul></div>";
+    } else if (won) {
+        h += "<p>Kein einziger Fehler. Stark! 💪</p>";
+    }
+    if (won && n === 3) {
+        h += '<div class="badge" style="margin-top:1.2rem"><div class="medal">🏅</div><h2>Sortier-Profi</h2><p>Du kannst Werkstoffe sicher einteilen.</p></div>';
+    }
+    h += '<div class="row" style="justify-content:center; margin-top:1.2rem">';
+    h += '<button class="btn grey" id="again">Level ' + n + ' nochmal</button>';
+    if (won && n < 3) h += '<button class="btn" id="nextlv">Weiter zu Level ' + (n + 1) + '</button>';
+    h += '<button class="btn grey" id="menu">Zur Level-Auswahl</button></div>';
+    box.innerHTML = h;
+    show("screen-result");
+    $("again").addEventListener("click", function () { startLevel(n); });
+    $("menu").addEventListener("click", function () { G = null; renderStart(); show("screen-start"); });
+    if ($("nextlv")) $("nextlv").addEventListener("click", function () { if (n + 1 === 3 && !save.rho) openDensity(); else startLevel(n + 1); });
+}
+
+$("quit").addEventListener("click", function () {
+    if (G) { G.over = true; cancelAnimationFrame(raf); }
+    G = null; renderStart(); show("screen-start");
+});
+
+document.addEventListener("keydown", function (e) {
+    if (!G || G.over || $("screen-game").classList.contains("hidden")) return;
+    if (e.target && e.target.tagName === "INPUT") return;
+    var k = parseInt(e.key, 10);
+    if (k >= 1 && k <= LEVELS[G.level].bins.length) {
+        if (G.paused && !G.calm) return; /* erst „Weiter“ drücken */
+        var btn = document.querySelectorAll(".bin")[k - 1];
+        if (!btn.disabled) btn.click();
+    }
+});
+
+/* Im ruhigen Modus darf man auch bei angehaltenem Band sortieren */
+window.addEventListener("resize", function () { if (G && !G.over && G.cur) place(Math.min(1, ((G.paused ? G.pausedAt : performance.now()) - G.t0) / duration())); });
+
+try { $("calm").checked = localStorage.getItem(KEY + ":calm") === "1"; } catch (e) {}
+$("calm").addEventListener("change", function () { try { localStorage.setItem(KEY + ":calm", this.checked ? "1" : "0"); } catch (e) {} });
+
+/* Testzugang für automatische Prüfung */
+window.__sortier = { ITEMS: ITEMS, MAP: MAP, LEVELS: LEVELS, state: function () { return G; }, correctBin: function () { return G && G.cur ? MAP[G.level][G.cur.it.g] : null; } };
+
+renderStart();
+})();
+</script>
+</body>
+</html>
