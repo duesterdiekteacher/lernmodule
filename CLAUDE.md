@@ -5,7 +5,7 @@
 - `metall/index.html` und `shk/index.html`: Übersicht der Themen pro Bereich, mit einer Karte pro Thema.
 - Jedes Thema hat einen eigenen Ordner direkt im Hauptverzeichnis (z. B. `/werkstofftechnik-stahl/`), mit einer `index.html` als Themenseite und den Varianten (komplett, kompakt, nur Quiz).
 - Die Bereichsseiten verlinken die Themen mit `../themenordner/`. Neue Karten kommen an die Markierung `NEUE THEMEN HIER EINFÜGEN`.
-- Spiele: eigener Abschnitt „🎮 Spiele“ auf der Bereichsseite (Anker `#spiele`), Karten an die Markierung `NEUE SPIELE HIER EINFÜGEN`. Jedes Spiel hat einen eigenen Ordner direkt im Hauptverzeichnis mit einer `index.html` (eine Datei, keine drei Varianten), z. B. `/werkstoffe-sortieranlage/`. Der Zurück-Link führt auf `../metall/#spiele` bzw. `../shk/#spiele`. Spiele bisher: Metall `werkstoffe-sortieranlage`; SHK `dichte-waage`, `transporter-beladen`. Spiele haben einen Testzugang `window.__<name>` für die automatische Prüfung.
+- Spiele: eigener Abschnitt „🎮 Spiele“ auf der Bereichsseite (Anker `#spiele`), Karten an die Markierung `NEUE SPIELE HIER EINFÜGEN`. Jedes Spiel hat einen eigenen Ordner direkt im Hauptverzeichnis mit einer `index.html` (eine Datei, keine drei Varianten), z. B. `/werkstoffe-sortieranlage/`. Der Zurück-Link führt auf `../metall/#spiele` bzw. `../shk/#spiele`. Spiele bisher: Metall `werkstoffe-sortieranlage`; SHK `werkstoffe-sortieranlage` (Link mit `?von=shk`, dann führt der Zurück-Link zur SHK-Seite), `dichte-waage`, `transporter-beladen`. Ein Spiel für beide Bereiche liegt nur einmal im Repository. Spiele haben einen Testzugang `window.__<name>` für die automatische Prüfung.
 
 ## Vorlage
 - `csharp-vererbung/` ist nur die Vorlage für Aufbau und Design neuer Module.

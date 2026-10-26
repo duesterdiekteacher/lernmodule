@@ -149,7 +149,7 @@ footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem
 <body>
 <div class="wrap">
 
-<a class="back-link" href="../metall/#spiele">← Zurück zur Übersicht</a>
+<a class="back-link" id="back-link" href="../metall/#spiele">← Zurück zur Übersicht</a>
 
 <header>
     <div class="logo">🏭</div>
@@ -608,6 +608,9 @@ window.addEventListener("resize", function () { if (G && !G.over && G.cur) place
 
 try { $("calm").checked = localStorage.getItem(KEY + ":calm") === "1"; } catch (e) {}
 $("calm").addEventListener("change", function () { try { localStorage.setItem(KEY + ":calm", this.checked ? "1" : "0"); } catch (e) {} });
+
+/* Zurück-Link: Aufruf von der SHK-Seite mit ?von=shk */
+try { if (new URLSearchParams(location.search).get("von") === "shk") $("back-link").href = "../shk/#spiele"; } catch (e) {}
 
 /* Testzugang für automatische Prüfung */
 window.__sortier = { ITEMS: ITEMS, MAP: MAP, LEVELS: LEVELS, state: function () { return G; }, correctBin: function () { return G && G.cur ? MAP[G.level][G.cur.it.g] : null; } };
