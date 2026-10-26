@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transporter beladen</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    padding: 1.5rem 1rem 3rem;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 920px; margin: 0 auto; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2.1rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.5rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.15rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card {
+    background: #1e293b; border: 2px solid #334155; border-radius: 16px;
+    padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.25rem;
+}
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+
+/* Level-Auswahl */
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.level {
+    background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+}
+.level.done { border-color: #22c55e; }
+.level.locked { opacity: 0.55; }
+.level .lv-top { display: flex; justify-content: space-between; align-items: center; }
+.level .lv-name { color: #38bdf8; font-weight: 700; font-size: 1.2rem; }
+.level .lv-desc { color: #cbd5e1; font-size: 0.98rem; flex-grow: 1; }
+.level .lv-best { color: #94a3b8; font-size: 0.9rem; }
+.btn {
+    display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600;
+    padding: 0.75rem 1.3rem; border-radius: 10px; color: white;
+    background: linear-gradient(90deg, #0ea5e9, #22c55e);
+}
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.small { padding: 0.45rem 0.9rem; font-size: 0.95rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.switch { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: #cbd5e1; }
+.switch input { width: 1.3rem; height: 1.3rem; accent-color: #22c55e; }
+
+.hud { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+.hud .pill {
+    background: #0f172a; border: 1px solid #334155; border-radius: 999px;
+    padding: 0.3rem 0.85rem; font-size: 0.98rem; white-space: nowrap;
+}
+.progress-container { background: #0f172a; border-radius: 999px; height: 12px; overflow: hidden; border: 1px solid #334155; margin-bottom: 1rem; }
+.progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #0ea5e9, #22c55e); transition: width 0.3s; }
+
+.bins { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.bin {
+    border: 2px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 12px;
+    padding: 0.7rem 0.6rem; font: inherit; font-weight: 600; cursor: pointer; text-align: center;
+    min-height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1.25; hyphens: manual; transition: transform 0.1s, border-color 0.2s;
+}
+.bin:hover, .bin:focus-visible { border-color: #38bdf8; outline: none; transform: translateY(-2px); }
+.bin .key { font-size: 0.78rem; color: #94a3b8; font-weight: 400; }
+.bin .ico { font-size: 1.4rem; }
+.bin.right { border-color: #22c55e; background: #14532d; }
+.bin.wrong { border-color: #ef4444; background: #7f1d1d; }
+.bin:disabled { cursor: default; transform: none; }
+
+.feedback { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.2rem; border: 2px solid #334155; background: #0f172a; min-height: 3.2rem; }
+.feedback.ok { border-color: #22c55e; }
+.feedback.bad { border-color: #ef4444; }
+.feedback.info { border-color: #f59e0b; }
+.feedback b { display: block; margin-bottom: 0.2rem; }
+.feedback .row { margin-top: 0.7rem; }
+
+/* Dichte-Abfrage */
+.book { background: #0f172a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+.inp { font: inherit; font-size: 1.15rem; width: 7rem; padding: 0.5rem 0.6rem; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: #f8fafc; text-align: center; }
+.inp:focus { border-color: #38bdf8; outline: none; }
+
+/* Ergebnis */
+.result { text-align: center; }
+.stars { font-size: 2.6rem; letter-spacing: 0.3rem; margin: 0.5rem 0; }
+.mistakes { text-align: left; margin-top: 1rem; }
+.mistakes li { margin: 0 0 0.5rem 1.2rem; }
+.badge {
+    text-align: center; border: 3px solid #f59e0b; border-radius: 20px; padding: 1.75rem 1.25rem;
+    background: radial-gradient(circle at top, #422006 0%, #1e293b 70%);
+}
+.badge .medal { font-size: 4.5rem; }
+.badge h2 { color: #fbbf24; }
+footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem; }
+
+@media (max-width: 520px) {
+    body { font-size: 16px; padding: 1rem 0.75rem 2.5rem; }
+    h1 { font-size: 1.7rem; }
+    .card { padding: 1.1rem; }
+    .belt { height: 180px; }
+    .bin .key { display: none; }
+    .item { width: 170px; }
+    .bins { grid-template-columns: 1fr 1fr; }
+    .bin { min-height: 66px; font-size: 0.95rem; }
+}
+
+/* ---------- Transporter ---------- */
+.van-box { background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 0.5rem; margin-bottom: 0.6rem; }
+.van-box svg { width: 100%; height: auto; display: block; }
+.loadbar { position: relative; height: 26px; background: #0f172a; border: 1px solid #334155; border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
+.loadbar .fill { height: 100%; width: 0; background: linear-gradient(90deg, #0ea5e9, #22c55e); transition: width 0.3s, background 0.3s; }
+.loadbar.over .fill { background: linear-gradient(90deg, #f97316, #ef4444); }
+.loadbar .txt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; text-shadow: 0 1px 2px #000; }
+.order-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.4rem; margin-bottom: 0.6rem; }
+.items { display: flex; flex-direction: column; gap: 0.7rem; }
+.it { background: #0f172a; border: 2px solid #334155; border-radius: 12px; padding: 0.75rem 0.9rem; }
+.it.solved { border-color: #22c55e; }
+.it.loaded { background: #10291c; }
+.it .top { display: flex; gap: 0.6rem; align-items: flex-start; }
+.it .emo { font-size: 1.7rem; line-height: 1.2; }
+.it .nm { font-weight: 700; }
+.it .ds { color: #cbd5e1; font-size: 0.97rem; }
+.tag-p { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; margin-left: 0.3rem; vertical-align: middle; }
+.tag-p.must { background: #7c2d12; color: #fed7aa; border: 1px solid #f97316; }
+.tag-p.opt { background: #1e293b; color: #94a3b8; border: 1px solid #475569; }
+.it .act { display: flex; flex-wrap: wrap; gap: 0.5rem 0.8rem; align-items: center; margin-top: 0.55rem; }
+.it .msg { font-size: 0.93rem; color: #fecaca; margin-top: 0.35rem; }
+.it .msg.ok { color: #bbf7d0; }
+.it .mass { font-weight: 700; color: #4ade80; }
+.loadsw { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; }
+.loadsw input { width: 1.4rem; height: 1.4rem; accent-color: #22c55e; }
+.loadsw.disabled { opacity: 0.45; cursor: not-allowed; }
+.link-btn { background: none; border: none; color: #94a3b8; text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.9rem; }
+@media (max-width: 520px) {
+    .it .act .inp { width: 6.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back-link" href="../shk/#spiele">← Zurück zur Übersicht</a>
+
+<header>
+    <div class="logo">🚐</div>
+    <h1>Transporter beladen</h1>
+    <p class="sub">Berechne die Massen und belade den Firmenwagen. Aber nicht überladen!</p>
+</header>
+
+<!-- START -->
+<section id="screen-start">
+    <div class="card">
+        <h2>So geht das Spiel</h2>
+        <ul class="steps">
+            <li>Für jede Baustelle gibt es einen Auftrag mit mehreren Teilen.</li>
+            <li>Berechne bei jedem Teil die <b>Masse</b>. Erst dann darfst du es einladen.</li>
+            <li>Der Transporter hat eine <b>Zuladung</b> von etwa 900 kg. Mehr darf nicht hinein.</li>
+            <li>Teile mit <span class="tag-p must">Pflicht</span> müssen heute mit. Die anderen können auch morgen fahren.</li>
+            <li>Lade so viel wie möglich ein. Dann fährst du weniger oft.</li>
+        </ul>
+        <div class="book">📘 Ab Stufe 2 brauchst du dein Tabellenbuch (Dichte im Sachwortverzeichnis) und den Taschenrechner.</div>
+    </div>
+    <div class="card">
+        <h2>Wähle eine Stufe</h2>
+        <div class="levels" id="levels"></div>
+    </div>
+    <div class="badge hidden" id="badge-start">
+        <div class="medal">🏅</div>
+        <h2>Lade-Profi!</h2>
+        <p>Du hast alle drei Stufen geschafft.</p>
+    </div>
+</section>
+
+<!-- SPIEL -->
+<section id="screen-game" class="hidden">
+    <div class="card">
+        <div class="hud">
+            <span class="pill" id="hud-level"></span>
+            <span class="pill" id="hud-round"></span>
+            <span class="pill" id="hud-points"></span>
+        </div>
+        <div class="progress-container"><div class="progress-bar" id="progress"></div></div>
+
+        <div class="van-box"><svg id="van" viewBox="0 0 600 220" role="img" aria-label="Transporter"></svg></div>
+        <div class="loadbar" id="loadbar"><div class="fill" id="loadfill"></div><div class="txt" id="loadtxt"></div></div>
+
+        <div class="order-head">
+            <h3 id="order-title"></h3>
+        </div>
+        <div class="items" id="items"></div>
+
+        <div class="row" style="margin-top:1rem"><button class="btn" type="button" id="btn-go">🚐 Losfahren</button></div>
+        <div class="feedback info" id="feedback"></div>
+    </div>
+    <div class="row"><button class="btn grey small" type="button" id="btn-quit">← Stufe abbrechen</button></div>
+</section>
+
+<!-- ERGEBNIS -->
+<section id="screen-result" class="hidden">
+    <div class="card result">
+        <h2 id="res-title"></h2>
+        <div class="stars" id="res-stars"></div>
+        <p id="res-text"></p>
+        <div class="row" style="justify-content:center; margin-top:1rem">
+            <button class="btn" type="button" id="btn-again">Noch einmal</button>
+            <button class="btn grey" type="button" id="btn-menu">Zur Stufen-Auswahl</button>
+        </div>
+    </div>
+    <div class="badge hidden" id="badge-end">
+        <div class="medal">🏅</div>
+        <h2>Lade-Profi!</h2>
+        <p>Du hast alle drei Stufen geschafft. Kein Transporter ist dir zu schwer!</p>
+    </div>
+</section>
+
+<footer>Lernmodule für die Berufsschule</footer>
+</div>
+
+<script>
+/* =====================================================================
+   Transporter beladen – Spiel zum Modul "Masse und Dichte" (SHK)
+   Nur Stoffe aus dem SHK-Tabellenbuch. m′-Werte der Kupferrohre sind
+   selbst berechnet (ρ = 8,92 kg/dm³), nicht abgeschrieben.
+   Dichte: [Prüfwert, Spielraum] in kg/dm³.
+   ===================================================================== */
+var RHO = { 'Kupfer': [8.92, 0.05], 'Zink': [7.13, 0.08], 'Aluminium': [2.7, 0.03], 'Blei': [11.34, 0.07] };
+var ROHR = [['15 × 1', 0.39], ['18 × 1', 0.48], ['22 × 1', 0.59], ['28 × 1,5', 1.11], ['35 × 1,5', 1.41], ['42 × 1,5', 1.70], ['54 × 2', 2.91]];
+var LEVELS = {
+    1: { name: 'Stufe 1: Rohre', desc: 'Kupferrohre mit m′ (m = m′ · l) und Geräte. Ohne Tabellenbuch.', rounds: 3 },
+    2: { name: 'Stufe 2: Bleche', desc: 'Dazu Bleche: m″ = ρ · s selbst berechnen. Mit Tabellenbuch.', rounds: 3 },
+    3: { name: 'Stufe 3: Gemischt', desc: 'Alles zusammen, dazu Volumen · Dichte. Mit Tabellenbuch.', rounds: 3 }
+};
+var KEY = 'lernmodule:transporter-beladen';
+var save = { best: {} };
+try { var raw = localStorage.getItem(KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) {}
+function store() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- Hilfen ---------- */
+function $(id) { return document.getElementById(id); }
+function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
+function rint(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function de(x, d) { var s = (d === undefined) ? String(Number(Number(x).toPrecision(10))) : Number(x).toFixed(d); return s.replace('.', ','); }
+function parseNum(s) { s = String(s || '').trim().replace(/\s+/g, '').replace(/kg$/i, '').replace(',', '.'); if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN; return parseFloat(s); }
+function show(id) { ['screen-start', 'screen-game', 'screen-result'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); }); window.scrollTo(0, 0); }
+function starsFor(r) { return r >= 0.85 ? 3 : r >= 0.65 ? 2 : r >= 0.45 ? 1 : 0; }
+function relB(name) { return RHO[name][1] / RHO[name][0] + 0.012; }
+var MAYBE = ' <span style="color:#94a3b8">Ein etwas anderer Dichtewert aus deinem Buch ist auch richtig.</span>';
+
+/* ---------- Teile ---------- */
+// Jedes Teil: name, emo, ds (Angaben), m (Masse kg), tol (kg), hint, expl, known (Masse steht schon da)
+function itRohre() {
+    var r = rnd(ROHR), n = rint(10, 40), L = 5;
+    var m = n * L * r[1];
+    return { name: 'Kupferrohr ' + r[0], emo: '🔩', ds: n + ' Stangen, je ' + L + ' m lang. m′ = ' + de(r[1], 2) + ' kg/m.',
+             m: m, tol: 0.15, hint: 'm = m′ · l. Gesamtlänge: Anzahl · 5 m.',
+             expl: n + ' · ' + L + ' m = ' + (n * L) + ' m; m = ' + de(r[1], 2) + ' kg/m · ' + (n * L) + ' m = ' + de(m, 2) + ' kg',
+             errs: [[r[1] * L, 'Das ist nur eine Stange. Mal die Anzahl!'], [r[1] * n, 'Jede Stange ist 5 m lang. Rechne mit der Gesamtlänge.']] };
+}
+function itRing() {
+    var r = rnd(ROHR.slice(0, 3)), n = rint(2, 6), L = rnd([25, 50]);
+    var m = n * L * r[1];
+    return { name: 'Kupferrohr ' + r[0] + ' im Ring', emo: '➰', ds: n + ' Ringe, je ' + L + ' m. m′ = ' + de(r[1], 2) + ' kg/m.',
+             m: m, tol: 0.15, hint: 'm = m′ · l. Gesamtlänge: Anzahl · Länge je Ring.',
+             expl: n + ' · ' + L + ' m = ' + (n * L) + ' m; m = ' + de(r[1], 2) + ' · ' + (n * L) + ' = ' + de(m, 2) + ' kg',
+             errs: [[r[1] * L, 'Das ist nur ein Ring.']] };
+}
+function itHeizkoerper() {
+    var n = rint(4, 10), e = rnd([18, 22, 26, 31, 35]);
+    return { name: 'Heizkörper', emo: '♨️', ds: n + ' Stück, je ' + e + ' kg.', m: n * e, tol: 0.1, hint: 'Anzahl · Masse je Stück.', expl: n + ' · ' + e + ' kg = ' + (n * e) + ' kg' };
+}
+function itKnown() {
+    return rnd([
+        { name: 'Warmwasserspeicher (leer)', emo: '🛢️', ds: 'Masse laut Datenblatt.', m: rnd([95, 120, 145, 180]) },
+        { name: 'Gas-Brennwertkessel', emo: '🔥', ds: 'Masse laut Datenblatt.', m: rnd([42, 48, 55, 65]) },
+        { name: 'Wärmepumpe Außengerät', emo: '❄️', ds: 'Masse laut Datenblatt.', m: rnd([110, 135, 160]) },
+        { name: 'Werkzeug und Pressmaschine', emo: '🧰', ds: 'Masse laut Packliste.', m: rnd([55, 70, 85]) }
+    ]);
+}
+function itBlech() {
+    var b = rnd([['Kupfer', 'Kupferblech', [0.6, 0.7, 0.8, 1]], ['Zink', 'Zinkblech', [0.7, 0.8, 1]], ['Aluminium', 'Aluminiumblech', [1, 1.5, 2, 3]], ['Blei', 'Bleiblech', [1, 1.5, 2]]]);
+    var s = rnd(b[2]), n = rint(4, 15), A = 2;
+    var rho = RHO[b[0]][0], mpp = rho * s, m = n * A * mpp;
+    return { name: b[1] + ', ' + de(s) + ' mm', emo: '🟫', ds: n + ' Tafeln, je 2 m × 1 m.', book: b[0],
+             m: m, tol: m * relB(b[0]), hint: 'm″ = ρ · s (s in mm). Fläche: Anzahl · 2 m². Dann m = m″ · A.',
+             expl: 'm″ = ' + de(rho) + ' · ' + de(s) + ' ≈ ' + de(mpp, 2) + ' kg/m²; A = ' + n + ' · 2 m² = ' + (n * A) + ' m²; m ≈ ' + de(m, 1) + ' kg',
+             errs: [[rho * s * A, 'Das ist nur eine Tafel.'], [rho * s * n, 'Eine Tafel hat 2 m², nicht 1 m².']] };
+}
+function itBleirolle() {
+    var L = rnd([5, 10]), s = rnd([1, 1.5, 2]), n = rint(1, 4);
+    var A = L * 0.5, rho = RHO['Blei'][0], m = n * A * rho * s;
+    return { name: 'Bleiblech-Rolle, ' + de(s) + ' mm', emo: '🧻', ds: n + ' Rollen, je ' + L + ' m × 0,5 m (für Anschlüsse am Dach).', book: 'Blei',
+             m: m, tol: m * relB('Blei'), hint: 'm″ = ρ · s. A = Länge · Breite je Rolle, mal Anzahl.',
+             expl: 'm″ = ' + de(rho) + ' · ' + de(s) + ' ≈ ' + de(rho * s, 2) + ' kg/m²; A = ' + n + ' · ' + L + ' m · 0,5 m = ' + de(n * A) + ' m²; m ≈ ' + de(m, 1) + ' kg' };
+}
+function itRund() {
+    var d = rnd([20, 25, 30, 40]), L = rnd([1, 2, 3]), n = rint(4, 12);
+    var V = Math.PI / 4 * Math.pow(d / 100, 2) * L * 10 * n, rho = RHO['Kupfer'][0], m = V * rho;
+    return { name: 'Kupfer-Rundstangen ⌀ ' + d + ' mm', emo: '🥢', ds: n + ' Stangen, je ' + L + ' m lang (massiv).', book: 'Kupfer',
+             m: m, tol: m * relB('Kupfer'), hint: 'In dm rechnen: V = π/4 · d² · l, mal Anzahl. Dann m = V · ρ.',
+             expl: 'V = π/4 · ' + de(d / 100) + '² · ' + (L * 10) + ' · ' + n + ' ≈ ' + de(V, 3) + ' dm³; m ≈ ' + de(V, 3) + ' · ' + de(rho) + ' ≈ ' + de(m, 1) + ' kg' };
+}
+function itPlatte() {
+    var p = rnd([['Blei', 'Bleiplatten', [[500, 500, 5], [500, 500, 10], [400, 300, 10]]], ['Aluminium', 'Aluminiumplatten', [[1000, 500, 10], [1000, 1000, 5], [800, 600, 8]]]]);
+    var dm = rnd(p[2]), n = rint(2, 8);
+    var V1 = dm[0] / 100 * dm[1] / 100 * dm[2] / 100, V = V1 * n, rho = RHO[p[0]][0], m = V * rho;
+    return { name: p[1], emo: '⬛', ds: n + ' Stück, je ' + dm[0] + ' × ' + dm[1] + ' × ' + dm[2] + ' mm.', book: p[0],
+             m: m, tol: m * relB(p[0]), hint: 'Maße in dm, V = l · b · h, mal Anzahl. Dann m = V · ρ.',
+             expl: 'V = ' + de(dm[0] / 100) + ' · ' + de(dm[1] / 100) + ' · ' + de(dm[2] / 100) + ' · ' + n + ' = ' + de(V, 3) + ' dm³; m ≈ ' + de(V, 3) + ' · ' + de(rho) + ' ≈ ' + de(m, 1) + ' kg',
+             errs: [[V1 * rho, 'Das ist nur ein Stück.']] };
+}
+function itWasser() {
+    var n = rint(3, 8), l = rnd([10, 20, 25]);
+    var m = n * (l + 1);
+    return { name: 'Wasser für die Druckprobe', emo: '💧', ds: n + ' Kanister mit je ' + l + ' Liter Wasser. Ein leerer Kanister wiegt 1 kg.',
+             m: m, tol: 0.1, hint: '1 Liter Wasser wiegt 1 kg. Den Kanister nicht vergessen!',
+             expl: n + ' · (' + l + ' kg + 1 kg) = ' + m + ' kg', errs: [[n * l, 'Die leeren Kanister wiegen auch etwas: je 1 kg.']] };
+}
+
+/* bestes Beladen: alle Pflichtteile + möglichst viel Masse, ohne Überladung */
+function bestLoad(items, cap) {
+    var best = -1, n = items.length;
+    for (var mask = 0; mask < (1 << n); mask++) {
+        var s = 0, ok = true;
+        for (var i = 0; i < n; i++) {
+            if (mask & (1 << i)) s += items[i].m;
+            else if (items[i].must) { ok = false; break; }
+        }
+        if (ok && s <= cap && s > best) best = s;
+    }
+    return best;
+}
+function makeOrder(level) {
+    for (;;) {   // so lange würfeln, bis ein lösbarer Auftrag entsteht
+        var cap = rnd([850, 900, 950]);
+        var k = rint(4, level === 1 ? 5 : 6);
+        var gens = shuffle(POOLS[level]).slice(0, k);
+        if (level >= 2 && !gens.some(function (g) { return g === itBlech || g === itBleirolle || g === itRund || g === itPlatte; })) continue;
+        var items = gens.map(function (g) { return g(); });
+        var total = items.reduce(function (a, b) { return a + b.m; }, 0);
+        if (total < cap * 1.15 || total > cap * 1.9) continue;
+        if (items.some(function (it) { return it.m < 15 || it.m > cap * 0.6; })) continue;
+        items.sort(function (a, b) { return b.m - a.m; });
+        var mustN = rint(1, 2), mustSum = 0;
+        var order = shuffle(items.map(function (x, i) { return i; }));
+        for (var j = 0; j < mustN; j++) { items[order[j]].must = true; mustSum += items[order[j]].m; }
+        if (mustSum > cap * 0.7) continue;
+        var best = bestLoad(items, cap);
+        if (best < cap * 0.7) continue;
+        items = shuffle(items);
+        items.forEach(function (it, i) { it.id = i; it.solved = !!it.known; it.tries = 0; it.loaded = false; it.firstTry = false; });
+        return { cap: cap, items: items, best: best, site: rnd(['Neubau Einfamilienhaus', 'Altbausanierung', 'Badsanierung', 'Heizungstausch im Mehrfamilienhaus', 'Dachrinne und Anschlüsse', 'Neubau Kita']) };
+    }
+}
+// Teile mit bekannter Masse kennzeichnen
+var _itKnown = itKnown;
+itKnown = function () { var x = _itKnown(); x.known = true; x.tol = 0; x.expl = 'Masse steht im Datenblatt.'; return x; };
+var POOLS = { 1: [itRohre, itRohre, itRing, itHeizkoerper, itKnown, itKnown], 2: [itRohre, itBlech, itBlech, itBleirolle, itKnown, itHeizkoerper], 3: [itBlech, itRund, itPlatte, itPlatte, itWasser, itRohre, itKnown, itBleirolle] };
+
+/* ---------- Transporter zeichnen ---------- */
+function drawVan(load, cap) {
+    var f = Math.min(1.15, load / cap), over = load > cap;
+    var sag = over ? 9 : f * 4;
+    var col = over ? '#ef4444' : '#22c55e';
+    var g = '<rect x="0" y="196" width="600" height="24" fill="#1e293b"/>';
+    g += '<g transform="translate(0,' + sag.toFixed(1) + ')">';
+    g += '<path d="M60 70 h330 v110 h-330 z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3"/>';
+    g += '<path d="M390 90 h80 l60 45 v45 h-140 z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3"/>';
+    g += '<path d="M405 100 h58 l40 32 h-98 z" fill="#7dd3fc"/>';
+    // Ladung als Füllstand
+    var h = Math.min(100, 100 * f);
+    g += '<rect x="70" y="' + (175 - h) + '" width="310" height="' + h + '" fill="' + col + '" opacity="0.45"/>';
+    g += '<text x="225" y="128" fill="#0f172a" font-size="26" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">' + Math.round(load) + ' kg</text>';
+    g += '<text x="225" y="156" fill="#334155" font-size="16" text-anchor="middle" font-family="Segoe UI, Arial">Zuladung ' + cap + ' kg</text>';
+    g += '</g>';
+    [130, 460].forEach(function (x) { g += '<circle cx="' + x + '" cy="188" r="24" fill="#1f2937" stroke="#64748b" stroke-width="4"/><circle cx="' + x + '" cy="188" r="9" fill="#94a3b8"/>'; });
+    if (over) g += '<text x="300" y="40" fill="#f87171" font-size="24" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">⚠ Überladen!</text>';
+    $('van').innerHTML = g;
+    var lb = $('loadbar');
+    lb.classList.toggle('over', over);
+    $('loadfill').style.width = Math.min(100, load / cap * 100) + '%';
+    $('loadtxt').textContent = 'Geladen: ' + Math.round(load) + ' kg von ' + cap + ' kg';
+}
+
+/* ---------- Spielablauf ---------- */
+var G = null, O = null;
+function startLevel(level) {
+    G = { level: level, i: 0, points: 0, maxPoints: 0, orders: [] };
+    for (var i = 0; i < LEVELS[level].rounds; i++) G.orders.push(makeOrder(level));
+    G.orders.forEach(function (o) { G.maxPoints += o.items.filter(function (x) { return !x.known; }).length + 2; });
+    show('screen-game');
+    nextOrder();
+}
+function loadSum() { return O.items.reduce(function (a, it) { return a + (it.loaded ? it.m : 0); }, 0); }
+function hud() {
+    $('hud-level').textContent = LEVELS[G.level].name;
+    $('hud-round').textContent = 'Baustelle ' + (G.i + 1) + ' von ' + G.orders.length;
+    $('hud-points').textContent = '⭐ ' + G.points + ' Punkte';
+    $('progress').style.width = (G.i / G.orders.length * 100) + '%';
+}
+function feedback(cls, html) { var f = $('feedback'); f.className = 'feedback ' + cls; f.innerHTML = html; }
+
+function renderItems() {
+    var h = '';
+    O.items.forEach(function (it) {
+        h += '<div class="it' + (it.solved ? ' solved' : '') + (it.loaded ? ' loaded' : '') + '" id="it' + it.id + '">' +
+             '<div class="top"><div class="emo">' + it.emo + '</div><div><div class="nm">' + it.name +
+             '<span class="tag-p ' + (it.must ? 'must">Pflicht' : 'opt">kann auch morgen') + '</span>' + (it.book ? ' <span class="tag-p opt">📘</span>' : '') + '</div>' +
+             '<div class="ds">' + it.ds + '</div></div></div><div class="act">';
+        if (it.solved) {
+            h += '<span class="mass">' + (it.known ? 'm = ' + de(it.m) + ' kg' : '✓ m ≈ ' + de(it.m, 1) + ' kg') + '</span>';
+        } else {
+            h += '<input class="inp" id="in' + it.id + '" inputmode="decimal" autocomplete="off" aria-label="Masse ' + it.name + '"> kg ' +
+                 '<button class="btn small" type="button" data-check="' + it.id + '">Prüfen</button>';
+            if (it.tries >= 2) h += '<button class="link-btn" type="button" data-solve="' + it.id + '">Lösung zeigen</button>';
+        }
+        h += '<label class="loadsw' + (it.solved ? '' : ' disabled') + '"><input type="checkbox" data-load="' + it.id + '"' + (it.loaded ? ' checked' : '') + (it.solved ? '' : ' disabled') + '> einladen</label>';
+        h += '</div><div class="msg' + (it.msgOk ? ' ok' : '') + '">' + (it.msg || '') + '</div></div>';
+    });
+    $('items').innerHTML = h;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-check]'), function (b) {
+        b.addEventListener('click', function () { checkItem(Number(b.getAttribute('data-check'))); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.it .inp'), function (inp) {
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') checkItem(Number(inp.id.slice(2))); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-solve]'), function (b) {
+        b.addEventListener('click', function () { var it = O.items[Number(b.getAttribute('data-solve'))]; it.solved = true; it.msgOk = true; it.msg = 'Lösung: ' + it.expl + '.'; renderItems(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-load]'), function (c) {
+        c.addEventListener('change', function () { O.items[Number(c.getAttribute('data-load'))].loaded = c.checked; updateLoad(); });
+    });
+}
+function updateLoad() {
+    drawVan(loadSum(), O.cap);
+    Array.prototype.forEach.call(document.querySelectorAll('.it'), function (el, k) {
+        var it = O.items[Number(el.id.slice(2))];
+        el.classList.toggle('loaded', it.loaded);
+    });
+}
+function checkItem(id) {
+    var it = O.items[id];
+    var v = parseNum($('in' + id).value);
+    if (isNaN(v)) { it.msg = 'Trage eine Zahl ein. Beispiel: 123,4'; it.msgOk = false; renderItems(); return; }
+    it.tries++;
+    var tol = Math.max(it.tol, 0.05);
+    if (Math.abs(v - it.m) <= tol) {
+        it.solved = true; it.msgOk = true;
+        if (it.tries === 1) { G.points++; it.firstTry = true; }
+        it.msg = (it.tries === 1 ? '⭐ Richtig! ' : 'Richtig! ') + it.expl + '.' + (it.book ? MAYBE : '');
+        hud();
+    } else {
+        it.msgOk = false;
+        var e = (it.errs || []).find(function (x) { return Math.abs(v - x[0]) <= Math.max(0.15, x[0] * 0.012); });
+        it.msg = '✗ Noch nicht richtig. ' + (e ? e[1] + ' ' : '') + 'Tipp: ' + it.hint;
+        renderItems();
+        var el = $('in' + id); if (el) { el.value = String(v).replace('.', ','); el.focus(); }
+        return;
+    }
+    renderItems();
+}
+function nextOrder() {
+    O = G.orders[G.i];
+    hud();
+    $('order-title').textContent = '📋 Auftrag: ' + O.site;
+    renderItems();
+    drawVan(0, O.cap);
+    $('btn-go').disabled = false;
+    feedback('info', 'Berechne die Massen. Dann wähle aus, was heute mitfährt. Zuladung: <b>' + O.cap + ' kg</b>.');
+}
+$('btn-go').addEventListener('click', function () {
+    var load = loadSum();
+    var openMust = O.items.filter(function (it) { return it.must && !it.loaded; });
+    var unsolved = O.items.filter(function (it) { return !it.solved; });
+    if (unsolved.length) { feedback('bad', '<b>Noch nicht fertig.</b>Berechne zuerst bei allen Teilen die Masse.'); return; }
+    if (load > O.cap) { drawVan(load, O.cap); feedback('bad', '<b>⚠ Überladen!</b>Du hast ' + Math.round(load) + ' kg geladen. Erlaubt sind ' + O.cap + ' kg. Ein überladener Transporter bremst schlecht und ist verboten. Lass etwas für morgen da.'); return; }
+    if (openMust.length) { feedback('bad', '<b>Pflichtteile fehlen.</b>' + openMust.map(function (x) { return x.name; }).join(', ') + ' muss heute mit.'); return; }
+    // fertig
+    var q = load / O.best, bonus = q >= 0.97 ? 2 : q >= 0.85 ? 1 : 0;
+    G.points += bonus;
+    $('btn-go').disabled = true;
+    Array.prototype.forEach.call(document.querySelectorAll('#items input, #items button'), function (x) { x.disabled = true; });
+    var bestTxt = Math.round(O.best) + ' kg';
+    feedback('ok', '<b>🚐 Gute Fahrt!</b>Geladen: ' + Math.round(load) + ' kg von ' + O.cap + ' kg. ' +
+        (bonus === 2 ? 'Perfekt ausgelastet! +2 Punkte.' : bonus === 1 ? 'Gut ausgelastet. +1 Punkt. Möglich waren ' + bestTxt + '.' : 'Da wäre mehr gegangen: bis zu ' + bestTxt + '. Morgen musst du öfter fahren.') +
+        '<div class="row"><button class="btn" type="button" id="btn-next">' + (G.i + 1 < G.orders.length ? 'Nächste Baustelle →' : 'Ergebnis ansehen →') + '</button></div>');
+    hud();
+    $('btn-next').addEventListener('click', function () { G.i++; if (G.i < G.orders.length) { nextOrder(); window.scrollTo(0, 0); } else finish(); });
+});
+
+function finish() {
+    var r = G.points / G.maxPoints, st = starsFor(r), lv = G.level;
+    if (!save.best[lv] || st > save.best[lv]) save.best[lv] = st;
+    store();
+    $('res-title').textContent = LEVELS[lv].name + (st > 0 ? ' geschafft!' : ' – noch nicht geschafft');
+    $('res-stars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st);
+    $('res-text').innerHTML = 'Du hast <b>' + G.points + ' von ' + G.maxPoints + '</b> Punkten.' +
+        (st > 0 ? (lv < 3 ? ' Die nächste Stufe ist frei!' : '') : ' Du brauchst knapp die Hälfte der Punkte. Versuch es noch einmal!');
+    var all = [1, 2, 3].every(function (k) { return save.best[k] > 0; });
+    $('badge-end').classList.toggle('hidden', !(all && st > 0));
+    show('screen-result');
+}
+function menu() {
+    var h = '';
+    [1, 2, 3].forEach(function (lv) {
+        var unlocked = lv === 1 || (save.best[lv - 1] > 0);
+        var best = save.best[lv] || 0;
+        h += '<div class="level' + (best > 0 ? ' done' : '') + (unlocked ? '' : ' locked') + '">' +
+             '<div class="lv-top"><span class="lv-name">' + LEVELS[lv].name + '</span><span>' + (unlocked ? '' : '🔒') + '</span></div>' +
+             '<div class="lv-desc">' + LEVELS[lv].desc + '</div>' +
+             '<div class="lv-best">' + (best > 0 ? 'Bestes Ergebnis: ' + '★'.repeat(best) + '☆'.repeat(3 - best) : (unlocked ? 'Noch nicht gespielt' : 'Erst Stufe ' + (lv - 1) + ' schaffen')) + '</div>' +
+             '<button class="btn small" type="button" data-lv="' + lv + '"' + (unlocked ? '' : ' disabled') + '>Starten</button></div>';
+    });
+    $('levels').innerHTML = h;
+    Array.prototype.forEach.call(document.querySelectorAll('#levels button'), function (b) {
+        b.addEventListener('click', function () { startLevel(Number(b.getAttribute('data-lv'))); });
+    });
+    $('badge-start').classList.toggle('hidden', ![1, 2, 3].every(function (k) { return save.best[k] > 0; }));
+    show('screen-start');
+}
+$('btn-again').addEventListener('click', function () { startLevel(G.level); });
+$('btn-menu').addEventListener('click', menu);
+$('btn-quit').addEventListener('click', function () { if (confirm('Stufe abbrechen? Dein Ergebnis in dieser Stufe zählt dann nicht.')) menu(); });
+
+menu();
+
+/* Testzugang für automatische Prüfung */
+window.__transporter = { state: function () { return { G: G, O: O }; }, makeOrder: makeOrder, bestLoad: bestLoad, RHO: RHO };
+</script>
+</body>
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waage im Gleichgewicht</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    padding: 1.5rem 1rem 3rem;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 920px; margin: 0 auto; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2.1rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.5rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.15rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card {
+    background: #1e293b; border: 2px solid #334155; border-radius: 16px;
+    padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.25rem;
+}
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+
+/* Level-Auswahl */
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.level {
+    background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+}
+.level.done { border-color: #22c55e; }
+.level.locked { opacity: 0.55; }
+.level .lv-top { display: flex; justify-content: space-between; align-items: center; }
+.level .lv-name { color: #38bdf8; font-weight: 700; font-size: 1.2rem; }
+.level .lv-desc { color: #cbd5e1; font-size: 0.98rem; flex-grow: 1; }
+.level .lv-best { color: #94a3b8; font-size: 0.9rem; }
+.btn {
+    display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600;
+    padding: 0.75rem 1.3rem; border-radius: 10px; color: white;
+    background: linear-gradient(90deg, #0ea5e9, #22c55e);
+}
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.small { padding: 0.45rem 0.9rem; font-size: 0.95rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.switch { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: #cbd5e1; }
+.switch input { width: 1.3rem; height: 1.3rem; accent-color: #22c55e; }
+
+.hud { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+.hud .pill {
+    background: #0f172a; border: 1px solid #334155; border-radius: 999px;
+    padding: 0.3rem 0.85rem; font-size: 0.98rem; white-space: nowrap;
+}
+.progress-container { background: #0f172a; border-radius: 999px; height: 12px; overflow: hidden; border: 1px solid #334155; margin-bottom: 1rem; }
+.progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #0ea5e9, #22c55e); transition: width 0.3s; }
+
+.bins { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.bin {
+    border: 2px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 12px;
+    padding: 0.7rem 0.6rem; font: inherit; font-weight: 600; cursor: pointer; text-align: center;
+    min-height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1.25; hyphens: manual; transition: transform 0.1s, border-color 0.2s;
+}
+.bin:hover, .bin:focus-visible { border-color: #38bdf8; outline: none; transform: translateY(-2px); }
+.bin .key { font-size: 0.78rem; color: #94a3b8; font-weight: 400; }
+.bin .ico { font-size: 1.4rem; }
+.bin.right { border-color: #22c55e; background: #14532d; }
+.bin.wrong { border-color: #ef4444; background: #7f1d1d; }
+.bin:disabled { cursor: default; transform: none; }
+
+.feedback { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.2rem; border: 2px solid #334155; background: #0f172a; min-height: 3.2rem; }
+.feedback.ok { border-color: #22c55e; }
+.feedback.bad { border-color: #ef4444; }
+.feedback.info { border-color: #f59e0b; }
+.feedback b { display: block; margin-bottom: 0.2rem; }
+.feedback .row { margin-top: 0.7rem; }
+
+/* Dichte-Abfrage */
+.book { background: #0f172a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+.inp { font: inherit; font-size: 1.15rem; width: 7rem; padding: 0.5rem 0.6rem; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: #f8fafc; text-align: center; }
+.inp:focus { border-color: #38bdf8; outline: none; }
+
+/* Ergebnis */
+.result { text-align: center; }
+.stars { font-size: 2.6rem; letter-spacing: 0.3rem; margin: 0.5rem 0; }
+.mistakes { text-align: left; margin-top: 1rem; }
+.mistakes li { margin: 0 0 0.5rem 1.2rem; }
+.badge {
+    text-align: center; border: 3px solid #f59e0b; border-radius: 20px; padding: 1.75rem 1.25rem;
+    background: radial-gradient(circle at top, #422006 0%, #1e293b 70%);
+}
+.badge .medal { font-size: 4.5rem; }
+.badge h2 { color: #fbbf24; }
+footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem; }
+
+@media (max-width: 520px) {
+    body { font-size: 16px; padding: 1rem 0.75rem 2.5rem; }
+    h1 { font-size: 1.7rem; }
+    .card { padding: 1.1rem; }
+    .belt { height: 180px; }
+    .bin .key { display: none; }
+    .item { width: 170px; }
+    .bins { grid-template-columns: 1fr 1fr; }
+    .bin { min-height: 66px; font-size: 0.95rem; }
+}
+
+/* ---------- Waage ---------- */
+.scale-box { background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 0.5rem; margin-bottom: 1rem; }
+.scale-box svg { width: 100%; height: auto; display: block; }
+.task { font-size: 1.1rem; margin-bottom: 0.8rem; }
+.task b { color: #fbbf24; }
+.side-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.8rem; }
+.side-info div { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 0.5rem 0.7rem; text-align: center; }
+.side-info .lbl { color: #94a3b8; font-size: 0.9rem; }
+.side-info .val { font-weight: 700; font-size: 1.1rem; }
+.slider-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin: 0.6rem 0 0.4rem; }
+.slider-row input[type=range] { flex: 1 1 220px; accent-color: #22c55e; height: 2rem; }
+.slider-row .sval { font-weight: 700; font-size: 1.2rem; min-width: 7.5rem; text-align: right; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.fieldrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin: 0.45rem 0; }
+.fieldrow label { min-width: 13rem; }
+.particles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+.particles .pbox { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 0.6rem; text-align: center; }
+.particles svg { width: 100%; max-width: 190px; height: auto; }
+.particles .cap { color: #cbd5e1; font-size: 0.92rem; line-height: 1.35; }
+.particles .cap b { color: #fbbf24; }
+@media (max-width: 520px) {
+    .fieldrow label { min-width: 0; width: 100%; }
+    .particles { gap: 0.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back-link" href="../shk/#spiele">← Zurück zur Übersicht</a>
+
+<header>
+    <div class="logo">⚖️</div>
+    <h1>Waage im Gleichgewicht</h1>
+    <p class="sub">Welche Seite ist schwerer? Bring die Waage ins Gleichgewicht.</p>
+</header>
+
+<!-- START -->
+<section id="screen-start">
+    <div class="card">
+        <h2>So geht das Spiel</h2>
+        <ul class="steps">
+            <li>Auf jeder Seite der Waage liegt ein Stoff.</li>
+            <li><b>Stufe 1:</b> Schätze, welche Seite nach unten geht.</li>
+            <li><b>Stufe 2:</b> Stelle mit dem Regler ein, wie viel du brauchst, damit die Waage gerade ist.</li>
+            <li><b>Stufe 3:</b> Rechne es aus. Die Waage zeigt dir dann, ob es stimmt.</li>
+            <li>Mit <b>🔬 Teilchen zeigen</b> siehst du, warum ein Stoff schwer oder leicht ist.</li>
+        </ul>
+        <div class="book">📘 Für Stufe 3 brauchst du dein Tabellenbuch und den Taschenrechner. Dichte im Sachwortverzeichnis unter „Dichte“.</div>
+    </div>
+    <div class="card">
+        <h2>Wähle eine Stufe</h2>
+        <div class="levels" id="levels"></div>
+    </div>
+    <div class="badge hidden" id="badge-start">
+        <div class="medal">🏅</div>
+        <h2>Waagen-Profi!</h2>
+        <p>Du hast alle drei Stufen geschafft.</p>
+    </div>
+</section>
+
+<!-- SPIEL -->
+<section id="screen-game" class="hidden">
+    <div class="card">
+        <div class="hud">
+            <span class="pill" id="hud-level"></span>
+            <span class="pill" id="hud-round"></span>
+            <span class="pill" id="hud-points"></span>
+        </div>
+        <div class="progress-container"><div class="progress-bar" id="progress"></div></div>
+
+        <p class="task" id="task"></p>
+
+        <div class="scale-box"><svg id="scale" viewBox="0 0 600 300" role="img" aria-label="Balkenwaage"></svg></div>
+
+        <div class="row" style="margin-bottom:0.8rem">
+            <button class="btn grey small" id="btn-particles" type="button">🔬 Teilchen zeigen</button>
+        </div>
+        <div class="particles hidden" id="particles"></div>
+
+        <div id="controls"></div>
+        <div class="feedback info" id="feedback"></div>
+    </div>
+    <div class="row"><button class="btn grey small" type="button" id="btn-quit">← Stufe abbrechen</button></div>
+</section>
+
+<!-- ERGEBNIS -->
+<section id="screen-result" class="hidden">
+    <div class="card result">
+        <h2 id="res-title"></h2>
+        <div class="stars" id="res-stars"></div>
+        <p id="res-text"></p>
+        <div class="row" style="justify-content:center; margin-top:1rem">
+            <button class="btn" type="button" id="btn-again">Noch einmal</button>
+            <button class="btn grey" type="button" id="btn-menu">Zur Stufen-Auswahl</button>
+        </div>
+    </div>
+    <div class="badge hidden" id="badge-end">
+        <div class="medal">🏅</div>
+        <h2>Waagen-Profi!</h2>
+        <p>Du hast alle drei Stufen geschafft. Du weißt jetzt: Masse = Volumen · Dichte.</p>
+    </div>
+</section>
+
+<footer>Lernmodule für die Berufsschule</footer>
+</div>
+
+<script>
+/* =====================================================================
+   Waage im Gleichgewicht – Spiel zum Modul "Masse und Dichte" (SHK)
+   Nur Stoffe aus dem SHK-Tabellenbuch (chemische Elemente, Wasser).
+   A = relative Atommasse bzw. Molekülmasse (wie schwer ein Teilchen im
+   Vergleich zu einem Wasserstoffatom ist).
+   Teilchenbild: Anzahl der Punkte ~ Teilchen pro Volumen (ρ : A),
+   Punktgröße und Farbe ~ Masse eines Teilchens.
+   ===================================================================== */
+var MAT = {
+    'Magnesium': { rho: 1.74,  A: 24,  col: '#d4d4d8' },
+    'Aluminium': { rho: 2.7,   A: 27,  col: '#e2e8f0' },
+    'Titan':     { rho: 4.52,  A: 48,  col: '#a8a29e' },
+    'Zink':      { rho: 7.13,  A: 65,  col: '#94a3b8' },
+    'Kupfer':    { rho: 8.92,  A: 64,  col: '#d97706' },
+    'Silber':    { rho: 10.5,  A: 108, col: '#f1f5f9' },
+    'Blei':      { rho: 11.34, A: 207, col: '#64748b' },
+    'Gold':      { rho: 19.29, A: 197, col: '#facc15' },
+    'Wasser':    { rho: 1.0,   A: 18,  col: '#38bdf8', liquid: true }
+};
+var METALS = ['Magnesium', 'Aluminium', 'Titan', 'Zink', 'Kupfer', 'Silber', 'Blei', 'Gold'];
+var TOL_SLIDER = 0.02, TOL_CALC_V = 0.03, TOL_CALC_M = 0.02;
+
+var LEVELS = {
+    1: { name: 'Stufe 1: Schätzen', desc: 'Welche Seite geht nach unten? Erst gleich große Würfel, dann verschieden große.', rounds: 8 },
+    2: { name: 'Stufe 2: Regler', desc: 'Stelle mit dem Regler das richtige Volumen ein. Die Massen siehst du live.', rounds: 6 },
+    3: { name: 'Stufe 3: Rechnen', desc: 'Rechne mit Tabellenbuch und Taschenrechner. Dann zeigt die Waage, ob es stimmt.', rounds: 6 }
+};
+
+var KEY = 'lernmodule:dichte-waage';
+var save = { best: {} };
+try { var raw = localStorage.getItem(KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) {}
+function store() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- Hilfen ---------- */
+function $(id) { return document.getElementById(id); }
+function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function de(x, d) { var s = (d === undefined) ? String(Number(Number(x).toPrecision(10))) : Number(x).toFixed(d); return s.replace('.', ','); }
+function parseNum(s) { s = String(s || '').trim().replace(/\s+/g, '').replace(',', '.'); if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN; return parseFloat(s); }
+function vText(name, V) { return MAT[name].liquid ? de(V) + ' l' : de(V) + ' dm³'; }
+function stoffText(name, V) { return MAT[name].liquid ? vText(name, V) + ' ' + name : vText(name, V) + ' ' + name; }
+function show(id) { ['screen-start', 'screen-game', 'screen-result'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); }); window.scrollTo(0, 0); }
+function starsFor(r) { return r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.5 ? 1 : 0; }
+
+/* ---------- Waage zeichnen ---------- */
+var tilt = 0, tiltTarget = 0, anim = null;
+function blockSVG(name, V, x, yTop) {
+    var m = MAT[name];
+    var s = Math.max(22, Math.min(110, 44 * Math.cbrt(V)));     // Würfelkante in px
+    if (m.liquid) {
+        var w = Math.max(40, Math.min(120, 50 * Math.cbrt(V))), h = w * 1.05;
+        return '<g><rect x="' + (x - w / 2) + '" y="' + (yTop - h) + '" width="' + w + '" height="' + h + '" rx="6" fill="none" stroke="#cbd5e1" stroke-width="2"/>' +
+               '<rect x="' + (x - w / 2 + 3) + '" y="' + (yTop - h * 0.85) + '" width="' + (w - 6) + '" height="' + (h * 0.85 - 3) + '" rx="4" fill="' + m.col + '" opacity="0.75"/>' +
+               '<text x="' + x + '" y="' + (yTop - h - 8) + '" fill="#f8fafc" font-size="22" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">' + name + '</text></g>';
+    }
+    return '<g><rect x="' + (x - s / 2) + '" y="' + (yTop - s) + '" width="' + s + '" height="' + s + '" rx="4" fill="' + m.col + '" stroke="#0f172a" stroke-width="2"/>' +
+           '<text x="' + x + '" y="' + (yTop - s - 8) + '" fill="#f8fafc" font-size="22" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">' + name + '</text></g>';
+}
+function drawScale() {
+    var a = tilt * Math.PI / 180, L = 210, px = 300, py = 95;
+    var lx = px - L * Math.cos(a), ly = py - L * Math.sin(a);
+    var rx = px + L * Math.cos(a), ry = py + L * Math.sin(a);
+    var hang = 70;
+    var g = '';
+    g += '<polygon points="300,95 270,270 330,270" fill="#475569"/><rect x="220" y="268" width="160" height="14" rx="5" fill="#475569"/>';
+    g += '<line x1="' + lx + '" y1="' + ly + '" x2="' + rx + '" y2="' + ry + '" stroke="#94a3b8" stroke-width="9" stroke-linecap="round"/>';
+    g += '<circle cx="300" cy="95" r="8" fill="#fbbf24"/>';
+    g += '<line x1="300" y1="95" x2="' + (300 + 55 * Math.sin(-a)) + '" y2="' + (95 + 55 * Math.cos(a)) + '" stroke="#fbbf24" stroke-width="3"/>';
+    [[lx, ly, 'L'], [rx, ry, 'R']].forEach(function (p) {
+        var x = p[0], y = p[1] + hang;
+        g += '<line x1="' + (p[0]) + '" y1="' + p[1] + '" x2="' + (x - 60) + '" y2="' + y + '" stroke="#64748b" stroke-width="2"/>';
+        g += '<line x1="' + (p[0]) + '" y1="' + p[1] + '" x2="' + (x + 60) + '" y2="' + y + '" stroke="#64748b" stroke-width="2"/>';
+        g += '<path d="M' + (x - 72) + ' ' + y + ' h144 l-14 14 h-116 z" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>';
+        var side = p[2] === 'L' ? R.left : R.right;
+        if (side && side.V > 0) g += blockSVG(side.name, side.V, x, y);
+        else if (side) g += '<text x="' + x + '" y="' + (y - 12) + '" fill="#94a3b8" font-size="30" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">' + (side.label || '?') + '</text>';
+    });
+    if (Math.abs(tilt) < 0.4 && R && R.done && R.balanced) g += '<text x="300" y="40" fill="#4ade80" font-size="30" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">Gleichgewicht!</text>';
+    $('scale').innerHTML = g;
+}
+function massLeft() { return R.left.V * MAT[R.left.name].rho; }
+function massRight() { return R.right.V * MAT[R.right.name].rho; }
+function targetTilt(mL, mR) {
+    if (mL + mR <= 0) return 0;
+    var d = (mR - mL) / Math.max(mL, mR);           // > 0: rechts schwerer
+    if (Math.abs(d) < 0.01) return 0;
+    return Math.max(-16, Math.min(16, d * 40));
+}
+function setTilt(t, instant) {
+    tiltTarget = t;
+    if (instant) { tilt = t; drawScale(); return; }
+    if (anim) return;
+    (function step() {
+        var diff = tiltTarget - tilt;
+        if (Math.abs(diff) < 0.05) { tilt = tiltTarget; drawScale(); anim = null; return; }
+        tilt += diff * 0.18; drawScale();
+        anim = requestAnimationFrame(step);
+    })();
+}
+
+/* ---------- Teilchenbild ---------- */
+var partOn = false;
+function particleBox(name) {
+    var m = MAT[name];
+    var n = Math.max(6, Math.round(m.rho / m.A * 260));          // Teilchen pro Volumen
+    var r = 3 + 2.2 * Math.cbrt(m.A / 18);                         // Teilchengröße
+    var cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols), size = 150, gap = size / (cols + 1);
+    var s = '<svg viewBox="0 0 150 150" role="img" aria-label="Teilchen in ' + name + '"><rect x="1" y="1" width="148" height="148" rx="8" fill="#1e293b" stroke="#475569"/>';
+    var k = 0;
+    for (var i = 0; i < rows; i++) for (var j = 0; j < cols && k < n; j++, k++) {
+        var x = gap * (j + 1), y = (size / (rows + 1)) * (i + 1);
+        if (m.liquid) { x += ((k * 37) % 11) - 5; y += ((k * 23) % 9) - 4; }
+        s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + m.col + '" stroke="#0f172a" stroke-width="1"/>';
+    }
+    s += '</svg>';
+    return '<div class="pbox">' + s + '<div class="cap"><b>' + name + '</b><br>' + (m.liquid ? 'Ein Wasserteilchen' : 'Ein ' + name + 'atom') +
+           ' ist etwa <b>' + m.A + '-mal</b> so schwer wie ein Wasserstoffatom.</div></div>';
+}
+function drawParticles() {
+    $('particles').innerHTML = particleBox(R.left.name) + particleBox(R.right.name) +
+        '<p class="cap" style="grid-column:1/-1; color:#94a3b8; font-size:0.9rem; text-align:center">Gleich großer Ausschnitt. Viele Teilchen und schwere Teilchen bedeuten eine große Dichte.</p>';
+}
+$('btn-particles').addEventListener('click', function () {
+    partOn = !partOn;
+    $('particles').classList.toggle('hidden', !partOn);
+    this.textContent = partOn ? '🔬 Teilchen ausblenden' : '🔬 Teilchen zeigen';
+    if (partOn) drawParticles();
+});
+
+/* ---------- Runden erzeugen ---------- */
+function pairDistinct(minDiff) {
+    var a, b;
+    do { a = rnd(METALS); b = rnd(METALS); } while (a === b || Math.abs(MAT[a].rho - MAT[b].rho) < minDiff);
+    return [a, b];
+}
+function makeRound(level, i) {
+    if (level === 1) {
+        var p, VL, VR;
+        if (i < 4) { p = pairDistinct(0.8); VL = VR = 1; }
+        else {
+            // verschieden große Stücke; oft ist der dichtere Stoff trotzdem leichter
+            for (var t = 0; t < 200; t++) {
+                p = pairDistinct(0.8);
+                VL = rnd([0.25, 0.5, 1, 2, 3]); VR = rnd([0.25, 0.5, 1, 2, 3]);
+                if (VL === VR) continue;
+                var mL = VL * MAT[p[0]].rho, mR = VR * MAT[p[1]].rho;
+                if (Math.abs(mL - mR) / Math.max(mL, mR) < 0.1) continue;
+                var denserHeavier = (MAT[p[0]].rho > MAT[p[1]].rho) === (mL > mR);
+                if (!denserHeavier || Math.random() < 0.35) break;
+            }
+        }
+        return { level: 1, left: { name: p[0], V: VL }, right: { name: p[1], V: VR } };
+    }
+    var a = rnd(METALS), b;
+    var VA = rnd([0.5, 1, 1.5, 2]);
+    var useWater = Math.random() < 0.3;
+    for (var k = 0; k < 100; k++) {
+        b = useWater && level >= 2 ? 'Wasser' : rnd(METALS);
+        if (b === a) continue;
+        var target = VA * MAT[a].rho / MAT[b].rho;
+        if (target > 0.3 && target < (b === 'Wasser' ? 40 : 12)) break;
+        useWater = false;
+    }
+    var tgt = VA * MAT[a].rho / MAT[b].rho;
+    return { level: level, left: { name: a, V: VA }, right: { name: b, V: 0, label: '?' }, target: tgt };
+}
+
+/* ---------- Spielablauf ---------- */
+var G = null, R = null;
+function startLevel(level) {
+    G = { level: level, i: 0, points: 0, rounds: [] };
+    for (var i = 0; i < LEVELS[level].rounds; i++) G.rounds.push(makeRound(level, i));
+    show('screen-game');
+    nextRound();
+}
+function hud() {
+    $('hud-level').textContent = LEVELS[G.level].name;
+    $('hud-round').textContent = 'Aufgabe ' + (G.i + 1) + ' von ' + G.rounds.length;
+    $('hud-points').textContent = '⭐ ' + G.points + ' richtig';
+    $('progress').style.width = (G.i / G.rounds.length * 100) + '%';
+}
+function feedback(cls, html) { var f = $('feedback'); f.className = 'feedback ' + cls; f.innerHTML = html; }
+function nextBtn() { return '<div class="row"><button class="btn" type="button" id="btn-next">' + (G.i + 1 < G.rounds.length ? 'Nächste Aufgabe →' : 'Ergebnis ansehen →') + '</button></div>'; }
+function bindNext() { $('btn-next').addEventListener('click', function () { G.i++; if (G.i < G.rounds.length) nextRound(); else finish(); }); $('btn-next').focus(); }
+
+function nextRound() {
+    R = G.rounds[G.i];
+    R.done = false; R.balanced = false;
+    hud();
+    if (partOn) drawParticles();
+    var L = R.left, Rt = R.right;
+    if (G.level === 1) {
+        $('task').innerHTML = 'Links: <b>' + stoffText(L.name, L.V) + '</b>. Rechts: <b>' + stoffText(Rt.name, Rt.V) + '</b>. Welche Seite geht nach unten?';
+        setTilt(0, true);
+        $('controls').innerHTML = '<div class="choice"><button class="bin" type="button" data-a="L">⬅️ Links ist schwerer</button><button class="bin" type="button" data-a="R">Rechts ist schwerer ➡️</button></div>';
+        feedback('info', (L.V === Rt.V ? 'Beide Stücke sind gleich groß. ' : 'Achtung: Die Stücke sind verschieden groß! ') + 'Du darfst im Tabellenbuch nachschauen.');
+        Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (b) {
+            b.addEventListener('click', function () { answer1(b.getAttribute('data-a'), b); });
+        });
+    } else if (G.level === 2) {
+        var max = Math.max(1, Math.ceil(R.target * 1.8 * 2) / 2);
+        R.max = max;
+        var step = Math.pow(10, Math.floor(Math.log10(R.target)) - 2), dec = Math.max(0, -Math.round(Math.log10(step)));
+        R.step = step;
+        var unit = MAT[Rt.name].liquid ? 'l' : 'dm³';
+        $('task').innerHTML = 'Links liegen <b>' + stoffText(L.name, L.V) + '</b>. Wie viel <b>' + Rt.name + '</b> brauchst du rechts, damit die Waage gerade ist?';
+        Rt.V = 0; setTilt(targetTilt(massLeft(), 0), true);
+        $('controls').innerHTML =
+            '<div class="side-info"><div><div class="lbl">Links (ρ = ' + de(MAT[L.name].rho) + ' kg/dm³)</div><div class="val" id="mL">' + de(massLeft(), 2) + ' kg</div></div>' +
+            '<div><div class="lbl">Rechts (ρ = ' + de(MAT[Rt.name].rho) + ' kg/dm³)</div><div class="val" id="mR">0,00 kg</div></div></div>' +
+            '<div class="slider-row"><input type="range" id="slider" min="0" max="' + max + '" step="' + step + '" value="0" aria-label="Volumen rechts">' +
+            '<span class="sval" id="sval">' + de(0, dec) + ' ' + unit + '</span></div>' +
+            '<div class="row" style="margin-top:0.5rem"><button class="btn" type="button" id="btn-check">Prüfen</button></div>';
+        feedback('info', 'Schiebe den Regler, bis die Waage gerade ist. Dann drücke „Prüfen“.');
+        $('slider').addEventListener('input', function () {
+            Rt.V = Number(this.value);
+            $('sval').textContent = de(Rt.V, dec) + ' ' + unit;
+            $('mR').textContent = de(massRight(), 2) + ' kg';
+            setTilt(targetTilt(massLeft(), massRight()));
+        });
+        $('btn-check').addEventListener('click', answer2);
+    } else {
+        var unit3 = MAT[Rt.name].liquid ? 'l' : 'dm³';
+        $('task').innerHTML = 'Links liegen <b>' + stoffText(L.name, L.V) + '</b>. Wie viel <b>' + Rt.name + '</b> brauchst du rechts für das Gleichgewicht? Rechne es aus.';
+        Rt.V = 0; setTilt(targetTilt(massLeft(), 0), true);
+        $('controls').innerHTML =
+            '<div class="fieldrow"><label for="in-m">① Masse links m = V · ρ</label><input class="inp" id="in-m" inputmode="decimal" autocomplete="off"> kg</div>' +
+            '<div class="fieldrow"><label for="in-v">② Volumen rechts V = m : ρ</label><input class="inp" id="in-v" inputmode="decimal" autocomplete="off"> ' + unit3 + '</div>' +
+            '<div class="row" style="margin-top:0.5rem"><button class="btn" type="button" id="btn-check">Auf die Waage legen</button></div>';
+        feedback('info', '📘 Schlage die Dichte von ' + L.name + (Rt.name === 'Wasser' ? '' : ' und ' + Rt.name) + ' im Tabellenbuch nach. ' +
+                 (Rt.name === 'Wasser' ? 'Wasser: 1 kg/dm³ = 1 kg pro Liter. ' : '') + 'Runde auf 2 Stellen nach dem Komma.');
+        $('btn-check').addEventListener('click', answer3);
+        ['in-m', 'in-v'].forEach(function (id) { $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') answer3(); }); });
+    }
+    drawScale();
+}
+
+function explain() {
+    var L = R.left, Rt = R.right;
+    var mL = massLeft();
+    return 'Links: m = ' + vText(L.name, L.V) + ' · ' + de(MAT[L.name].rho) + ' kg/dm³ = <b>' + de(mL, 2) + ' kg</b>.';
+}
+
+function answer1(a, btn) {
+    if (R.done) return;
+    R.done = true;
+    var mL = massLeft(), mR = massRight();
+    var right = (mL > mR) ? 'L' : 'R';
+    var ok = a === right;
+    if (ok) G.points++;
+    btn.classList.add(ok ? 'right' : 'wrong');
+    Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (b) { b.disabled = true; if (b.getAttribute('data-a') === right) b.classList.add('right'); });
+    setTilt(targetTilt(mL, mR));
+    var L = R.left, Rt = R.right;
+    var txt = 'Links: ' + vText(L.name, L.V) + ' · ' + de(MAT[L.name].rho) + ' kg/dm³ = <b>' + de(mL, 2) + ' kg</b>. ' +
+              'Rechts: ' + vText(Rt.name, Rt.V) + ' · ' + de(MAT[Rt.name].rho) + ' kg/dm³ = <b>' + de(mR, 2) + ' kg</b>.';
+    if (L.V !== Rt.V && (MAT[L.name].rho > MAT[Rt.name].rho) !== (mL > mR))
+        txt += '<br>Der Stoff mit der größeren Dichte ist hier <b>leichter</b>, weil das Stück viel kleiner ist. Es zählt m = V · ρ!';
+    else if (L.V === Rt.V) txt += '<br>Gleich große Stücke: Der Stoff mit der größeren Dichte ist schwerer.';
+    feedback(ok ? 'ok' : 'bad', '<b>' + (ok ? '✓ Richtig!' : '✗ Leider falsch.') + '</b>' + txt + nextBtn());
+    bindNext();
+    if (partOn) drawParticles();
+}
+
+function answer2() {
+    if (R.done) return;
+    var mL = massLeft(), mR = massRight();
+    if (R.right.V <= 0) { feedback('info', 'Schiebe zuerst den Regler.'); return; }
+    var ok = Math.abs(mR - mL) <= TOL_SLIDER * mL;
+    R.done = true; R.balanced = ok;
+    $('slider').disabled = true; $('btn-check').disabled = true;
+    if (ok) { G.points++; R.right.V = R.target; setTilt(0); }
+    var unit = MAT[R.right.name].liquid ? 'l' : 'dm³';
+    feedback(ok ? 'ok' : 'bad', '<b>' + (ok ? '✓ Gleichgewicht!' : '✗ Die Waage ist noch schief.') + '</b>' + explain() +
+             ' Rechts brauchst du V = m : ρ = ' + de(mL, 2) + ' kg : ' + de(MAT[R.right.name].rho) + ' kg/dm³ ≈ <b>' + de(R.target, 2) + ' ' + unit + '</b>.' + nextBtn());
+    bindNext();
+}
+
+function answer3() {
+    if (R.done) return;
+    var m = parseNum($('in-m').value), V = parseNum($('in-v').value);
+    if (isNaN(V)) { feedback('info', 'Trage beim Volumen eine Zahl ein. Beispiel: 2,35'); return; }
+    var mL = massLeft();
+    var okM = !isNaN(m) && Math.abs(m - mL) <= TOL_CALC_M * mL;
+    var okV = Math.abs(V - R.target) <= TOL_CALC_V * R.target;
+    R.done = true; R.balanced = okV;
+    $('in-m').disabled = true; $('in-v').disabled = true; $('btn-check').disabled = true;
+    $('in-m').style.borderColor = okM ? '#22c55e' : '#ef4444';
+    $('in-v').style.borderColor = okV ? '#22c55e' : '#ef4444';
+    R.right.V = okV ? R.target : Math.max(0, V);
+    setTilt(okV ? 0 : targetTilt(mL, massRight()));
+    if (okV) G.points++;
+    var unit = MAT[R.right.name].liquid ? 'l' : 'dm³';
+    var hint = '';
+    if (!okV && !isNaN(V)) {
+        var wrongDir = Math.abs(V - mL * MAT[R.right.name].rho) <= 0.03 * mL * MAT[R.right.name].rho;
+        hint = wrongDir ? '<br>Tipp: Du hast mal ρ gerechnet. Für das Volumen musst du durch ρ teilen.' : (V > R.target ? '<br>Dein Volumen ist zu groß. Rechts ist es jetzt zu schwer.' : '<br>Dein Volumen ist zu klein. Rechts ist es jetzt zu leicht.');
+    }
+    feedback(okV ? 'ok' : 'bad', '<b>' + (okV ? '✓ Gleichgewicht! Gut gerechnet.' : '✗ Die Waage ist schief.') + '</b>' + explain() +
+             ' V rechts = ' + de(mL, 2) + ' kg : ' + de(MAT[R.right.name].rho) + ' kg/dm³ ≈ <b>' + de(R.target, 2) + ' ' + unit + '</b>.' + hint +
+             '<br><span style="color:#94a3b8">Steht in deinem Buch ein etwas anderer Wert, ist ein kleiner Unterschied in Ordnung.</span>' + nextBtn());
+    bindNext();
+}
+
+function finish() {
+    $('progress').style.width = '100%';
+    var n = G.rounds.length, r = G.points / n, st = starsFor(r);
+    var lv = G.level;
+    if (!save.best[lv] || st > save.best[lv]) save.best[lv] = st;
+    store();
+    $('res-title').textContent = LEVELS[lv].name + (st > 0 ? ' geschafft!' : ' – noch nicht geschafft');
+    $('res-stars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st);
+    $('res-text').innerHTML = 'Du hast <b>' + G.points + ' von ' + n + '</b> Aufgaben richtig gelöst.' +
+        (st > 0 ? (lv < 3 ? ' Die nächste Stufe ist frei!' : '') : ' Du brauchst mindestens die Hälfte. Versuch es noch einmal!');
+    var all = [1, 2, 3].every(function (k) { return save.best[k] > 0; });
+    $('badge-end').classList.toggle('hidden', !(all && st > 0));
+    show('screen-result');
+}
+
+function menu() {
+    var h = '';
+    [1, 2, 3].forEach(function (lv) {
+        var unlocked = lv === 1 || (save.best[lv - 1] > 0);
+        var best = save.best[lv] || 0;
+        h += '<div class="level' + (best > 0 ? ' done' : '') + (unlocked ? '' : ' locked') + '">' +
+             '<div class="lv-top"><span class="lv-name">' + LEVELS[lv].name + '</span><span>' + (unlocked ? '' : '🔒') + '</span></div>' +
+             '<div class="lv-desc">' + LEVELS[lv].desc + '</div>' +
+             '<div class="lv-best">' + (best > 0 ? 'Bestes Ergebnis: ' + '★'.repeat(best) + '☆'.repeat(3 - best) : (unlocked ? 'Noch nicht gespielt' : 'Erst Stufe ' + (lv - 1) + ' schaffen')) + '</div>' +
+             '<button class="btn small" type="button" data-lv="' + lv + '"' + (unlocked ? '' : ' disabled') + '>Starten</button></div>';
+    });
+    $('levels').innerHTML = h;
+    Array.prototype.forEach.call(document.querySelectorAll('#levels button'), function (b) {
+        b.addEventListener('click', function () { startLevel(Number(b.getAttribute('data-lv'))); });
+    });
+    $('badge-start').classList.toggle('hidden', ![1, 2, 3].every(function (k) { return save.best[k] > 0; }));
+    show('screen-start');
+}
+$('btn-again').addEventListener('click', function () { startLevel(G.level); });
+$('btn-menu').addEventListener('click', menu);
+$('btn-quit').addEventListener('click', function () { if (confirm('Stufe abbrechen? Dein Ergebnis in dieser Stufe zählt dann nicht.')) menu(); });
+
+menu();
+
+/* Testzugang für automatische Prüfung */
+window.__waage = { MAT: MAT, state: function () { return { G: G, R: R }; }, makeRound: makeRound };
+</script>
+</body>
+</html>
