@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masse und Dichte – Kompakt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #38bdf8;
+        }
+        
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #0ea5e9, #22c55e);
+            height: 30px;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .module-card {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #334155;
+        }
+        
+        .module-card:hover:not(.locked) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
+        
+        /* Module 5 und 6 farblich dezent abgesetzt (dunkles Indigo) */
+        .module-card.advanced-card {
+            background: #16122c;
+            border-color: #4c1d95;
+        }
+        
+        .module-card.advanced-card:hover:not(.locked) {
+            border-color: #a855f7;
+            box-shadow: 0 8px 15px rgba(168, 85, 247, 0.2);
+        }
+        
+        .module-card.completed {
+            border-color: #22c55e !important;
+        }
+        
+        .module-card.completed::before {
+            content: "✓";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #22c55e;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .module-card.locked {
+            background: #0f111a;
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        
+        .module-card.locked::before {
+            content: "🔒";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+        }
+        
+        .module-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .module-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #f1f5f9;
+            margin-bottom: 10px;
+        }
+        
+        .module-description {
+            color: #94a3b8;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .module-content {
+            display: none;
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        
+        .module-content.active {
+            display: block;
+        }
+        
+        .module-content h2 {
+            color: #38bdf8;
+            font-size: 32px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+        }
+        
+        .module-content h3 {
+            color: #38bdf8;
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .module-content p {
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        /* Nebeneinander-Layout für Code und UML */
+        .split-layout {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+            table-layout: fixed;
+        }
+        
+        .split-cell-code {
+            display: table-cell;
+            width: 55%;
+            vertical-align: top;
+            padding-right: 20px;
+        }
+        
+        .split-cell-diagram {
+            display: table-cell;
+            width: 45%;
+            vertical-align: top;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.4);
+        }
+        
+        @media (max-width: 850px) {
+            .split-layout, .split-cell-code, .split-cell-diagram {
+                display: block;
+                width: 100%;
+                padding-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Visual Studio Code Dark Highlighting mit Zeilenumbrüchen */
+        .code-block {
+            background: #1e1e1e;
+            color: #dcdcdc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            border-left: 4px solid #569cd6;
+            overflow-x: auto;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre; /* Behält Zeilenumbrüche zwingend bei */
+        }
+        
+        .code-keyword { color: #569cd6; }
+        .code-type { color: #4ec9b0; }
+        .code-string { color: #d69d85; }
+        .code-comment { color: #57a64a; font-style: italic; }
+        .code-number { color: #b5cea8; }
+        
+        .info-box {
+            background: #0c4a6e;
+            border-left: 5px solid #0ea5e9;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h4 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .info-box p {
+            color: #e2e8f0;
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+        
+        /* Farbschema für das Quiz bleibt in allen Modulen identisch */
+        .quiz-section {
+            background: #0f172a;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+            border: 1px solid #334155;
+        }
+        
+        .quiz-section h3 {
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-question {
+            background: #1e293b;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 2px solid #334155;
+        }
+        
+        .quiz-question.correct {
+            border-color: #22c55e;
+            background: #064e3b;
+        }
+        
+        .quiz-question.wrong {
+            border-color: #ef4444;
+            background: #7f1d1d;
+        }
+        
+        .quiz-question p {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #f8fafc;
+        }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            background: #334155;
+            transition: background 0.2s, transform 0.1s;
+        }
+        
+        .quiz-option:hover {
+            background: #475569;
+            transform: scale(1.01);
+        }
+        
+        .quiz-option input {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .quiz-option label {
+            cursor: pointer;
+            color: #f1f5f9;
+            width: 100%;
+        }
+        
+        .quiz-feedback {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .quiz-feedback.show {
+            display: block;
+        }
+        
+        .quiz-feedback.correct {
+            background: #10b981;
+            color: white;
+        }
+        
+        .quiz-feedback.wrong {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+        }
+        
+        .btn-back {
+            background: #64748b;
+            margin-right: 10px;
+        }
+        
+        .btn-back:hover {
+            background: #475569;
+        }
+        
+        .badge {
+            display: none;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+        }
+        
+        .badge.show {
+            display: block;
+        }
+        
+        .badge h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+        
+        .badge-icon {
+            font-size: 80px;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        ul li, ol li {
+            color: #cbd5e1;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #1f2937;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #374151;
+        }
+        
+        th {
+            background: #111827;
+            color: #38bdf8;
+        }
+        
+        tr:nth-child(even) {
+            background: #283548;
+        }
+        
+        /* UML Design via SVG */
+        .uml-class-box {
+            fill: #1e293b;
+            stroke: #38bdf8;
+            stroke-width: 2;
+        }
+        .uml-text {
+            fill: #f8fafc;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        .uml-title {
+            font-weight: bold;
+            fill: #38bdf8;
+        }
+        .uml-line {
+            stroke: #334155;
+            stroke-width: 1.5;
+        }
+        .uml-arrow {
+            stroke: #38bdf8;
+            stroke-width: 2;
+            fill: #0f172a;
+        }
+        .uml-arrow-conflict {
+            stroke: #ef4444;
+            stroke-width: 2;
+            fill: #7f1d1d;
+            stroke-dasharray: 4;
+        }
+    
+        .table-wrap { overflow-x: auto; }
+        .table-wrap table { min-width: 420px; }
+        .sketch {
+            text-align: center;
+            margin: 25px 0;
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #334155;
+        }
+        .sketch svg { width: 100%; max-width: 560px; height: auto; }
+        .sketch .caption { font-size: 14px; color: #94a3b8; margin: 10px 0 0 0; }
+        .book-box {
+            background: #3b2a0a;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .book-box h4 { color: #fbbf24; margin-bottom: 10px; font-size: 18px; }
+        .book-box p { color: #fde68a; font-size: 16px; margin-bottom: 0; }
+        .formula {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            color: #e2e8f0;
+            font-size: 18px;
+            line-height: 1.9;
+        }
+        .ok { color: #4ade80; font-weight: bold; }
+        .nok { color: #f87171; font-weight: bold; }
+        .header .book-hint {
+            display: inline-block;
+            margin-top: 15px;
+            background: #3b2a0a;
+            border: 1px solid #f59e0b;
+            color: #fde68a;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 17px;
+        }
+        .progress-fill { min-width: fit-content; padding: 0 14px; white-space: nowrap; }
+        @media (max-width: 600px) {
+            .sketch { overflow-x: auto; padding: 15px 10px; }
+            .sketch svg { min-width: 500px; }
+            .module-content { padding: 22px 16px; }
+            .header h1 { font-size: 32px; }
+            .module-content h2 { font-size: 26px; }
+        }
+
+        /* ---------- Aufgabentypen ---------- */
+        .task-head { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .task-type, .task-book {
+            font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+            background: #0f172a; border: 1px solid #475569; color: #cbd5e1;
+        }
+        .task-book { border-color: #f59e0b; color: #fde68a; background: #3b2a0a; }
+        .task-note { color: #94a3b8; font-size: 15px; margin: -5px 0 12px 0; }
+        .quiz-question .sketch { margin: 10px 0 15px 0; }
+        .fields { display: flex; flex-direction: column; gap: 10px; }
+        .field-row {
+            display: grid; grid-template-columns: minmax(150px, 1fr) minmax(170px, 1.3fr);
+            gap: 4px 14px; align-items: center;
+            background: #273449; border: 2px solid transparent; border-radius: 8px; padding: 10px 12px;
+        }
+        .field-row.ok { border-color: #22c55e; }
+        .field-row.bad { border-color: #ef4444; }
+        .field-label { color: #f1f5f9; font-size: 17px; }
+        .field-input { display: flex; align-items: center; gap: 8px; }
+        .field-input input, .field-input select {
+            background: #0f172a; color: #f8fafc; border: 2px solid #475569; border-radius: 6px;
+            font-size: 18px; padding: 8px 10px; font-family: inherit;
+        }
+        .field-input input { width: 9em; font-family: 'Consolas', 'Courier New', monospace; }
+        .field-input select { width: 100%; max-width: 320px; font-size: 16px; }
+        .field-input input:focus, .field-input select:focus { outline: none; border-color: #38bdf8; }
+        .field-input input:disabled, .field-input select:disabled { opacity: 0.85; }
+        .field-pre, .field-unit { color: #cbd5e1; font-size: 17px; }
+        .field-msg { grid-column: 1 / -1; color: #fecaca; font-size: 15px; }
+        .field-msg:empty { display: none; }
+        .order-list { list-style: decimal; margin-left: 28px; }
+        .order-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: #273449; border: 2px solid transparent; border-radius: 8px;
+            padding: 8px 10px; margin-bottom: 8px; color: #f1f5f9;
+        }
+        .order-item.ok { border-color: #22c55e; }
+        .order-item.bad { border-color: #ef4444; }
+        .order-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .order-btns button {
+            background: #334155; color: #f8fafc; border: 1px solid #64748b; border-radius: 6px;
+            width: 38px; height: 34px; font-size: 15px; cursor: pointer;
+        }
+        .order-btns button:hover:not(:disabled) { background: #475569; }
+        .order-btns button:disabled { opacity: 0.3; cursor: default; }
+        .task-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+        .btn-check, .btn-new {
+            border: none; border-radius: 8px; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+        .btn-check { background: #0ea5e9; color: white; }
+        .btn-check:hover { background: #0284c7; }
+        .btn-new { background: #334155; color: #f1f5f9; border: 1px solid #64748b; }
+        .btn-new:hover { background: #475569; }
+        .quiz-feedback { line-height: 1.6; }
+        @media (max-width: 600px) {
+            .field-row { grid-template-columns: 1fr; }
+            .field-input input { width: 100%; }
+            .quiz-section { padding: 18px 10px; }
+            .quiz-question { padding: 14px 10px; }
+        }
+
+        /* ---------- Rechenweg (Fehler finden) ---------- */
+        .calc { text-align: left; font-family: 'Consolas', 'Courier New', monospace; font-size: 16px; color: #e2e8f0; line-height: 2.1; white-space: nowrap; overflow-x: auto; }
+        .calc-nr { display: inline-block; min-width: 4.6em; color: #fbbf24; font-family: "Segoe UI", Arial, sans-serif; font-size: 15px; font-weight: bold; }
+        .field-unit:empty { display: none; }
+
+        .situation {
+            background: #13293d;
+            border-left: 5px solid #38bdf8;
+            padding: 20px;
+            margin: 20px 0 25px 0;
+            border-radius: 5px;
+        }
+        .situation h4 { color: #38bdf8; margin-bottom: 10px; font-size: 18px; }
+        .situation p { color: #e2e8f0; font-size: 17px; margin-bottom: 10px; }
+        .situation p:last-child { margin-bottom: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚖️ Masse und Dichte ⚖️</h1>
+            <p>Das Wichtigste in Kürze. Am Ende findest du heraus, aus welchem Werkstoff ein Bauteil ist.</p>
+            <div class="book-hint">📘 Du brauchst dein Tabellenbuch und den Taschenrechner.</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%;">0 von 8 Modulen abgeschlossen</div>
+        </div>
+
+        <!-- MODULE GRID -->
+        <div class="module-grid" id="module-grid">
+            <div class="module-card" id="card-1" onclick="openModule(1)">
+                <div class="module-icon">⚛️</div>
+                <div class="module-title">Modul 1: Was ist Dichte?</div>
+                <div class="module-description">Masse und Volumen. Ein Blick auf die Teilchen. Schwimmen oder untergehen?</div>
+            </div>
+
+            <div class="module-card" id="card-2" onclick="openModule(2)">
+                <div class="module-icon">📦</div>
+                <div class="module-title">Modul 2: Volumen umrechnen</div>
+                <div class="module-description">mm³, cm³, dm³, m³ und Liter. Warum der Faktor 1000 ist.</div>
+            </div>
+
+            <div class="module-card" id="card-3" onclick="openModule(3)">
+                <div class="module-icon">📐</div>
+                <div class="module-title">Modul 3: Volumen berechnen</div>
+                <div class="module-description">Würfel, Quader und Zylinder. Vom Werkstück bis zum Speicher.</div>
+            </div>
+
+            <div class="module-card" id="card-4" onclick="openModule(4)">
+                <div class="module-icon">🧮</div>
+                <div class="module-title">Modul 4: Mit der Dichteformel rechnen</div>
+                <div class="module-description">ρ = m : V umstellen. Dichte im Tabellenbuch finden. Einheiten.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-5" onclick="openModule(5)">
+                <div class="module-icon">🛢️</div>
+                <div class="module-title">Modul 5: Rohre, Speicher und Tanks</div>
+                <div class="module-description">Gesperrt. Schließe zuerst die Module 1 bis 4 ab.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-6" onclick="openModule(6)">
+                <div class="module-icon">🔍</div>
+                <div class="module-title">Modul 6: Werkstoff bestimmen</div>
+                <div class="module-description">Gesperrt. Danach löst du die Situation vom Anfang.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-7" onclick="openModule(7)">
+                <div class="module-icon">📏</div>
+                <div class="module-title">Modul 7: Längen- und flächenbezogene Masse</div>
+                <div class="module-description">Gesperrt. Danach rechnest du Rohre und Bleche ganz schnell.</div>
+            </div>
+
+            <div class="module-card advanced-card locked" id="card-8" onclick="openModule(8)">
+                <div class="module-icon">🏆</div>
+                <div class="module-title">Modul 8: Profi-Aufgaben</div>
+                <div class="module-description">Gesperrt. Zum Schluss: die Profi-Aufgaben.</div>
+            </div>
+        </div>
+
+        <!-- MODULE CONTENT SECTIONS -->
+        <div id="module-content-container"></div>
+
+        <!-- BADGE -->
+        <div class="badge" id="badge">
+            <div class="badge-icon">🏅</div>
+            <h2>Herzlichen Glückwunsch!</h2>
+            <p style="font-size: 20px;">Du hast alle Grundlagen- und Profi-Module geschafft.</p>
+            <h2 id="expert-title" style="margin-top: 20px; color: #f8fafc;">DICHTE-PROFI!</h2>
+        </div>
+    </div>
+
+    <script>
+const modules = {
+  "1": {
+    "title": "Modul 1: Was ist Dichte?",
+    "content": "\n<div class=\"situation\"><h4>🏚️ Die Situation</h4>\n<p>Ihr baut im Keller eines Altbaus eine alte Heizung aus. Dabei findest du ein Rohrstück <strong>28 × 1,5</strong>, <strong>500 mm</strong> lang. Das Rohr ist lackiert. Du siehst nicht, ob es <strong>Kupfer</strong> ist oder eine alte <strong>Bleileitung</strong>.</p>\n<p>Dein Meister sagt: „Kupfer bringt beim Schrotthändler gutes Geld. Wenn es eine alte Bleileitung ist, muss sie getrennt entsorgt werden. Finde heraus, was es ist. Aber kratz den Lack nicht ab!“</p>\n<p>Du wiegst das Rohrstück auf der Werkstattwaage: <strong>m = 0,558 kg</strong>.</p></div>\n<div class=\"formula\">ρ = m : V &nbsp;&nbsp;(Dichte = Masse : Volumen)</div>\n<p>Die Dichte sagt, wie schwer <strong>1 dm³</strong> eines Stoffes ist. Wasser: 1 kg. Aluminium: 2,7 kg. Kupfer: 8,92 kg.</p>\n<div class=\"sketch\"><svg viewBox=\"0 0 470 250\" role=\"img\" aria-label=\"Aluminium und Blei: gleich dicht gepackt, aber Bleiatome sind viel schwerer\"><rect x=\"20\" y=\"10\" width=\"190\" height=\"150\" rx=\"8\" fill=\"#0f172a\" stroke=\"#64748b\" stroke-width=\"2\"/><circle cx=\"47\" cy=\"34\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"81\" cy=\"34\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"115\" cy=\"34\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"149\" cy=\"34\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"183\" cy=\"34\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"47\" cy=\"68\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"81\" cy=\"68\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"115\" cy=\"68\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"149\" cy=\"68\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"183\" cy=\"68\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"47\" cy=\"102\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"81\" cy=\"102\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"115\" cy=\"102\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"149\" cy=\"102\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"183\" cy=\"102\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"47\" cy=\"136\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"81\" cy=\"136\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"115\" cy=\"136\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"149\" cy=\"136\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><circle cx=\"183\" cy=\"136\" r=\"13\" fill=\"#94a3b8\" stroke=\"#0f172a\"/><text x=\"115\" y=\"186\" fill=\"#fbbf24\" font-size=\"18\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Aluminium</text><text x=\"115\" y=\"208\" fill=\"#cbd5e1\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">leichte Atome</text><text x=\"115\" y=\"232\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">ρ ≈ 2,7 kg/dm³</text><rect x=\"260\" y=\"10\" width=\"190\" height=\"150\" rx=\"8\" fill=\"#0f172a\" stroke=\"#64748b\" stroke-width=\"2\"/><circle cx=\"287\" cy=\"34\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"321\" cy=\"34\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"355\" cy=\"34\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"389\" cy=\"34\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"423\" cy=\"34\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"287\" cy=\"68\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"321\" cy=\"68\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"355\" cy=\"68\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"389\" cy=\"68\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"423\" cy=\"68\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"287\" cy=\"102\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"321\" cy=\"102\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"355\" cy=\"102\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"389\" cy=\"102\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"423\" cy=\"102\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"287\" cy=\"136\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"321\" cy=\"136\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"355\" cy=\"136\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"389\" cy=\"136\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><circle cx=\"423\" cy=\"136\" r=\"15\" fill=\"#475569\" stroke=\"#0f172a\"/><text x=\"355\" y=\"186\" fill=\"#fbbf24\" font-size=\"18\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Blei</text><text x=\"355\" y=\"208\" fill=\"#cbd5e1\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">fast 8-mal so schwere Atome</text><text x=\"355\" y=\"232\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">ρ ≈ 11,3 kg/dm³</text></svg><p class=\"caption\">Gleich dicht gepackt. Aber jedes Bleiatom ist viel schwerer. Darum ist die Dichte von Blei viel größer.</p></div>\n<div class=\"sketch\"><svg viewBox=\"0 0 530 220\" role=\"img\" aria-label=\"Teilchen in festen, flüssigen und gasförmigen Stoffen\"><rect x=\"15\" y=\"10\" width=\"150\" height=\"150\" rx=\"8\" fill=\"#0f172a\" stroke=\"#64748b\" stroke-width=\"2\"/><circle cx=\"35\" cy=\"30\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"57\" cy=\"30\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"79\" cy=\"30\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"101\" cy=\"30\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"123\" cy=\"30\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"145\" cy=\"30\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"35\" cy=\"52\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"57\" cy=\"52\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"79\" cy=\"52\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"101\" cy=\"52\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"123\" cy=\"52\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"145\" cy=\"52\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"35\" cy=\"74\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"57\" cy=\"74\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"79\" cy=\"74\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"101\" cy=\"74\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"123\" cy=\"74\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"145\" cy=\"74\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"35\" cy=\"96\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"57\" cy=\"96\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"79\" cy=\"96\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"101\" cy=\"96\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"123\" cy=\"96\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"145\" cy=\"96\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"35\" cy=\"118\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"57\" cy=\"118\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"79\" cy=\"118\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"101\" cy=\"118\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"123\" cy=\"118\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"145\" cy=\"118\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"35\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"57\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"79\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"101\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"123\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"145\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><text x=\"90\" y=\"186\" fill=\"#fbbf24\" font-size=\"18\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">fest</text><text x=\"90\" y=\"208\" fill=\"#cbd5e1\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">dicht und geordnet</text><rect x=\"190\" y=\"10\" width=\"150\" height=\"150\" rx=\"8\" fill=\"#0f172a\" stroke=\"#64748b\" stroke-width=\"2\"/><circle cx=\"212\" cy=\"40\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"234\" cy=\"34\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"258\" cy=\"44\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"282\" cy=\"36\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"308\" cy=\"42\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"220\" cy=\"64\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"246\" cy=\"66\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"270\" cy=\"62\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"296\" cy=\"68\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"318\" cy=\"64\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"210\" cy=\"90\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"234\" cy=\"92\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"260\" cy=\"88\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"286\" cy=\"94\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"312\" cy=\"90\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"222\" cy=\"116\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"248\" cy=\"114\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"274\" cy=\"120\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"300\" cy=\"114\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"322\" cy=\"122\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"212\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"238\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"264\" cy=\"144\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"290\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"316\" cy=\"144\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><text x=\"265\" y=\"186\" fill=\"#fbbf24\" font-size=\"18\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">flüssig</text><text x=\"265\" y=\"208\" fill=\"#cbd5e1\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">dicht, aber ungeordnet</text><rect x=\"365\" y=\"10\" width=\"150\" height=\"150\" rx=\"8\" fill=\"#0f172a\" stroke=\"#64748b\" stroke-width=\"2\"/><circle cx=\"395\" cy=\"42\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"477\" cy=\"34\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"435\" cy=\"82\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"389\" cy=\"128\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"487\" cy=\"114\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><circle cx=\"443\" cy=\"140\" r=\"9\" fill=\"#38bdf8\" stroke=\"#0f172a\"/><text x=\"440\" y=\"186\" fill=\"#fbbf24\" font-size=\"18\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">gasförmig</text><text x=\"440\" y=\"208\" fill=\"#cbd5e1\" font-size=\"14\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">weit auseinander</text></svg><p class=\"caption\">Je weiter die Teilchen auseinander sind, desto kleiner ist die Dichte.</p></div>\n<p><strong>Schwere Teilchen</strong> und <strong>dichte Packung</strong> → große Dichte. Gase: kleine Dichte.</p>\n<p>Dichte unter 1 kg/dm³ → schwimmt auf Wasser (Heizöl, Maschinenöl). Eis ist leichter als Wasser und braucht mehr Platz → Frostgefahr für Leitungen.</p>\n"
+  },
+  "2": {
+    "title": "Modul 2: Volumen umrechnen",
+    "content": "\n<div class=\"sketch\"><div style=\"display:flex; flex-wrap:wrap; justify-content:center; gap:10px 24px;\"><div><h4 style=\"color:#38bdf8; margin:6px 0 4px 0; font-size:17px;\">Volumen: Umrechnungszahl 1000</h4><svg viewBox=\"0 0 230 302\" style=\"width:220px; max-width:100%; min-width:0\" role=\"img\" aria-label=\"Umrechnungstreppe V\"><defs><marker id=\"arV\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"context-stroke\"/></marker></defs><rect x=\"60\" y=\"10\" width=\"110\" height=\"38\" rx=\"8\" fill=\"#1e293b\" stroke=\"#22c55e\" stroke-width=\"2\"/><text x=\"115\" y=\"36\" fill=\"#f8fafc\" font-size=\"19\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">m³</text><line x1=\"155\" y1=\"52\" x2=\"155\" y2=\"84\" stroke=\"#4ade80\" stroke-width=\"2.5\" marker-end=\"url(#arV)\"/><text x=\"166\" y=\"74.0\" fill=\"#4ade80\" font-size=\"17\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">· 1000</text><line x1=\"75\" y1=\"84\" x2=\"75\" y2=\"52\" stroke=\"#f87171\" stroke-width=\"2.5\" marker-end=\"url(#arV)\"/><text x=\"64\" y=\"74.0\" fill=\"#f87171\" font-size=\"17\" font-weight=\"bold\" text-anchor=\"end\" font-family=\"Segoe UI, Arial\">: 1000</text><rect x=\"60\" y=\"88\" width=\"110\" height=\"38\" rx=\"8\" fill=\"#1e293b\" stroke=\"#22c55e\" stroke-width=\"2\"/><text x=\"115\" y=\"114\" fill=\"#f8fafc\" font-size=\"19\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">dm³ = l</text><line x1=\"155\" y1=\"130\" x2=\"155\" y2=\"162\" stroke=\"#4ade80\" stroke-width=\"2.5\" marker-end=\"url(#arV)\"/><text x=\"166\" y=\"152.0\" fill=\"#4ade80\" font-size=\"17\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">· 1000</text><line x1=\"75\" y1=\"162\" x2=\"75\" y2=\"130\" stroke=\"#f87171\" stroke-width=\"2.5\" marker-end=\"url(#arV)\"/><text x=\"64\" y=\"152.0\" fill=\"#f87171\" font-size=\"17\" font-weight=\"bold\" text-anchor=\"end\" font-family=\"Segoe UI, Arial\">: 1000</text><rect x=\"60\" y=\"166\" width=\"110\" height=\"38\" rx=\"8\" fill=\"#1e293b\" stroke=\"#22c55e\" stroke-width=\"2\"/><text x=\"115\" y=\"192\" fill=\"#f8fafc\" font-size=\"19\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">cm³ = ml</text><line x1=\"155\" y1=\"208\" x2=\"155\" y2=\"240\" stroke=\"#4ade80\" stroke-width=\"2.5\" marker-end=\"url(#arV)\"/><text x=\"166\" y=\"230.0\" fill=\"#4ade80\" font-size=\"17\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">· 1000</text><line x1=\"75\" y1=\"240\" x2=\"75\" y2=\"208\" stroke=\"#f87171\" stroke-width=\"2.5\" marker-end=\"url(#arV)\"/><text x=\"64\" y=\"230.0\" fill=\"#f87171\" font-size=\"17\" font-weight=\"bold\" text-anchor=\"end\" font-family=\"Segoe UI, Arial\">: 1000</text><rect x=\"60\" y=\"244\" width=\"110\" height=\"38\" rx=\"8\" fill=\"#1e293b\" stroke=\"#22c55e\" stroke-width=\"2\"/><text x=\"115\" y=\"270\" fill=\"#f8fafc\" font-size=\"19\" font-weight=\"bold\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">mm³</text></svg></div></div><p class=\"caption\">Grün nach unten: mal. Rot nach oben: geteilt. </p></div>\n<p><strong>1 dm³ = 1 l</strong>, <strong>1 cm³ = 1 ml</strong>, <strong>1 m³ = 1000 l</strong>.</p>\n<p><strong>Trick:</strong> Längen zuerst in dm umrechnen (mm : 100, cm : 10, m · 10). Dann kommt das Volumen in dm³ heraus.</p>\n<p><strong>Achtung:</strong> Bei Volumen ist es 1000, nicht 100!</p>\n"
+  },
+  "3": {
+    "title": "Modul 3: Volumen berechnen",
+    "content": "\n<div class=\"sketch\"><svg viewBox=\"0 0 560 210\" role=\"img\" aria-label=\"Würfel, Quader und Zylinder\"><polygon points=\"20,80 110,80 110,170 20,170\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/><polygon points=\"20,80 50,55 140,55 110,80\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"2\"/><polygon points=\"110,80 140,55 140,145 110,170\" fill=\"#1e293b\" stroke=\"#94a3b8\" stroke-width=\"2\"/><text x=\"65\" y=\"190\" fill=\"#f8fafc\" font-size=\"17\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">a</text><text x=\"80\" y=\"30\" fill=\"#fbbf24\" font-size=\"17\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Würfel</text><polygon points=\"180,110 330,110 330,170 180,170\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/><polygon points=\"180,110 210,85 360,85 330,110\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"2\"/><polygon points=\"330,110 360,85 360,145 330,170\" fill=\"#1e293b\" stroke=\"#94a3b8\" stroke-width=\"2\"/><text x=\"255\" y=\"190\" fill=\"#f8fafc\" font-size=\"17\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">l</text><text x=\"355\" y=\"165\" fill=\"#f8fafc\" font-size=\"17\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">b</text><text x=\"170\" y=\"145\" fill=\"#f8fafc\" font-size=\"17\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">h</text><text x=\"270\" y=\"30\" fill=\"#fbbf24\" font-size=\"17\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Quader</text><rect x=\"400\" y=\"90\" width=\"120\" height=\"50\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"2\"/><ellipse cx=\"520\" cy=\"115\" rx=\"12\" ry=\"25\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/><ellipse cx=\"400\" cy=\"115\" rx=\"12\" ry=\"25\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"2\"/><text x=\"460\" y=\"165\" fill=\"#f8fafc\" font-size=\"17\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">l</text><text x=\"375\" y=\"120\" fill=\"#f8fafc\" font-size=\"17\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">d</text><text x=\"465\" y=\"30\" fill=\"#fbbf24\" font-size=\"17\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">Zylinder</text></svg><p class=\"caption\">Würfel: V = a · a · a. Quader: V = l · b · h. Zylinder: V = π/4 · d² · l.</p></div>\n<div class=\"formula\">Würfel: V = a · a · a<br>Quader: V = l · b · h<br>Zylinder: V = π/4 · d² · l</div>\n<p><strong>Vorgehen:</strong> Form erkennen → Maße in dm → einsetzen → am Ende runden.</p>\n<p><strong>Beispiel:</strong> Rundstab d = 40 mm, l = 500 mm → V = π/4 · 0,4² · 5 ≈ 0,6283 dm³.</p>\n"
+  },
+  "4": {
+    "title": "Modul 4: Mit der Dichteformel rechnen",
+    "content": "\n<div class=\"sketch\"><h4 style=\"color:#38bdf8; margin-bottom:10px;\">Das Formeldreieck</h4><svg viewBox=\"0 0 300 220\" style=\"max-width:300px; min-width:0\" role=\"img\" aria-label=\"Formeldreieck: m oben, rho und V unten\"><polygon points=\"150,15 285,200 15,200\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"3\"/><line x1=\"70\" y1=\"125\" x2=\"230\" y2=\"125\" stroke=\"#38bdf8\" stroke-width=\"3\"/><line x1=\"150\" y1=\"125\" x2=\"150\" y2=\"200\" stroke=\"#38bdf8\" stroke-width=\"3\"/><text x=\"150\" y=\"100\" fill=\"#fbbf24\" font-size=\"36\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">m</text><text x=\"105\" y=\"178\" fill=\"#f8fafc\" font-size=\"34\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">ρ</text><text x=\"195\" y=\"178\" fill=\"#f8fafc\" font-size=\"34\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">V</text></svg><p class=\"caption\">Halte die gesuchte Größe zu. Oben und unten: geteilt. Nebeneinander: mal.</p></div>\n<div class=\"formula\">ρ = m : V &nbsp;&nbsp; m = V · ρ &nbsp;&nbsp; V = m : ρ</div>\n<p>Einheiten: kg/dm³ = g/cm³. Gase in kg/m³. 1 kg/dm³ = 1000 kg/m³.</p>\n<div class=\"book-box\"><h4>📘 Nimm dein Tabellenbuch</h4><p>Dichte im Sachwortverzeichnis unter „Dichte“. Kleine Unterschiede zwischen Büchern sind in Ordnung.</p></div>\n<p><strong>Beispiel:</strong> V = 0,25 dm³ Kupfer → m = 0,25 · 8,92 ≈ 2,23 kg.</p>\n"
+  },
+  "5": {
+    "title": "Modul 5: Rohre, Speicher und Tanks",
+    "content": "\n<div class=\"sketch\"><svg viewBox=\"0 0 460 220\" role=\"img\" aria-label=\"Rohrquerschnitt mit Außendurchmesser, Innendurchmesser und Wanddicke\"><circle cx=\"110\" cy=\"110\" r=\"90\" fill=\"#b45309\" stroke=\"#fbbf24\" stroke-width=\"2\"/><circle cx=\"110\" cy=\"110\" r=\"72\" fill=\"#0c4a6e\" stroke=\"#fbbf24\" stroke-width=\"2\"/><line x1=\"20\" y1=\"110\" x2=\"200\" y2=\"110\" stroke=\"#f8fafc\" stroke-width=\"1.5\" stroke-dasharray=\"6 4\"/><text x=\"110\" y=\"104\" fill=\"#7dd3fc\" font-size=\"18\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">dᵢ</text><text x=\"240\" y=\"50\" fill=\"#f8fafc\" font-size=\"16\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">D = Außendurchmesser</text><text x=\"240\" y=\"80\" fill=\"#f8fafc\" font-size=\"16\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">s = Wanddicke</text><text x=\"240\" y=\"110\" fill=\"#7dd3fc\" font-size=\"16\" text-anchor=\"start\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">dᵢ = D − 2 · s</text><rect x=\"240\" y=\"140\" width=\"18\" height=\"18\" fill=\"#b45309\"/><text x=\"266\" y=\"155\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">Material (Ring)</text><rect x=\"240\" y=\"170\" width=\"18\" height=\"18\" fill=\"#0c4a6e\" stroke=\"#7dd3fc\"/><text x=\"266\" y=\"185\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">Wasser (innen)</text></svg><p class=\"caption\">Für die Masse des Rohres zählt der Ring. Für das Wasser zählt die Fläche innen.</p></div>\n<div class=\"formula\">dᵢ = D − 2 · s<br>Rohr (Material): A = π/4 · (D² − dᵢ²), V = A · l, m = V · ρ<br>Wasser im Rohr: V = π/4 · dᵢ² · l</div>\n<p><strong>Beispiel:</strong> 10 m Kupferrohr 22 × 1 → A ≈ 65,97 mm² → V ≈ 0,6597 dm³ → m ≈ 5,88 kg. Wasser: ≈ 3,14 l.</p>\n<p>mm³ → dm³: geteilt durch 1 000 000. Speicher gefüllt = Leergewicht + Inhalt.</p>\n"
+  },
+  "6": {
+    "title": "Modul 6: Werkstoff bestimmen",
+    "content": "\n<div class=\"situation\"><h4>🏚️ Die Situation</h4>\n<p>Ihr baut im Keller eines Altbaus eine alte Heizung aus. Dabei findest du ein Rohrstück <strong>28 × 1,5</strong>, <strong>500 mm</strong> lang. Das Rohr ist lackiert. Du siehst nicht, ob es <strong>Kupfer</strong> ist oder eine alte <strong>Bleileitung</strong>.</p>\n<p>Dein Meister sagt: „Kupfer bringt beim Schrotthändler gutes Geld. Wenn es eine alte Bleileitung ist, muss sie getrennt entsorgt werden. Finde heraus, was es ist. Aber kratz den Lack nicht ab!“</p>\n<p>Du wiegst das Rohrstück auf der Werkstattwaage: <strong>m = 0,558 kg</strong>.</p></div>\n<p><strong>Idee:</strong> Dichte ausrechnen und mit dem Tabellenbuch vergleichen. Der nächstliegende Wert gewinnt.</p>\n<p><strong>Reihenfolge:</strong> messen → in dm (oder cm) umrechnen → Volumen → ρ = m : V → vergleichen → Antwortsatz.</p>\n<p>Kleine Teile: in cm und g rechnen. g/cm³ = kg/dm³.</p>\n<div class=\"formula\">Kugel: V = π/6 · d³</div>\n"
+  },
+  "7": {
+    "title": "Modul 7: Längen- und flächenbezogene Masse",
+    "content": "\n<div class=\"formula\">m′ in kg/m (Rohre, Profile): m = m′ · l, l = m : m′<br>m″ in kg/m² (Bleche): m = m″ · A</div>\n<div class=\"sketch\"><svg viewBox=\"0 0 440 200\" role=\"img\" aria-label=\"Ein Quadratmeter Blech mit 1 mm Dicke hat 1 dm³ Volumen\"><polygon points=\"40,120 260,120 320,60 100,60\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"2\"/><polygon points=\"40,120 260,120 260,128 40,128\" fill=\"#334155\" stroke=\"#94a3b8\" stroke-width=\"2\"/><polygon points=\"260,120 320,60 320,68 260,128\" fill=\"#1e293b\" stroke=\"#94a3b8\" stroke-width=\"2\"/><text x=\"150\" y=\"150\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">1 m = 10 dm</text><text x=\"300\" y=\"105\" fill=\"#f8fafc\" font-size=\"15\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">1 m = 10 dm</text><text x=\"150\" y=\"50\" fill=\"#fbbf24\" font-size=\"15\" text-anchor=\"middle\" font-family=\"Segoe UI, Arial\">Dicke 1 mm = 0,01 dm</text><text x=\"220\" y=\"185\" fill=\"#4ade80\" font-size=\"16\" text-anchor=\"middle\" font-weight=\"bold\" font-family=\"Segoe UI, Arial\">V = 10 dm · 10 dm · 0,01 dm = 1 dm³</text></svg><p class=\"caption\">1 m² Blech mit 1 mm Dicke hat genau 1 dm³ Volumen. Darum: m″ = ρ · s.</p></div>\n<p><strong>Tricks:</strong> m″ = ρ · s (s in mm). m′ = ρ · A : 1000 (A in mm²).</p>\n<p><strong>Beispiel:</strong> Zinkblech 0,7 mm → m″ = 7,13 · 0,7 ≈ 4,99 kg/m².</p>\n"
+  },
+  "8": {
+    "title": "Modul 8: Profi-Aufgaben",
+    "content": "\n<p><strong>Zerlegen:</strong> Teile, die dazukommen, addieren. Bohrungen und Ausschnitte abziehen.</p>\n<div class=\"sketch\"><svg viewBox=\"0 0 420 210\" role=\"img\" aria-label=\"Flansch mit Mittelbohrung und vier Löchern\"><circle cx=\"110\" cy=\"100\" r=\"80\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"2\"/><circle cx=\"110\" cy=\"100\" r=\"30\" fill=\"#0f172a\" stroke=\"#94a3b8\" stroke-width=\"2\"/><circle cx=\"110\" cy=\"45\" r=\"7\" fill=\"#0f172a\" stroke=\"#94a3b8\" stroke-width=\"2\"/><circle cx=\"165\" cy=\"100\" r=\"7\" fill=\"#0f172a\" stroke=\"#94a3b8\" stroke-width=\"2\"/><circle cx=\"110\" cy=\"155\" r=\"7\" fill=\"#0f172a\" stroke=\"#94a3b8\" stroke-width=\"2\"/><circle cx=\"55\" cy=\"100\" r=\"7\" fill=\"#0f172a\" stroke=\"#94a3b8\" stroke-width=\"2\"/><text x=\"230\" y=\"50\" fill=\"#f8fafc\" font-size=\"16\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">Außen: D = 160 mm</text><text x=\"230\" y=\"80\" fill=\"#f8fafc\" font-size=\"16\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">Mitte: d = 60 mm</text><text x=\"230\" y=\"110\" fill=\"#f8fafc\" font-size=\"16\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">4 Löcher: je 14 mm</text><text x=\"230\" y=\"140\" fill=\"#fbbf24\" font-size=\"16\" text-anchor=\"start\" font-family=\"Segoe UI, Arial\">Dicke: s = 12 mm</text></svg><p class=\"caption\">Volle Scheibe minus alle Bohrungen = Volumen des Flanschs.</p></div>\n<p>Flansch: V ≈ 0,2413 − 0,0413 = 0,2000 dm³ → m ≈ 1,78 kg (Kupfer).</p>\n<div class=\"formula\">Länge aus Masse: V = m : ρ → l = V : A</div>\n<p><strong>Beispiel:</strong> Vierkant 40 × 40, 2,16 kg Aluminium → V = 0,8 dm³ → l = 0,8 : 0,16 = 5 dm = 500 mm.</p>\n"
+  }
+};
+
+// =====================================================================
+// Aufgaben für das Modul "Masse und Dichte" (SHK)
+// Hilfsfunktionen aus engine.js (rnd, rint, shuffle, pickN, num).
+// Zahlenfelder: scale = 10^Nachkommastellen, ans und tol in dieser Stufe.
+// Dichtewerte: Prüfwert mit Spielraum, weil Tabellenbücher leicht abweichen.
+// Keine Seitenzahlen nennen: Das Modul soll mit jeder Auflage funktionieren.
+// m′- und m″-Werte in den Aufgaben sind selbst berechnet (nicht abgeschrieben).
+// =====================================================================
+
+const UNLOCK_TEXT = {
+    5: 'Rohre, Speicher und Heizöltank: Volumen und Masse auf der Baustelle.',
+    6: 'Unbekannter Werkstoff? Mit der Dichte findest du heraus, was es ist.',
+    7: 'Längenbezogene und flächenbezogene Masse: Rohre und Bleche schnell berechnen.',
+    8: 'Profi-Aufgaben: Bauteile mit Bohrungen. Länge aus der Masse berechnen.'
+};
+
+// ---------- Dichte: [Prüfwert, Spielraum] in kg/dm³ ----------
+// Nur Stoffe, die im SHK-Tabellenbuch stehen (Stoffwerte chemischer Elemente, flüssiger und gasförmiger Stoffe)
+const RHO = {
+    'Kupfer':            [8.92, 0.05],
+    'Aluminium':         [2.7, 0.03],
+    'Blei':              [11.34, 0.07],
+    'Zink':              [7.13, 0.08],
+    'Titan':             [4.52, 0.05],
+    'Magnesium':         [1.74, 0.03],
+    'Silber':            [10.5, 0.1],
+    'Heizöl':            [0.83, 0.03]   // im Buch als Bereich 0,8 … 0,86
+};
+const BOOK_RHO = 'Suche die Dichte in deinem Tabellenbuch. Tipp: Sachwortverzeichnis unter „Dichte“.';
+const PI_NOTE = 'Rechne mit der π-Taste.';
+const MAYBE = '<br><span style="color:#94a3b8;">Steht in deinem Buch ein etwas anderer Dichtewert, ist dein Ergebnis auch richtig.</span>';
+
+// ---------- Zahlen ----------
+function clean(x) { return Number(Number(x).toPrecision(12)); }
+function decs(x) {
+    const s = String(clean(Math.abs(x)));
+    if (s.indexOf('e') >= 0) return 9;
+    const p = s.split('.');
+    return p[1] ? p[1].length : 0;
+}
+// deutsche Schreibweise, große Zahlen mit Leerzeichen gruppiert
+function de(x, dec) {
+    let s = (dec === undefined) ? String(clean(x)) : Number(x).toFixed(dec);
+    if (s.indexOf('e') >= 0) s = Number(x).toFixed(9).replace(/0+$/, '');
+    const neg = s.charAt(0) === '-';
+    if (neg) s = s.slice(1);
+    let [a, b] = s.split('.');
+    if (a.length > 4) a = a.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return (neg ? '−' : '') + a + (b ? ',' + b : '');
+}
+// Zahlenfeld: val = Lösung, dec = Nachkommastellen der Prüfung, rel = relativer Spielraum (0 = genau)
+function fld(label, unit, val, dec, rel, extra) {
+    const scale = Math.pow(10, dec);
+    const ans = Math.round(clean(val) * scale);
+    const tol = rel === 0 ? 0 : Math.max(1, Math.ceil(Math.abs(val) * rel * scale));
+    return Object.assign({ label: label, unit: unit, ans: ans, tol: tol, scale: scale }, extra || {});
+}
+function err(val, dec, msg) { return { v: Math.round(clean(val) * Math.pow(10, dec)), msg: msg }; }
+function rhoField(name, unit) {
+    const r = RHO[name];
+    return { label: 'Dichte ρ (' + name + ')', unit: unit || 'kg/dm³', ans: Math.round(r[0] * 1000), tol: Math.round(r[1] * 1000), scale: 1000 };
+}
+function relB(name) { return RHO[name][1] / RHO[name][0] + 0.006; }   // Spielraum für Ergebnisse mit Buchwert
+function rhoTxt(name) { return de(RHO[name][0]); }
+
+function rfTask(all, n, expl) {
+    return function () {
+        return {
+            type: 'match', q: 'Richtig oder falsch?', options: ['richtig', 'falsch'], items: pickN(all, n),
+            hint: 'Rot markierte Aussagen hast du noch falsch eingeschätzt. Lies den Lerntext dazu noch einmal.',
+            explanation: expl
+        };
+    };
+}
+
+// ---------- Skizzen ----------
+const SF = 'font-family="Segoe UI, Arial"';
+function svgOpen(w, h, label) { return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="max-width:' + w + 'px; min-width:0" role="img" aria-label="' + label + '">'; }
+function txt(x, y, s, size, color, anchor) {
+    return '<text x="' + x + '" y="' + y + '" fill="' + (color || '#f8fafc') + '" font-size="' + (size || 16) + '" text-anchor="' + (anchor || 'middle') + '" ' + SF + '>' + s + '</text>';
+}
+
+// Teilchenbilder (fest, flüssig, gasförmig) in einem Kasten 150 × 150
+const TEILCHEN_POS = {
+    'fest': (function () { const a = []; for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) a.push([20 + c * 22, 20 + r * 22]); return a; })(),
+    'flüssig': [[22,30],[44,24],[68,34],[92,26],[118,32],[30,54],[56,56],[80,52],[106,58],[128,54],[20,80],[44,82],[70,78],[96,84],[122,80],
+                [32,106],[58,104],[84,110],[110,104],[132,112],[22,130],[48,130],[74,134],[100,130],[126,134]],
+    'gasförmig': [[30,32],[112,24],[70,72],[24,118],[122,104],[78,130]]
+};
+function teilchenKasten(kind, x0, label, color) {
+    let s = '<rect x="' + x0 + '" y="10" width="150" height="150" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="2"/>';
+    TEILCHEN_POS[kind].forEach(p => {
+        s += '<circle cx="' + (x0 + p[0]) + '" cy="' + (10 + p[1]) + '" r="9" fill="' + (color || '#38bdf8') + '" stroke="#0f172a" stroke-width="1"/>';
+    });
+    return s + txt(x0 + 75, 188, label, 18, '#fbbf24');
+}
+
+// ---------- Kleine Körper-Skizzen für "Anschauungskasten" ----------
+function skizzeKoerper(form, a, b, c) {
+    let s = svgOpen(320, 190, form);
+    if (form === 'Würfel') {
+        s += '<polygon points="90,70 190,70 190,170 90,170" fill="#334155" stroke="#94a3b8" stroke-width="2"/>' +
+             '<polygon points="90,70 130,40 230,40 190,70" fill="#475569" stroke="#94a3b8" stroke-width="2"/>' +
+             '<polygon points="190,70 230,40 230,140 190,170" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>' +
+             txt(140, 188, 'a = ' + a, 17);
+    } else if (form === 'Quader') {
+        s = svgOpen(430, 190, form) +
+            '<polygon points="110,90 310,90 310,150 110,150" fill="#334155" stroke="#94a3b8" stroke-width="2"/>' +
+            '<polygon points="110,90 150,60 350,60 310,90" fill="#475569" stroke="#94a3b8" stroke-width="2"/>' +
+            '<polygon points="310,90 350,60 350,120 310,150" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>' +
+            txt(210, 175, 'l = ' + a, 17) + txt(338, 152, 'b = ' + b, 16, '#f8fafc', 'start') +
+            txt(102, 126, 'h = ' + c, 16, '#f8fafc', 'end');
+    } else if (form === 'Kugel') {
+        s += '<circle cx="160" cy="90" r="70" fill="#475569" stroke="#94a3b8" stroke-width="2"/>' +
+             '<ellipse cx="160" cy="90" rx="70" ry="16" fill="none" stroke="#94a3b8" stroke-dasharray="5 4"/>' +
+             '<line x1="90" y1="90" x2="230" y2="90" stroke="#fbbf24" stroke-width="2"/>' +
+             txt(160, 82, 'd = ' + a, 17, '#fbbf24');
+    } else {   // Rundstab
+        s += '<rect x="50" y="65" width="200" height="60" fill="#475569" stroke="#94a3b8" stroke-width="2"/>' +
+             '<ellipse cx="250" cy="95" rx="14" ry="30" fill="#334155" stroke="#94a3b8" stroke-width="2"/>' +
+             '<ellipse cx="50" cy="95" rx="14" ry="30" fill="#475569" stroke="#94a3b8" stroke-width="2"/>' +
+             txt(150, 150, 'l = ' + b, 17) + txt(272, 100, 'd = ' + a, 17, '#f8fafc', 'start');
+    }
+    return s + '</svg>';
+}
+
+// ---------- Flansch (Draufsicht) ----------
+function skizzeFlansch(D, d, dl, s) {
+    const R = 80, r = R * d / D, rl = Math.max(6, R * dl / D), rk = (R + r) / 2;
+    let g = svgOpen(420, 210, 'Flansch mit Mittelbohrung und vier Löchern');
+    g += '<circle cx="110" cy="100" r="' + R + '" fill="#475569" stroke="#94a3b8" stroke-width="2"/>';
+    g += '<circle cx="110" cy="100" r="' + r + '" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>';
+    [[0, -1], [1, 0], [0, 1], [-1, 0]].forEach(p => {
+        g += '<circle cx="' + (110 + p[0] * rk) + '" cy="' + (100 + p[1] * rk) + '" r="' + rl + '" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>';
+    });
+    g += txt(230, 50, 'Außen: D = ' + D + ' mm', 16, '#f8fafc', 'start');
+    g += txt(230, 80, 'Mitte: d = ' + d + ' mm', 16, '#f8fafc', 'start');
+    g += txt(230, 110, '4 Löcher: je ' + dl + ' mm', 16, '#f8fafc', 'start');
+    g += txt(230, 140, 'Dicke: s = ' + s + ' mm', 16, '#fbbf24', 'start');
+    return g + '</svg>';
+}
+
+// ---------- Platte mit Ausschnitt ----------
+function skizzePlatte(l, b, a, c) {
+    let g = svgOpen(420, 200, 'Platte mit rechteckigem Ausschnitt');
+    g += '<rect x="30" y="30" width="260" height="140" fill="#475569" stroke="#94a3b8" stroke-width="2"/>';
+    g += '<rect x="110" y="70" width="100" height="60" fill="#0f172a" stroke="#94a3b8" stroke-width="2"/>';
+    g += txt(160, 22, 'l = ' + l + ' mm', 15) + txt(300, 105, 'b = ' + b + ' mm', 15, '#f8fafc', 'start');
+    g += txt(160, 105, a + ' × ' + c + ' mm', 14, '#fbbf24');
+    return g + '</svg>';
+}
+
+// ---------- Umrechnen von Volumen ----------
+const VOL = ['mm³', 'cm³', 'dm³', 'm³'];
+function volName(i) {
+    if (i === 2 && Math.random() < 0.3) return 'l';
+    if (i === 1 && Math.random() < 0.15) return 'ml';
+    return VOL[i];
+}
+function convField() {
+    const VALS = [1.5, 2.4, 0.75, 12, 0.36, 4.8, 250, 35, 0.05, 6.25, 125, 0.8, 3, 7.2, 18, 450, 1200, 0.025, 64, 9.5, 2500, 0.4];
+    for (let t = 0; t < 200; t++) {
+        const i = rint(0, 3), j = rint(0, 3);
+        if (i === j || Math.abs(i - j) > 2) continue;
+        const k = i - j;                       // > 0: in kleinere Einheit → mal
+        const v = rnd(VALS);
+        const r = clean(v * Math.pow(1000, k));
+        if (r < 0.0001 || r > 5e7) continue;
+        const dec = decs(r);
+        if (dec > 6) continue;
+        const errs = [err(v * Math.pow(100, k), dec, 'Bei Volumen ist die Umrechnungszahl 1000, nicht 100.')];
+        if (Math.abs(k) === 2) errs.push(err(v * Math.pow(1000, k / 2), dec, 'Das sind zwei Stufen. Also zweimal 1000.'));
+        errs.push(err(v / Math.pow(1000, k), dec, 'Falsche Richtung. Kleinere Einheit → die Zahl wird größer.'));
+        return fld(de(v) + ' ' + volName(i) + ' =', volName(j), r, dec, 0, { errors: errs });
+    }
+}
+
+// =====================================================================
+const TASKS = {
+// ---------------------------------------------------------------- Modul 1
+1: [
+    {
+        type: 'mc', q: 'Was gibt die Dichte eines Stoffes an?',
+        options: [
+            'Wie hart der Stoff ist.',
+            'Wie viel Masse in einem bestimmten Volumen steckt.',
+            'Wie groß ein Bauteil ist.',
+            'Wie schwer ein Bauteil ist, egal wie groß es ist.'
+        ],
+        correct: 1,
+        hint: 'Bei der Dichte geht es um zwei Dinge: Masse und Volumen.',
+        explanation: 'Die Dichte sagt: Wie viel Masse steckt in 1 dm³? Bei Kupfer sind es 8,92 kg. Bei Wasser 1 kg.'
+    },
+    function () {
+        const kinds = shuffle(['fest', 'flüssig', 'gasförmig']);
+        const L = ['A', 'B', 'C'];
+        let svg = svgOpen(530, 200, 'Drei Teilchenbilder A, B und C');
+        kinds.forEach((k, i) => { svg += teilchenKasten(k, 15 + i * 175, 'Bild ' + L[i]); });
+        svg += '</svg>';
+        return {
+            type: 'match', svg: svg, newLabel: 'Neue Bilder',
+            q: 'Die Bilder zeigen die Teilchen in einem Stoff. Ist der Stoff fest, flüssig oder gasförmig?',
+            options: ['fest', 'flüssig', 'gasförmig'], shuffle: false,
+            items: kinds.map((k, i) => ({ left: 'Bild ' + L[i], answer: k })),
+            hint: 'Fest: Die Teilchen sitzen ordentlich in Reihen. Flüssig: dicht, aber durcheinander. Gas: wenige Teilchen, weit auseinander.',
+            explanation: 'Fest: ordentlich gepackt. Flüssig: dicht, aber ungeordnet. Gasförmig: große Abstände. Darum haben Gase eine sehr kleine Dichte.'
+        };
+    },
+    rfTask([
+        { left: 'Alle Stoffe bestehen aus winzigen Teilchen.', answer: 'richtig' },
+        { left: 'Je dichter die Teilchen gepackt sind, desto größer ist die Dichte.', answer: 'richtig' },
+        { left: 'Je schwerer die einzelnen Teilchen sind, desto größer ist die Dichte.', answer: 'richtig' },
+        { left: 'In einem Gas liegen die Teilchen dicht beieinander.', answer: 'falsch' },
+        { left: 'Ein großes Stück Kupfer hat eine größere Dichte als ein kleines Stück Kupfer.', answer: 'falsch' },
+        { left: 'Mit der Dichte kann man einen Stoff erkennen.', answer: 'richtig' },
+        { left: 'Ein schweres Bauteil hat immer eine große Dichte.', answer: 'falsch' },
+        { left: 'Gase haben eine viel kleinere Dichte als feste Stoffe.', answer: 'richtig' },
+        { left: 'Halbiert man ein Stück Kupfer, dann halbiert sich auch die Dichte.', answer: 'falsch' },
+        { left: 'Eis hat eine kleinere Dichte als flüssiges Wasser.', answer: 'richtig' }
+    ], 5, 'Merke: Die Dichte hängt nur vom Stoff ab, nicht von der Größe des Stücks. Sie wird groß, wenn die Teilchen schwer sind und dicht gepackt sind.'),
+    function () {
+        const POOL = [
+            ['Heizöl, 0,85 kg/dm³', 'schwimmt'], ['Maschinenöl, 0,91 kg/dm³', 'schwimmt'], ['Eis, 0,92 kg/dm³', 'schwimmt'],
+            ['Petroleum, 0,81 kg/dm³', 'schwimmt'],
+            ['Kupfer, 8,92 kg/dm³', 'geht unter'], ['Zink, 7,13 kg/dm³', 'geht unter'], ['Magnesium, 1,74 kg/dm³', 'geht unter'],
+            ['Blei, 11,34 kg/dm³', 'geht unter'], ['Aluminium, 2,7 kg/dm³', 'geht unter'], ['Titan, 4,52 kg/dm³', 'geht unter']
+        ];
+        let items;
+        do { items = pickN(POOL, 5); } while (items.every(x => x[1] === items[0][1]));
+        return {
+            type: 'match', newLabel: 'Neue Stoffe',
+            q: 'Der Stoff kommt in Wasser (1 kg/dm³). Schwimmt er oben oder geht er unter?',
+            options: ['schwimmt', 'geht unter'],
+            items: items.map(x => ({ left: x[0], answer: x[1] })),
+            hint: 'Vergleiche mit Wasser: 1 kg/dm³. Kleinere Dichte: schwimmt. Größere Dichte: geht unter.',
+            explanation: 'Dichte kleiner als 1 kg/dm³: Der Stoff schwimmt. Darum schwimmen Heizöl und Maschinenöl oben auf dem Wasser. Das nutzt man beim Ölabscheider.'
+        };
+    },
+    {
+        type: 'mc', q: 'Ein Würfel aus Blei und ein Würfel aus Aluminium sind gleich groß. Der Bleiwürfel ist etwa 4-mal so schwer. Warum?',
+        options: [
+            'Der Bleiwürfel hat mehr Volumen.',
+            'Im Aluminium sind die Teilchen dichter gepackt.',
+            'Ein Bleiatom ist viel schwerer als ein Aluminiumatom.',
+            'Blei ist härter als Aluminium.'
+        ],
+        correct: 2,
+        hint: 'Beide Würfel haben dasselbe Volumen. Die Teilchen sind ähnlich dicht gepackt. Was ist dann noch anders?',
+        explanation: 'Ein Bleiatom ist fast 8-mal so schwer wie ein Aluminiumatom. Die Atome sind ähnlich dicht gepackt. Darum hat Blei die viel größere Dichte.'
+    },
+    {
+        type: 'mc', q: 'Im Winter friert Wasser in einer Leitung im Keller ein. Das Rohr platzt. Warum?',
+        options: [
+            'Eis hat eine größere Dichte als Wasser. Es zieht das Rohr zusammen.',
+            'Eis hat eine kleinere Dichte als Wasser. Es braucht mehr Platz und sprengt das Rohr.',
+            'Die Dichte von Eis und Wasser ist gleich. Das Rohr wird nur spröde.',
+            'Das Kupfer im Rohr bekommt bei Kälte eine kleinere Dichte.'
+        ],
+        correct: 1,
+        hint: 'Eis schwimmt auf Wasser. Was sagt das über seine Dichte?',
+        explanation: 'Gleiche Masse, kleinere Dichte → größeres Volumen. Eis braucht etwa 9 % mehr Platz als Wasser. Darum müssen Leitungen vor Frost geschützt werden.'
+    }
+],
+// ---------------------------------------------------------------- Modul 2
+2: [
+    function () {
+        return {
+            type: 'num', q: 'Rechne die Volumen um.',
+            note: '1 l = 1 dm³ und 1 ml = 1 cm³. Tippe die Zahl ohne Einheit ein.',
+            fields: [convField(), convField(), convField()],
+            hint: 'Jede Stufe auf der Treppe ist mal 1000 oder geteilt durch 1000. Nach unten (kleinere Einheit): mal. Nach oben: geteilt.',
+            explanation: 'Bei Volumen ist die Umrechnungszahl immer <strong>1000</strong>: mm³ → cm³ → dm³ → m³.'
+        };
+    },
+    function () {
+        const a = rnd([250, 80, 45, 1200, 15, 600, 32, 5, 125, 350]);
+        const b = rnd([35, 120, 8, 64, 250, 5, 42]);
+        const c = rnd([2, 1.5, 0.6, 3.25, 0.08, 1.2, 0.35]);
+        return {
+            type: 'num', q: 'Vor dem Rechnen rechnest du alle Längen in <strong>dm</strong> um.',
+            note: '1 dm = 100 mm = 10 cm. 1 m = 10 dm.',
+            fields: [
+                fld(de(a) + ' mm =', 'dm', a / 100, decs(a / 100), 0, { errors: [err(a / 10, decs(a / 100), 'Das wären cm. 1 dm = 100 mm.'), err(a / 1000, decs(a / 100), 'Das wären m. 1 dm = 100 mm.')] }),
+                fld(de(b) + ' cm =', 'dm', b / 10, decs(b / 10), 0, { errors: [err(b / 100, decs(b / 10), 'Das wären m. 1 dm = 10 cm.')] }),
+                fld(de(c) + ' m =', 'dm', c * 10, decs(c * 10), 0, { errors: [err(c * 100, decs(c * 10), 'Das wären cm. 1 m = 10 dm.')] })
+            ],
+            hint: 'mm → dm: geteilt durch 100. cm → dm: geteilt durch 10. m → dm: mal 10.',
+            explanation: de(a) + ' mm = ' + de(a / 100) + ' dm; ' + de(b) + ' cm = ' + de(b / 10) + ' dm; ' + de(c) + ' m = ' + de(c * 10) + ' dm.'
+        };
+    },
+    function () {
+        const POOL = [['1 m³', '1000 l'], ['1 dm³', '1 l'], ['1 cm³', '1 ml'], ['0,5 m³', '500 l'], ['250 cm³', '0,25 l'],
+                      ['2000 cm³', '2 l'], ['0,2 m³', '200 l'], ['1500 ml', '1,5 dm³']];
+        const sel = pickN(POOL, 5);
+        return {
+            type: 'match', newLabel: 'Neue Aufgabe',
+            q: 'Welche Angaben sind gleich groß? Ordne zu.',
+            options: sel.map(x => x[1]),
+            items: sel.map(x => ({ left: x[0], answer: x[1] })),
+            hint: '1 m³ = 1000 dm³ = 1000 l. 1 dm³ = 1 l = 1000 cm³. 1 cm³ = 1 ml.',
+            explanation: 'Merke dir: <strong>1 dm³ = 1 l</strong> und <strong>1 m³ = 1000 l</strong>. Das brauchst du für Speicher, Tanks und Rohre.'
+        };
+    },
+    function () {
+        const CM3 = [300, 500, 750, 800, 1200, 1500, 2500, 4000, 6000, 9000];
+        const sel = pickN(CM3, 4).sort((a, b) => a - b);
+        const show = sel.map(v => {
+            const opt = [[v * 1000, 'mm³'], [v, 'cm³'], [v / 1000, rnd(['dm³', 'l'])], [v / 1e6, 'm³']].filter(o => decs(o[0]) <= 4 && o[0] <= 1e7);
+            const o = rnd(opt);
+            return de(o[0]) + ' ' + o[1];
+        });
+        return {
+            type: 'order', newLabel: 'Neue Aufgabe',
+            q: 'Sortiere die Volumen. Das kleinste kommt nach oben.',
+            steps: show,
+            hint: 'Rechne alle Angaben in dieselbe Einheit um, z. B. in cm³. Dann vergleichen.',
+            explanation: show.join(' &lt; ') + '<br>In cm³: ' + sel.map(v => de(v) + ' cm³').join(' &lt; ')
+        };
+    },
+    {
+        type: 'mc', q: 'Ein Azubi rechnet: <strong>3,5 dm³ = 350 cm³</strong>. Stimmt das?',
+        options: [
+            'Ja, das stimmt.',
+            'Nein. Richtig ist 35 cm³.',
+            'Nein. Richtig ist 3500 cm³. Bei Volumen rechnet man mal 1000.',
+            'Nein. Richtig ist 0,35 cm³.'
+        ],
+        correct: 2,
+        hint: 'Wie groß ist die Umrechnungszahl bei Volumen?',
+        explanation: 'Der Azubi hat mit 100 gerechnet. Das gilt für Flächen. Bei Volumen gilt: 1 dm³ = 1000 cm³. Also 3,5 dm³ = 3500 cm³.'
+    },
+    {
+        type: 'mc', q: 'Warum ist 1 dm³ genau 1000 cm³?',
+        options: [
+            'Weil 1 dm = 1000 cm.',
+            'Ein Würfel mit 1 dm Kante ist 10 cm lang, 10 cm breit und 10 cm hoch: 10 · 10 · 10 = 1000.',
+            'Das ist eine Regel, die man auswendig lernen muss.',
+            'Weil 1 Liter Wasser 1000 g wiegt.'
+        ],
+        correct: 1,
+        hint: 'Stell dir einen Würfel mit 1 dm Kantenlänge vor. Wie viele kleine Würfel mit 1 cm passen hinein?',
+        explanation: 'In jede Richtung passen 10 kleine Würfel: 10 · 10 · 10 = 1000. Darum ist bei Volumen die Umrechnungszahl 1000.'
+    }
+],
+// ---------------------------------------------------------------- Modul 3
+3: [
+    function () {
+        const POOL = [['Blech', 'Quader'], ['Rundstab', 'Zylinder'], ['Wasser in einem geraden Rohr', 'Zylinder'],
+                      ['eckige Badewanne (vereinfacht)', 'Quader'], ['stehender runder Speicher', 'Zylinder'],
+                      ['Vierkant', 'Quader'], ['eckiger Heizöltank', 'Quader'], ['Bolzen', 'Zylinder']];
+        let sel;
+        do { sel = pickN(POOL, 5); } while (sel.every(x => x[1] === sel[0][1]));
+        return {
+            type: 'match', newLabel: 'Neue Aufgabe',
+            q: 'Welche Grundform hat das Bauteil? Welche Volumenformel nimmst du?',
+            options: ['Quader: V = l · b · h', 'Zylinder: V = π/4 · d² · l'],
+            items: sel.map(x => ({ left: x[0], answer: x[1] === 'Quader' ? 'Quader: V = l · b · h' : 'Zylinder: V = π/4 · d² · l' })),
+            hint: 'Eckig: Quader. Rund mit Durchmesser: Zylinder.',
+            explanation: 'Eckige Körper rechnest du wie einen Quader. Runde Körper mit gleichem Durchmesser rechnest du wie einen Zylinder.'
+        };
+    },
+    function () {
+        const a = rnd([2, 3, 4, 5, 6, 8, 1.5, 2.5, 12]);
+        const V = clean(a * a * a);
+        return {
+            type: 'num', q: 'Ein Würfel hat die Kantenlänge <strong>a = ' + de(a) + ' cm</strong>. Berechne das Volumen.',
+            note: 'V = a · a · a',
+            fields: [
+                fld('Volumen V', 'cm³', V, decs(V), 0, { errors: [err(3 * a, decs(V), 'Nicht a · 3, sondern a · a · a.'), err(a * a, decs(V), 'Das ist die Fläche einer Seite. Für das Volumen noch einmal mal a.')] }),
+                fld('Volumen V', 'dm³', V / 1000, decs(V / 1000), 0, { errors: [err(V / 100, decs(V / 1000), 'Bei Volumen geteilt durch 1000, nicht durch 100.')] })
+            ],
+            hint: 'Rechne a · a · a. Dann von cm³ in dm³: geteilt durch 1000.',
+            explanation: 'V = ' + de(a) + ' cm · ' + de(a) + ' cm · ' + de(a) + ' cm = <strong>' + de(V) + ' cm³</strong> = <strong>' + de(V / 1000) + ' dm³</strong>.'
+        };
+    },
+    function () {
+        const l = rnd([250, 300, 200, 400, 150, 500]), b = rnd([80, 60, 50, 100, 120, 40]), h = rnd([50, 30, 20, 40, 25, 60]);
+        const V = clean(l * b * h / 1e6);
+        return {
+            type: 'num', q: 'Ein Werkstück hat die Form eines Quaders: <strong>l = ' + l + ' mm, b = ' + b + ' mm, h = ' + h + ' mm</strong>. Rechne die Maße in dm um. Berechne dann das Volumen in dm³.',
+            note: '1 dm = 100 mm.',
+            fields: [
+                fld('l', 'dm', l / 100, 2, 0), fld('b', 'dm', b / 100, 2, 0), fld('h', 'dm', h / 100, 2, 0),
+                fld('Volumen V', 'dm³', V, decs(V), 0, { errors: [err(l * b * h, decs(V), 'Das ist das Volumen in mm³. Rechne zuerst in dm um.')] })
+            ],
+            hint: 'Jede Länge in mm durch 100 teilen. Dann V = l · b · h.',
+            explanation: 'V = ' + de(l / 100) + ' dm · ' + de(b / 100) + ' dm · ' + de(h / 100) + ' dm = <strong>' + de(V) + ' dm³</strong>.'
+        };
+    },
+    function () {
+        const l = rnd([1.2, 1.5, 0.8, 2]), b = rnd([50, 60, 40, 75]), h = rnd([400, 500, 600, 350]);
+        const V = clean(l * 10 * b / 10 * h / 100);
+        return {
+            type: 'num', q: 'Ein eckiger Wasserbehälter ist innen <strong>' + de(l) + ' m</strong> lang, <strong>' + b + ' cm</strong> breit und <strong>' + h + ' mm</strong> hoch. Wie viele Liter passen hinein?',
+            note: 'Trick: Rechne alle Maße in dm um. Dann kommt das Volumen in dm³ heraus, also in Litern. 1 Liter Wasser wiegt 1 kg.',
+            fields: [
+                fld('Volumen V', 'l', V, decs(V), 0),
+                fld('Masse des Wassers m', 'kg', V, decs(V), 0)
+            ],
+            hint: 'l = ' + de(l) + ' m = ? dm; b = ' + b + ' cm = ? dm; h = ' + h + ' mm = ? dm. Dann V = l · b · h.',
+            explanation: 'V = ' + de(l * 10) + ' dm · ' + de(b / 10) + ' dm · ' + de(h / 100) + ' dm = <strong>' + de(V) + ' dm³ = ' + de(V) + ' l</strong>. Das Wasser wiegt <strong>' + de(V) + ' kg</strong>.'
+        };
+    },
+    function () {
+        const d = rnd([20, 30, 40, 50, 60]), l = rnd([100, 150, 200, 250, 300, 500]);
+        const V = Math.PI / 4 * Math.pow(d / 100, 2) * (l / 100);
+        return {
+            type: 'num', q: 'Ein Rundstab hat den Durchmesser <strong>d = ' + d + ' mm</strong> und die Länge <strong>l = ' + l + ' mm</strong>. Berechne das Volumen in dm³.',
+            note: 'V = π/4 · d² · l. ' + PI_NOTE + ' Runde das Volumen auf 4 Stellen nach dem Komma.',
+            fields: [
+                fld('d', 'dm', d / 100, 2, 0), fld('l', 'dm', l / 100, 2, 0),
+                fld('Volumen V', 'dm³', V, 4, 0.004, { errors: [err(Math.PI * Math.pow(d / 100, 2) * l / 100, 4, 'Du hast /4 vergessen: π/4 · d² · l.'), err(Math.PI / 4 * (d / 100) * (l / 100), 4, 'd muss ins Quadrat: d² = d · d.')] })
+            ],
+            hint: 'Erst d und l in dm. Dann π : 4 · d · d · l.',
+            explanation: 'V = π/4 · (' + de(d / 100) + ' dm)² · ' + de(l / 100) + ' dm ≈ <strong>' + de(V, 4) + ' dm³</strong>.'
+        };
+    },
+    function () {
+        const d = rnd([40, 50, 60, 70]), h = rnd([1, 1.2, 1.5, 1.6]);
+        const V = Math.PI / 4 * Math.pow(d / 10, 2) * h * 10;
+        return {
+            type: 'num', q: 'Ein stehender Warmwasserspeicher ist innen rund. Durchmesser innen: <strong>' + d + ' cm</strong>. Höhe innen: <strong>' + de(h) + ' m</strong>. Wie viele Liter fasst er?',
+            note: 'Rechne in dm. ' + PI_NOTE + ' Runde auf ganze Liter.',
+            fields: [
+                fld('Volumen V', 'l', V, 0, 0.004),
+                fld('Masse des Wassers m', 'kg', V, 0, 0.004)
+            ],
+            hint: 'd = ' + d + ' cm = ' + de(d / 10) + ' dm; h = ' + de(h) + ' m = ' + de(h * 10) + ' dm. V = π/4 · d² · h.',
+            explanation: 'V = π/4 · (' + de(d / 10) + ' dm)² · ' + de(h * 10) + ' dm ≈ <strong>' + de(V, 0) + ' l</strong>. Das Wasser wiegt etwa <strong>' + de(V, 0) + ' kg</strong>.'
+        };
+    }
+],
+// ---------------------------------------------------------------- Modul 4
+4: [
+    {
+        type: 'mc', q: 'Die Formel lautet ρ = m : V. Wie berechnest du die <strong>Masse m</strong>?',
+        options: ['m = ρ : V', 'm = V : ρ', 'm = V · ρ', 'm = ρ − V'],
+        correct: 2,
+        hint: 'Halte im Formeldreieck das m zu. Was bleibt übrig? Stehen die beiden nebeneinander, rechnest du mal.',
+        explanation: 'm = V · ρ. Im Formeldreieck stehen V und ρ unten nebeneinander. Das bedeutet: mal.'
+    },
+    {
+        type: 'mc', q: 'Wie berechnest du das <strong>Volumen V</strong>, wenn du Masse und Dichte kennst?',
+        options: ['V = m · ρ', 'V = m : ρ', 'V = ρ : m', 'V = m + ρ'],
+        correct: 1,
+        hint: 'Halte im Formeldreieck das V zu. Steht etwas oben und unten, rechnest du geteilt.',
+        explanation: 'V = m : ρ. Die Masse steht oben, die Dichte unten. Das bedeutet: geteilt.'
+    },
+    function () {
+        const name = rnd(['Aluminium', 'Magnesium', 'Kupfer', 'Blei', 'Zink', 'Titan', 'Silber']);
+        const V = rnd([0.2, 0.25, 0.4, 0.5, 0.8, 1.2, 0.15, 0.6]);
+        const m = Math.round(V * RHO[name][0] * 1000) / 1000;
+        const rho = m / V;
+        return {
+            type: 'num', q: 'Ein Werkstück hat das Volumen <strong>V = ' + de(V) + ' dm³</strong> und die Masse <strong>m = ' + de(m) + ' kg</strong>. Berechne die Dichte.',
+            note: 'ρ = m : V. Runde auf 2 Stellen nach dem Komma.',
+            fields: [fld('Dichte ρ', 'kg/dm³', rho, 2, 0.003, { errors: [err(V / m, 2, 'Andersherum: Masse geteilt durch Volumen.'), err(m * V, 2, 'Nicht mal, sondern geteilt: ρ = m : V.')] })],
+            hint: 'Masse geteilt durch Volumen: ' + de(m) + ' : ' + de(V) + '.',
+            explanation: 'ρ = ' + de(m) + ' kg : ' + de(V) + ' dm³ ≈ <strong>' + de(rho, 2) + ' kg/dm³</strong>. Das passt zu ' + name + '.'
+        };
+    },
+    function () {
+        const V = rnd([0.626, 0.45, 0.82, 1.15, 0.38, 0.54]);
+        const m = V * RHO['Kupfer'][0];
+        return {
+            type: 'num', book: true,
+            q: 'Ein Kupferrohr hat ein Materialvolumen von <strong>V = ' + de(V) + ' dm³</strong>. Wie viel kg wiegt es?',
+            note: 'm = V · ρ. Runde auf 2 Stellen nach dem Komma. ' + BOOK_RHO,
+            fields: [rhoField('Kupfer'), fld('Masse m', 'kg', m, 2, relB('Kupfer'), { errors: [err(V / 8.92, 2, 'Nicht geteilt, sondern mal: m = V · ρ.')] })],
+            hint: 'Dichte von Kupfer nachschlagen. Dann Volumen mal Dichte.',
+            explanation: 'ρ ≈ ' + rhoTxt('Kupfer') + ' kg/dm³. m = ' + de(V) + ' dm³ · ' + rhoTxt('Kupfer') + ' kg/dm³ ≈ <strong>' + de(m, 2) + ' kg</strong>.' + MAYBE
+        };
+    },
+    function () {
+        const m = rnd([1700, 850, 2550, 1275, 3400, 2125]);
+        const V = m / RHO['Heizöl'][0];
+        const rel = relB('Heizöl');
+        return {
+            type: 'num', book: true,
+            q: 'In einem Heizöltank sind <strong>' + de(m) + ' kg</strong> Heizöl. Welches Volumen hat das Öl?',
+            note: 'V = m : ρ. Runde auf ganze Liter. ' + BOOK_RHO + ' Heizöl findest du bei den flüssigen Stoffen. Steht dort ein Bereich, nimm einen Wert daraus.',
+            fields: [rhoField('Heizöl'),
+                     fld('Volumen V', 'l', V, 0, rel, { errors: [err(m * 0.85, 0, 'Nicht mal, sondern geteilt: V = m : ρ.')] }),
+                     fld('Volumen V', 'm³', V / 1000, 2, rel + 0.004)],
+            hint: 'Masse geteilt durch Dichte. Das Ergebnis ist in dm³, also in Litern. Für m³: durch 1000.',
+            explanation: 'ρ ≈ ' + rhoTxt('Heizöl') + ' kg/dm³. V = ' + de(m) + ' kg : ' + rhoTxt('Heizöl') + ' kg/dm³ ≈ <strong>' + de(V, 0) + ' l ≈ ' + de(V / 1000, 2) + ' m³</strong>. Heizöl ist leichter als Wasser: Es braucht mehr Platz als die gleiche Masse Wasser.' + MAYBE
+        };
+    },
+    function () {
+        const POOL = [['Zink', 'kg/dm³'], ['Kupfer', 'kg/dm³'], ['Wasser', 'kg/dm³'], ['Heizöl', 'kg/dm³'],
+                      ['Luft', 'kg/m³'], ['Erdgas', 'kg/m³'], ['Kohlendioxid (CO₂)', 'kg/m³'], ['Aluminium', 'kg/dm³']];
+        let sel;
+        do { sel = pickN(POOL, 5); } while (sel.every(x => x[1] === sel[0][1]));
+        return {
+            type: 'match', newLabel: 'Neue Stoffe',
+            q: 'In welcher Einheit steht die Dichte meistens im Tabellenbuch?',
+            options: ['kg/dm³', 'kg/m³'],
+            items: sel.map(x => ({ left: x[0], answer: x[1] })),
+            hint: 'Feste und flüssige Stoffe: kg/dm³. Gase sind sehr leicht. Darum nimmt man eine größere Volumeneinheit.',
+            explanation: 'Feste und flüssige Stoffe: <strong>kg/dm³</strong> (oder g/cm³). Gase: <strong>kg/m³</strong>. Luft hat etwa 1,29 kg/m³.'
+        };
+    },
+    function () {
+        const name = rnd(['Magnesium', 'Kupfer', 'Aluminium', 'Blei', 'Zink']);
+        const r = RHO[name][0];
+        return {
+            type: 'num',
+            q: 'Die Dichte von ' + name + ' ist <strong>ρ = ' + de(r) + ' kg/dm³</strong>. Gib den Wert in den anderen Einheiten an.',
+            note: '1 kg/dm³ = 1 g/cm³ = 1000 kg/m³ = 1 t/m³.',
+            fields: [
+                fld('ρ', 'g/cm³', r, decs(r), 0, { errors: [err(r * 1000, decs(r), 'g und cm³ werden beide 1000-mal kleiner. Die Zahl bleibt gleich.')] }),
+                fld('ρ', 'kg/m³', r * 1000, 0, 0, { errors: [err(r * 100, 0, '1 m³ = 1000 dm³. Also mal 1000.'), err(r, 0, '1 m³ ist 1000-mal größer als 1 dm³. Da passt 1000-mal so viel Masse hinein.')] })
+            ],
+            hint: 'kg/dm³ und g/cm³: gleiche Zahl. In kg/m³: mal 1000.',
+            explanation: de(r) + ' kg/dm³ = <strong>' + de(r) + ' g/cm³</strong> = <strong>' + de(r * 1000) + ' kg/m³</strong>.'
+        };
+    }
+],
+// ---------------------------------------------------------------- Modul 5
+5: [
+    function () {
+        const [D, s] = rnd([[15, 1], [18, 1], [22, 1], [28, 1.5], [35, 1.5], [42, 1.5], [54, 2], [18, 1.2], [22, 1.5], [28, 1.2]]);
+        const di = D - 2 * s;
+        return {
+            type: 'num', q: 'Ein Rohr hat die Bezeichnung <strong>' + D + ' × ' + de(s) + '</strong>. Wie groß ist der Innendurchmesser?',
+            note: 'Die erste Zahl ist der Außendurchmesser in mm. Die zweite Zahl ist die Wanddicke in mm.',
+            fields: [fld('Innendurchmesser dᵢ', 'mm', di, 1, 0, { errors: [err(D - s, 1, 'Die Wand ist auf beiden Seiten. Also 2 · Wanddicke abziehen.')] })],
+            hint: 'dᵢ = D − 2 · s',
+            explanation: 'dᵢ = ' + D + ' mm − 2 · ' + de(s) + ' mm = <strong>' + de(di) + ' mm</strong>.'
+        };
+    },
+    function () {
+        const [D, s] = rnd([[15, 1], [18, 1], [22, 1], [28, 1.5], [35, 1.5]]);
+        const L = rnd([3, 5, 6, 10, 12]);
+        const di = D - 2 * s;
+        const A = Math.PI / 4 * (D * D - di * di);          // mm²
+        const V = A * L * 1000 / 1e6;                       // dm³
+        const m = V * RHO['Kupfer'][0];
+        return {
+            type: 'num', book: true,
+            q: 'Wie schwer sind <strong>' + L + ' m Kupferrohr ' + D + ' × ' + de(s) + '</strong>? Rechne Schritt für Schritt.',
+            note: 'Ringfläche: A = π/4 · (D² − dᵢ²). ' + PI_NOTE + ' Runde A auf 1 Stelle, V auf 4 Stellen und m auf 2 Stellen nach dem Komma. ' + BOOK_RHO,
+            fields: [
+                fld('Innendurchmesser dᵢ', 'mm', di, 1, 0, { errors: [err(D - s, 1, 'Wanddicke zweimal abziehen.')] }),
+                fld('Ringfläche A', 'mm²', A, 1, 0.004, { errors: [err(Math.PI / 4 * Math.pow(D - di, 2), 1, 'Erst quadrieren, dann abziehen: D² − dᵢ².')] }),
+                fld('Volumen V', 'dm³', V, 4, 0.006, { errors: [err(A * L, 4, '1 dm³ = 1 000 000 mm³. Rechne mm² · mm und teile dann durch 1 000 000.')] }),
+                rhoField('Kupfer'),
+                fld('Masse m', 'kg', m, 2, relB('Kupfer'))
+            ],
+            hint: 'Fläche in mm² mal Länge in mm gibt mm³. Durch 1 000 000 teilen gibt dm³. Dann m = V · ρ.',
+            explanation: 'dᵢ = ' + de(di) + ' mm. A = π/4 · (' + D + '² − ' + de(di) + '²) ≈ ' + de(A, 1) + ' mm².<br>' +
+                         'V = ' + de(A, 1) + ' mm² · ' + de(L * 1000) + ' mm ≈ ' + de(V, 4) + ' dm³.<br>m = ' + de(V, 4) + ' dm³ · ' + rhoTxt('Kupfer') + ' kg/dm³ ≈ <strong>' + de(m, 2) + ' kg</strong>.' + MAYBE
+        };
+    },
+    function () {
+        const [D, s] = rnd([[15, 1], [18, 1], [22, 1], [28, 1.5], [35, 1.5], [42, 1.5]]);
+        const L = rnd([10, 15, 20, 25, 30, 40]);
+        const di = D - 2 * s;
+        const V = Math.PI / 4 * Math.pow(di / 100, 2) * L * 10;
+        return {
+            type: 'num', q: 'Eine Heizungsleitung aus Kupferrohr <strong>' + D + ' × ' + de(s) + '</strong> ist <strong>' + L + ' m</strong> lang. Wie viel Wasser ist in der Leitung? Wie schwer ist es?',
+            note: 'Für das Wasser zählt der Innendurchmesser. Rechne in dm. ' + PI_NOTE + ' Runde auf 2 Stellen nach dem Komma. Wasser: 1 kg/dm³.',
+            fields: [
+                fld('dᵢ', 'dm', di / 100, 3, 0, { errors: [err(D / 100, 3, 'Für das Wasser brauchst du den Innendurchmesser.'), err(di / 10, 3, 'Das wären cm. 1 dm = 100 mm.')] }),
+                fld('Volumen V', 'l', V, 2, 0.006, { errors: [err(Math.PI / 4 * Math.pow(D / 100, 2) * L * 10, 2, 'Nimm den Innendurchmesser, nicht den Außendurchmesser.')] }),
+                fld('Masse des Wassers m', 'kg', V, 2, 0.006)
+            ],
+            hint: 'dᵢ = D − 2 · s, dann in dm. l = ' + L + ' m = ' + (L * 10) + ' dm. V = π/4 · dᵢ² · l.',
+            explanation: 'dᵢ = ' + de(di) + ' mm = ' + de(di / 100) + ' dm. V = π/4 · (' + de(di / 100) + ' dm)² · ' + (L * 10) + ' dm ≈ <strong>' + de(V, 2) + ' l</strong>. Das Wasser wiegt etwa <strong>' + de(V, 2) + ' kg</strong>.'
+        };
+    },
+    function () {
+        const [l, b, h] = rnd([[2, 1, 1.5], [1.6, 0.8, 1.5], [2.5, 1, 1.6], [1.5, 0.75, 1.6], [2, 0.8, 1.5]]);
+        const p = rnd([100, 80, 75, 60, 50]);
+        const Vt = clean(l * b * h * 1000);
+        const Vo = clean(Vt * p / 100);
+        const m = Vo * RHO['Heizöl'][0];
+        return {
+            type: 'num', book: true,
+            q: 'Ein eckiger Heizöltank ist innen <strong>' + de(l) + ' m</strong> lang, <strong>' + de(b) + ' m</strong> breit und <strong>' + de(h) + ' m</strong> hoch. Er ist zu <strong>' + p + ' %</strong> gefüllt. Wie schwer ist das Öl?',
+            note: 'Runde die Masse auf ganze kg. ' + BOOK_RHO + ' Steht beim Heizöl ein Bereich, nimm einen Wert daraus.',
+            fields: [
+                fld('Volumen Tank', 'l', Vt, 0, 0, { errors: [err(Vt / 1000, 0, 'Das sind m³. 1 m³ = 1000 l.')] }),
+                fld('Volumen Öl', 'l', Vo, 0, 0),
+                rhoField('Heizöl'),
+                fld('Masse Öl m', 'kg', m, 0, relB('Heizöl'))
+            ],
+            hint: 'Tank: l · b · h in dm gibt Liter. Davon ' + p + ' %. Dann m = V · ρ.',
+            explanation: 'Tank: ' + de(l * 10) + ' dm · ' + de(b * 10) + ' dm · ' + de(h * 10) + ' dm = ' + de(Vt) + ' l. Öl: ' + p + ' % davon = ' + de(Vo) + ' l.<br>' +
+                         'm = ' + de(Vo) + ' dm³ · ' + rhoTxt('Heizöl') + ' kg/dm³ ≈ <strong>' + de(m, 0) + ' kg</strong>.' + MAYBE
+        };
+    },
+    function () {
+        const d = rnd([50, 60, 65, 70]), h = rnd([100, 120, 140, 150, 160]), leer = rnd([65, 80, 95, 110]);
+        const V = Math.PI / 4 * Math.pow(d / 10, 2) * h / 10;
+        return {
+            type: 'num',
+            q: 'Ein Warmwasserspeicher soll im Dachgeschoss stehen. Er ist innen <strong>' + d + ' cm</strong> breit (Durchmesser) und <strong>' + h + ' cm</strong> hoch. Leer wiegt er <strong>' + leer + ' kg</strong>. Wie schwer ist er gefüllt?',
+            note: PI_NOTE + ' Runde auf ganze Zahlen. Wasser: 1 kg/dm³.',
+            fields: [
+                fld('Volumen V', 'l', V, 0, 0.004),
+                fld('Masse Wasser', 'kg', V, 0, 0.004),
+                fld('Masse gesamt', 'kg', V + leer, 0, 0.004 * V / (V + leer) + 0.002)
+            ],
+            hint: 'In dm rechnen: V = π/4 · d² · h. 1 l Wasser = 1 kg. Dann das Leergewicht dazu.',
+            explanation: 'V = π/4 · (' + de(d / 10) + ' dm)² · ' + de(h / 10) + ' dm ≈ ' + de(V, 0) + ' l. Wasser ≈ ' + de(V, 0) + ' kg. Gesamt ≈ <strong>' + de(V + leer, 0) + ' kg</strong>. So viel muss die Decke tragen!'
+        };
+    },
+    {
+        type: 'mc', q: 'Du willst wissen, wie viel <strong>Wasser</strong> in einem Rohr ist. Mit welchem Durchmesser rechnest du?',
+        options: ['Mit dem Außendurchmesser D.', 'Mit dem Innendurchmesser dᵢ.', 'Mit der Wanddicke s.', 'Mit dem Mittelwert aus D und dᵢ.'],
+        correct: 1,
+        hint: 'Wo ist das Wasser: in der Wand oder im Hohlraum?',
+        explanation: 'Das Wasser ist im Hohlraum. Also dᵢ. Für die Masse des Rohres selbst brauchst du dagegen die Ringfläche (D und dᵢ).'
+    }
+],
+// ---------------------------------------------------------------- Modul 6
+6: [
+    {
+        type: 'order', q: 'Du sollst herausfinden, aus welchem Werkstoff ein Rohrstück ist. In welcher Reihenfolge gehst du vor?',
+        steps: [
+            'Rohrstück messen und wiegen',
+            'Maße in passende Einheiten umrechnen',
+            'Volumen des Materials berechnen',
+            'Dichte berechnen: ρ = m : V',
+            'Mit dem Tabellenbuch vergleichen und Werkstoff benennen'
+        ],
+        hint: 'Ohne Messwerte kannst du nichts rechnen. Ohne Volumen keine Dichte.',
+        explanation: 'Messen → umrechnen → Volumen → Dichte → vergleichen. So arbeitest du nach der vollständigen Handlung.'
+    },
+    {
+        type: 'num', book: true,
+        q: '<strong>Die Situation vom Anfang:</strong> Das Rohrstück ist <strong>28 × 1,5</strong> und <strong>500 mm</strong> lang. Die Waage zeigt <strong>0,558 kg</strong>. Kupfer oder Blei?',
+        note: PI_NOTE + ' Runde A auf 1 Stelle, V auf 4 Stellen und ρ auf 2 Stellen nach dem Komma. ' + BOOK_RHO,
+        fields: [
+            fld('Innendurchmesser dᵢ', 'mm', 25, 1, 0, { errors: [err(26.5, 1, 'Die Wand ist auf beiden Seiten: 28 − 2 · 1,5.')] }),
+            fld('Ringfläche A', 'mm²', Math.PI / 4 * (28 * 28 - 25 * 25), 1, 0.004),
+            fld('Volumen V', 'dm³', Math.PI / 4 * (28 * 28 - 25 * 25) * 500 / 1e6, 4, 0.006),
+            fld('Dichte ρ', 'kg/dm³', 0.558 / (Math.PI / 4 * (28 * 28 - 25 * 25) * 500 / 1e6), 2, 0.01),
+            { label: 'Werkstoff', kind: 'select', options: ['Aluminium', 'Blei', 'Kupfer', 'Zink'], ans: 'Kupfer',
+              errors: [{ v: 'Blei', msg: 'Blei hat etwa 11,34 kg/dm³. Dein Wert ist viel kleiner.' }, { v: 'Zink', msg: 'Zink hat etwa 7,13 kg/dm³. Dein Wert ist größer.' }] }
+        ],
+        hint: 'A = π/4 · (28² − 25²) in mm². V = A · 500 mm, dann durch 1 000 000 → dm³. ρ = 0,558 kg : V.',
+        explanation: 'dᵢ = 25 mm. A = π/4 · (784 − 625) ≈ 124,9 mm². V ≈ 124,9 · 500 : 1 000 000 ≈ 0,0624 dm³.<br>' +
+                     'ρ = 0,558 kg : 0,0624 dm³ ≈ <strong>8,94 kg/dm³</strong>. Das passt zu <strong>Kupfer</strong> (≈ 8,92). Es ist keine alte Bleileitung. Das Rohr kommt zum Kupfer-Schrott!'
+    },
+    function () {
+        const POOL = ['Magnesium', 'Aluminium', 'Titan', 'Zink', 'Kupfer', 'Blei'];
+        for (let t = 0; t < 100; t++) {
+            const form = rnd(['Würfel', 'Quader', 'Kugel', 'Rundstab']);
+            const name = rnd(POOL);
+            let V, desc, sk, hint, rech;
+            if (form === 'Würfel') {
+                const a = rnd([1.5, 2, 2.5, 3]);
+                V = a * a * a; desc = 'ein <strong>Würfel</strong> mit der Kantenlänge <strong>a = ' + de(a) + ' cm</strong>';
+                sk = skizzeKoerper('Würfel', de(a) + ' cm'); hint = 'V = a · a · a'; rech = 'V = ' + de(a) + '³ = ' + de(V) + ' cm³';
+            } else if (form === 'Quader') {
+                const [l, b, h] = rnd([[60, 12, 12], [30, 30, 5], [50, 20, 10], [40, 25, 8], [80, 10, 10]]);
+                V = l * b * h / 1000; desc = 'ein <strong>Quader</strong> mit <strong>l = ' + l + ' mm, b = ' + b + ' mm, h = ' + h + ' mm</strong>';
+                sk = skizzeKoerper('Quader', l + ' mm', b + ' mm', h + ' mm'); hint = 'Maße in cm umrechnen. V = l · b · h';
+                rech = 'V = ' + de(l / 10) + ' cm · ' + de(b / 10) + ' cm · ' + de(h / 10) + ' cm = ' + de(V) + ' cm³';
+            } else if (form === 'Kugel') {
+                const d = rnd([1.5, 2, 2.5, 3]);
+                V = Math.PI / 6 * d * d * d; desc = 'eine <strong>Kugel</strong> mit dem Durchmesser <strong>d = ' + de(d) + ' cm</strong>';
+                sk = skizzeKoerper('Kugel', de(d) + ' cm'); hint = 'Kugel: V = π/6 · d³ (d³ = d · d · d)';
+                rech = 'V = π/6 · ' + de(d) + '³ ≈ ' + de(V, 2) + ' cm³';
+            } else {
+                const d = rnd([10, 12, 16, 20]), l = rnd([40, 50, 60, 80]);
+                V = Math.PI / 4 * Math.pow(d / 10, 2) * l / 10; desc = 'ein <strong>Rundstab</strong> mit <strong>d = ' + d + ' mm</strong> und <strong>l = ' + l + ' mm</strong>';
+                sk = skizzeKoerper('Rundstab', d + ' mm', l + ' mm'); hint = 'Maße in cm umrechnen. V = π/4 · d² · l';
+                rech = 'V = π/4 · (' + de(d / 10) + ' cm)² · ' + de(l / 10) + ' cm ≈ ' + de(V, 2) + ' cm³';
+            }
+            const mg = Math.round(V * RHO[name][0] * 10) / 10;       // Masse in g, 1 Nachkommastelle
+            if (mg < 15) continue;
+            const rho = mg / V;
+            return {
+                type: 'num', book: true, svg: sk, newLabel: 'Neues Stück',
+                q: 'Im Anschauungskasten sind die Schilder abgefallen. Vor dir liegt ' + desc + '. Die Waage zeigt <strong>m = ' + de(mg) + ' g</strong>. Aus welchem Metall ist das Stück?',
+                note: 'Rechne in cm. Dann kommt V in cm³ heraus. Mit m in g bekommst du ρ in g/cm³. Das ist dieselbe Zahl wie in kg/dm³. ' + (form === 'Kugel' || form === 'Rundstab' ? PI_NOTE + ' ' : '') + 'Runde auf 2 Stellen nach dem Komma.',
+                fields: [
+                    fld('Volumen V', 'cm³', V, 2, 0.006),
+                    fld('Dichte ρ', 'g/cm³', rho, 2, 0.015),
+                    { label: 'Metall', kind: 'select', options: POOL.slice(), ans: name }
+                ],
+                hint: hint + '. Dann ρ = m : V. Vergleiche mit dem Tabellenbuch.',
+                explanation: rech + '.<br>ρ = ' + de(mg) + ' g : ' + de(V, 2) + ' cm³ ≈ <strong>' + de(rho, 2) + ' g/cm³</strong>. Das passt zu <strong>' + name + '</strong> (≈ ' + rhoTxt(name) + ').'
+            };
+        }
+    },
+    function () {
+        const POOL = [['2,69 kg/dm³', 'Aluminium'], ['7,10 kg/dm³', 'Zink'], ['11,28 kg/dm³', 'Blei'],
+                      ['8,95 kg/dm³', 'Kupfer'], ['4,49 kg/dm³', 'Titan'], ['1,76 kg/dm³', 'Magnesium'], ['10,46 kg/dm³', 'Silber']];
+        let sel;
+        sel = pickN(POOL, 4);
+        const opts = sel.map(x => x[1]);
+        const extra = POOL.map(x => x[1]).filter(n => opts.indexOf(n) < 0);
+        opts.push(rnd(extra));
+        return {
+            type: 'match', book: true, newLabel: 'Neue Werte',
+            q: 'Diese Dichten hat ein Azubi ausgerechnet. Welcher Werkstoff passt jeweils?',
+            note: 'Vergleiche mit deinem Tabellenbuch. Kleine Abweichungen sind normal. Ein Werkstoff bleibt übrig.',
+            options: opts,
+            items: sel.map(x => ({ left: 'ρ ≈ ' + x[0], answer: x[1] })),
+            hint: 'Suche den Werkstoff mit dem nächstliegenden Wert.',
+            explanation: sel.map(x => x[0] + ' → ' + x[1]).join('; ') + '.'
+        };
+    },
+    {
+        type: 'mc', q: 'Du berechnest ρ = 8,87 kg/dm³. Im Tabellenbuch steht bei Kupfer 8,92 kg/dm³. Was sagst du?',
+        options: [
+            'Das ist kein Kupfer, weil die Zahl nicht genau gleich ist.',
+            'Das passt zu Kupfer. Kleine Abweichungen kommen von Messfehlern und vom Runden.',
+            'Ich habe mich sicher verrechnet und muss neu anfangen.',
+            'Das ist Zink, weil Zink eine kleinere Dichte als Kupfer hat.'
+        ],
+        correct: 1,
+        hint: 'Kein Messschieber und keine Waage misst ganz genau.',
+        explanation: 'Messwerte sind nie ganz genau. Du suchst den Werkstoff mit dem <strong>nächstliegenden</strong> Wert. 8,87 liegt sehr nah an 8,92. Zink (etwa 7,13) ist viel weiter weg.'
+    }
+],
+// ---------------------------------------------------------------- Modul 7
+7: [
+    {
+        type: 'match', q: 'Welche Einheit gehört zu welcher Größe?',
+        options: ['kg', 'dm³', 'kg/dm³', 'kg/m', 'kg/m²'],
+        items: [
+            { left: 'Masse m', answer: 'kg' },
+            { left: 'Volumen V', answer: 'dm³' },
+            { left: 'Dichte ρ', answer: 'kg/dm³' },
+            { left: 'längenbezogene Masse m′', answer: 'kg/m' },
+            { left: 'flächenbezogene Masse m″', answer: 'kg/m²' }
+        ],
+        hint: 'm′: Masse pro Meter Länge. m″: Masse pro Quadratmeter Fläche.',
+        explanation: 'm′ in kg/m (für Rohre, Profile, Drähte). m″ in kg/m² (für Bleche und Platten).'
+    },
+    function () {
+        const ROWS = [['Kupferrohr 22 × 1', 0.59, 5], ['Kupferrohr 18 × 1', 0.48, 5], ['Kupferrohr 35 × 1,5', 1.41, 5],
+                      ['Kupferrohr 15 × 1', 0.39, 5], ['Kupferrohr 12 × 1', 0.31, 5], ['Kupferrohr 28 × 1,5', 1.11, 5]];
+        const sel = pickN(ROWS, 3).map(r => r.concat([rint(4, 15)]));
+        const ms = sel.map(r => clean(r[1] * r[2] * r[3]));
+        const tot = clean(ms.reduce((a, b) => a + b, 0));
+        return {
+            type: 'num',
+            q: 'Auf einem Regal im Lager liegen Rohre. Wie schwer ist jede Ebene? Wie schwer ist alles zusammen?' +
+               '<div class="table-wrap" style="margin-top:10px;"><table><tr><th>Ebene</th><th>Rohr</th><th>m′</th><th>Länge je Stange</th><th>Anzahl</th></tr>' +
+               sel.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + r[0] + '</td><td>' + de(r[1], 2) + ' kg/m</td><td>' + r[2] + ' m</td><td>' + r[3] + '</td></tr>').join('') + '</table></div>',
+            note: 'm = m′ · l. Die Länge ist hier: Anzahl · Länge je Stange.',
+            fields: sel.map((r, i) => fld('Ebene ' + (i + 1), 'kg', ms[i], 2, 0, { errors: [err(r[1] * r[2], 2, 'Das ist nur eine Stange. Mal die Anzahl!')] }))
+                       .concat([fld('alles zusammen', 'kg', tot, 2, 0)]),
+            hint: 'Für jede Ebene: m′ · Länge je Stange · Anzahl. Am Ende alles addieren.',
+            explanation: sel.map((r, i) => 'Ebene ' + (i + 1) + ': ' + de(r[1], 2) + ' kg/m · ' + r[2] + ' m · ' + r[3] + ' = ' + de(ms[i], 2) + ' kg').join('<br>') +
+                         '<br>Zusammen: <strong>' + de(tot, 2) + ' kg</strong>.'
+        };
+    },
+    function () {
+        const [name, mp] = rnd([['12 × 1', 0.31], ['15 × 1', 0.39], ['18 × 1', 0.48]]);
+        const lRest = rint(8, 45);
+        const m = clean(Math.round(lRest * mp * 100) / 100);
+        const l = m / mp;
+        return {
+            type: 'num',
+            q: 'Weiches Kupferrohr ' + name + ' gibt es im Ring. Ein angebrochener Ring wiegt noch <strong>' + de(m, 2) + ' kg</strong>. Das Rohr hat <strong>m′ = ' + de(mp, 2) + ' kg/m</strong>. Wie viele Meter sind noch auf dem Ring?',
+            note: 'Stelle m = m′ · l nach l um. Runde auf 1 Stelle nach dem Komma.',
+            fields: [fld('Länge l', 'm', l, 1, 0.004, { errors: [err(m * mp, 1, 'Nicht mal, sondern geteilt: l = m : m′.')] })],
+            hint: 'l = m : m′',
+            explanation: 'l = ' + de(m, 2) + ' kg : ' + de(mp, 2) + ' kg/m ≈ <strong>' + de(l, 1) + ' m</strong>. Wiegen statt abrollen spart Zeit!'
+        };
+    },
+    function () {
+        const [name, mpp] = rnd([['Zinkblech 0,7 mm', 4.99], ['Kupferblech 0,6 mm', 5.35], ['Aluminiumblech 0,8 mm', 2.16], ['Kupferblech 0,7 mm', 6.24]]);
+        const n = rint(6, 20), L = rnd([1, 2, 3]);
+        const A = clean(n * L * 0.333);
+        const m = A * mpp;
+        return {
+            type: 'num',
+            q: 'Für Dachrinnen werden aus <strong>' + name + '</strong> <strong>' + n + ' Streifen</strong> zugeschnitten. Jeder Streifen ist <strong>' + L + ' m</strong> lang und <strong>333 mm</strong> breit. Das Blech hat <strong>m″ = ' + de(mpp, 2) + ' kg/m²</strong>. Wie schwer sind die Streifen zusammen?',
+            note: 'm = m″ · A. Rechne die Fläche in m². Runde die Masse auf 2 Stellen nach dem Komma.',
+            fields: [
+                fld('Fläche A', 'm²', A, 3, 0, { errors: [err(n * L * 333, 3, 'Die Breite muss in m: 333 mm = 0,333 m.')] }),
+                fld('Masse m', 'kg', m, 2, 0.003)
+            ],
+            hint: 'A = Anzahl · Länge · Breite (alles in m). Dann m = m″ · A.',
+            explanation: 'A = ' + n + ' · ' + L + ' m · 0,333 m = ' + de(A) + ' m². m = ' + de(mpp, 2) + ' kg/m² · ' + de(A) + ' m² ≈ <strong>' + de(m, 2) + ' kg</strong>.'
+        };
+    },
+    function () {
+        const [name, bez] = rnd([['Kupfer', 'Kupferblech'], ['Zink', 'Zinkblech'], ['Aluminium', 'Aluminiumblech'], ['Blei', 'Bleiblech']]);
+        const s = rnd([0.6, 0.7, 0.8, 1, 1.5, 2]);
+        const A = rnd([1.5, 2, 2.4, 3.2, 4.5, 5.8]);
+        const r = RHO[name][0];
+        const mpp = r * s, m = mpp * A;
+        return {
+            type: 'num', book: true,
+            q: 'Für eine Verkleidung brauchst du <strong>' + de(A) + ' m²</strong> ' + bez + ', <strong>' + de(s) + ' mm</strong> dick. Du hast keine Tabelle mit m″. Berechne m″ selbst aus der Dichte. Wie schwer ist das Blech?',
+            note: 'Trick: m″ in kg/m² = ρ in kg/dm³ · Dicke in mm. Runde auf 2 Stellen nach dem Komma. ' + BOOK_RHO,
+            fields: [
+                rhoField(name),
+                fld('m″', 'kg/m²', mpp, 2, relB(name)),
+                fld('Masse m', 'kg', m, 2, relB(name))
+            ],
+            hint: 'm″ = ρ · s. Dann m = m″ · A.',
+            explanation: 'm″ = ' + rhoTxt(name) + ' · ' + de(s) + ' ≈ ' + de(mpp, 2) + ' kg/m². m = ' + de(mpp, 2) + ' kg/m² · ' + de(A) + ' m² ≈ <strong>' + de(m, 2) + ' kg</strong>.' + MAYBE
+        };
+    },
+    function () {
+        const [D, s] = rnd([[15, 1], [18, 1], [22, 1], [28, 1.5], [35, 1.5]]);
+        const di = D - 2 * s;
+        const A = Math.PI / 4 * (D * D - di * di);
+        const mp = RHO['Kupfer'][0] * A / 1000;
+        return {
+            type: 'num', book: true,
+            q: 'Berechne die längenbezogene Masse m′ von Kupferrohr <strong>' + D + ' × ' + de(s) + '</strong> selbst.',
+            note: 'Trick: m′ in kg/m = ρ in kg/dm³ · A in mm² : 1000. ' + PI_NOTE + ' Runde A auf 1 Stelle und m′ auf 3 Stellen nach dem Komma. ' + BOOK_RHO,
+            fields: [
+                fld('Ringfläche A', 'mm²', A, 1, 0.004),
+                rhoField('Kupfer'),
+                fld('m′', 'kg/m', mp, 3, relB('Kupfer'))
+            ],
+            hint: 'A = π/4 · (D² − dᵢ²). Dann m′ = ρ · A : 1000.',
+            explanation: 'dᵢ = ' + de(di) + ' mm. A = π/4 · (' + D + '² − ' + de(di) + '²) ≈ ' + de(A, 1) + ' mm². m′ = ' + rhoTxt('Kupfer') + ' · ' + de(A, 1) + ' : 1000 ≈ <strong>' + de(mp, 3) + ' kg/m</strong>.' + MAYBE
+        };
+    }
+],
+// ---------------------------------------------------------------- Modul 8
+8: [
+    {
+        type: 'mc', q: 'Ein Metallblock hat eine Bohrung. Wie berechnest du das Volumen des Blocks?',
+        options: [
+            'Volumen ohne Bohrung + Volumen der Bohrung',
+            'Volumen ohne Bohrung − Volumen der Bohrung',
+            'Die Bohrung ist so klein, die lässt man immer weg.',
+            'Volumen ohne Bohrung · Volumen der Bohrung'
+        ],
+        correct: 1,
+        hint: 'Wo eine Bohrung ist, fehlt Material.',
+        explanation: 'Erst den vollen Körper berechnen. Dann alles abziehen, wo kein Material ist: Bohrungen, Ausschnitte.'
+    },
+    function () {
+        const D = rnd([140, 160, 180, 200]), s = rnd([10, 12, 15]), d = rnd([40, 50, 60]), dl = rnd([14, 18]);
+        const Vs = Math.PI / 4 * Math.pow(D / 100, 2) * s / 100;
+        const Vb = Math.PI / 4 * (Math.pow(d / 100, 2) + 4 * Math.pow(dl / 100, 2)) * s / 100;
+        const V = Vs - Vb;
+        const m = V * RHO['Kupfer'][0];
+        return {
+            type: 'num', book: true, svg: skizzeFlansch(D, d, dl, s), newLabel: 'Neuer Flansch',
+            q: 'Ein Flansch aus Kupfer ist eine runde Scheibe. Er hat eine Mittelbohrung und vier Löcher für die Schrauben. Wie schwer ist er?',
+            note: 'Rechne in dm. ' + PI_NOTE + ' Runde die Volumen auf 4 Stellen, die Masse auf 2 Stellen nach dem Komma. ' + BOOK_RHO,
+            fields: [
+                fld('V volle Scheibe', 'dm³', Vs, 4, 0.004),
+                fld('V aller Bohrungen', 'dm³', Vb, 4, 0.01, { errors: [err(Math.PI / 4 * (Math.pow(d / 100, 2) + Math.pow(dl / 100, 2)) * s / 100, 4, 'Es sind vier Schraubenlöcher, nicht eins.')] }),
+                fld('V Flansch', 'dm³', V, 4, 0.006),
+                rhoField('Kupfer'),
+                fld('Masse m', 'kg', m, 2, relB('Kupfer') + 0.004)
+            ],
+            hint: 'Alle Bohrungen sind Zylinder mit der Höhe s. V Flansch = V Scheibe − V Bohrungen. Dann m = V · ρ.',
+            explanation: 'V Scheibe = π/4 · ' + de(D / 100) + '² · ' + de(s / 100) + ' ≈ ' + de(Vs, 4) + ' dm³.<br>' +
+                         'V Bohrungen = π/4 · (' + de(d / 100) + '² + 4 · ' + de(dl / 100) + '²) · ' + de(s / 100) + ' ≈ ' + de(Vb, 4) + ' dm³.<br>' +
+                         'V Flansch ≈ ' + de(V, 4) + ' dm³. m ≈ ' + de(V, 4) + ' · ' + rhoTxt('Kupfer') + ' ≈ <strong>' + de(m, 2) + ' kg</strong>.' + MAYBE
+        };
+    },
+    function () {
+        const [b, h] = rnd([[60, 40], [50, 50], [80, 40], [60, 60]]);
+        const d = rnd([20, 25, 30]);
+        const L = rnd([250, 300, 400, 500, 350]);
+        const A = (b * h - Math.PI / 4 * d * d) / 10000;                 // dm²
+        const m = Math.round(A * L / 100 * RHO['Aluminium'][0] * 100) / 100;
+        const V = m / RHO['Aluminium'][0];
+        const l = V / A * 100;                                           // mm
+        const rel = relB('Aluminium');
+        return {
+            type: 'num', book: true,
+            q: 'Ein Vierkant aus Aluminium (<strong>' + b + ' × ' + h + ' mm</strong>) hat der Länge nach eine Bohrung mit <strong>d = ' + d + ' mm</strong>. Das Stück wiegt <strong>' + de(m, 2) + ' kg</strong>. Wie lang ist es?',
+            note: 'Rechne in dm. ' + PI_NOTE + ' Runde A auf 4 Stellen, V auf 3 Stellen nach dem Komma. Die Länge in ganzen mm. ' + BOOK_RHO,
+            fields: [
+                fld('Querschnitt A (mit Loch)', 'dm²', A, 4, 0.004, { errors: [err(b * h / 10000, 4, 'Die Bohrung fehlt: Kreisfläche abziehen.')] }),
+                rhoField('Aluminium'),
+                fld('Volumen V', 'dm³', V, 3, rel),
+                fld('Länge l', 'mm', l, 0, rel + 0.006)
+            ],
+            hint: 'A = b · h − π/4 · d². V = m : ρ. Dann l = V : A (in dm), zum Schluss in mm.',
+            explanation: 'A = ' + de(b / 100) + ' · ' + de(h / 100) + ' − π/4 · ' + de(d / 100) + '² ≈ ' + de(A, 4) + ' dm².<br>' +
+                         'V = ' + de(m, 2) + ' kg : ' + rhoTxt('Aluminium') + ' kg/dm³ ≈ ' + de(V, 3) + ' dm³.<br>' +
+                         'l = ' + de(V, 3) + ' : ' + de(A, 4) + ' ≈ ' + de(l / 100, 2) + ' dm ≈ <strong>' + de(l, 0) + ' mm</strong>.' + MAYBE
+        };
+    },
+    function () {
+        const [l, b] = rnd([[300, 200], [400, 250], [250, 200], [350, 300]]);
+        const [a, c] = rnd([[100, 60], [120, 80], [80, 50], [150, 100]]);
+        const s = rnd([4, 5, 6, 8, 10]);
+        const V = (l * b - a * c) * s / 1e6;
+        const m = V * RHO['Aluminium'][0];
+        return {
+            type: 'num', book: true, svg: skizzePlatte(l, b, a, c), newLabel: 'Neue Platte',
+            q: 'Eine Konsole wird aus einer Aluminiumplatte gefertigt. Die Platte ist <strong>' + s + ' mm</strong> dick. In der Mitte ist ein rechteckiger Ausschnitt. Wie schwer ist die Platte?',
+            note: 'Rechne in dm. Runde V auf 4 Stellen und m auf 3 Stellen nach dem Komma. ' + BOOK_RHO,
+            fields: [
+                fld('Volumen V', 'dm³', V, 4, 0, { errors: [err(l * b * s / 1e6, 4, 'Der Ausschnitt muss noch abgezogen werden.')] }),
+                rhoField('Aluminium'),
+                fld('Masse m', 'kg', m, 3, relB('Aluminium'))
+            ],
+            hint: 'V = (l · b − Ausschnitt) · Dicke. Alles in dm. Dann m = V · ρ.',
+            explanation: 'V = (' + de(l / 100) + ' · ' + de(b / 100) + ' − ' + de(a / 100) + ' · ' + de(c / 100) + ') · ' + de(s / 100) + ' = ' + de(V, 4) + ' dm³.<br>' +
+                         'm = ' + de(V, 4) + ' dm³ · ' + rhoTxt('Aluminium') + ' kg/dm³ ≈ <strong>' + de(m, 3) + ' kg</strong>.' + MAYBE
+        };
+    },
+    {
+        type: 'mc', q: '<strong>Fehler finden:</strong> Für einen Behälter rechnet jemand: V = 50 cm · 40 cm · 3 dm = 6000 dm³. Was ist falsch?',
+        options: [
+            'Nichts. Das Ergebnis stimmt.',
+            'Die Einheiten sind gemischt. Richtig: 5 dm · 4 dm · 3 dm = 60 dm³.',
+            'Man muss addieren statt malnehmen.',
+            'Das Ergebnis muss in m² sein.'
+        ],
+        correct: 1,
+        hint: 'Schau dir die Einheiten an. Darf man cm und dm einfach malnehmen?',
+        explanation: 'Vor dem Rechnen alle Maße in dieselbe Einheit umrechnen. 50 cm = 5 dm, 40 cm = 4 dm. V = 5 · 4 · 3 = 60 dm³ = 60 l.'
+    }
+]
+};
+
+// =====================================================================
+// Aufgaben-Engine für die Lernmodule (Aufbau wie die C#-Vorlage)
+// Aufgabentypen: mc (Auswahl), num (Zahlen eingeben, auch mit Auswahlfeldern; tol = Spielraum),
+//                match (Zuordnen), order (Reihenfolge)
+// Eine Aufgabe ist ein Objekt oder eine Funktion, die ein Objekt liefert.
+// Funktionen erzeugen bei jedem Öffnen neue Zahlen ("Neue Zahlen"-Knopf).
+// Längen werden intern als ganze Zahlen in µm gespeichert (keine Rundungsfehler).
+// Der Fortschritt wird im Browser gespeichert (localStorage) und nach einem Neuladen
+// wiederhergestellt. Eigener Speicherplatz pro Datei, also pro Thema und Variante.
+// =====================================================================
+
+// Grundlagen-Module: Standard 1–4. Ein Thema kann in tasks.js BASIC_MODULES setzen (z. B. [1, 2, 3, 4, 5]).
+const BASIC = (typeof BASIC_MODULES !== 'undefined') ? BASIC_MODULES : [1, 2, 3, 4];
+let completedModules = new Set();
+let basicQuizPassed = false;
+let current = {};
+let openNum = null;      // gerade geöffnetes Modul (oder null = Übersicht)
+
+// ---------- Hilfsfunktionen ----------
+function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function rint(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function shuffle(a) {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+function pickN(arr, n) { return shuffle(arr).slice(0, n); }
+
+// µm -> "24,9" (mm). dec = Nachkommastellen, sonst so wenig wie nötig (mind. 1)
+function mm(um, dec) {
+    if (dec === undefined) {
+        const a = Math.abs(um);
+        dec = (a % 100 === 0) ? 1 : (a % 10 === 0) ? 2 : 3;
+    }
+    return (um < 0 ? '−' : '') + (Math.abs(um) / 1000).toFixed(dec).replace('.', ',');
+}
+// mit Vorzeichen: +0,2 / −0,1 / 0
+function mmS(um, dec) { return um === 0 ? '0' : (um > 0 ? '+' : '') + mm(um, dec); }
+// µm mit Vorzeichen: +15 / −7 / 0
+function umS(v) { return v === 0 ? '0' : (v > 0 ? '+' : '−') + Math.abs(v); }
+function num(n) { return String(n).replace('.', ','); }
+
+function parseNum(s) {
+    s = (s || '').trim().replace(/\s+/g, '').replace(/(mm|µm|um)$/i, '')
+        .replace(/[−–]/g, '-').replace('±', '').replace(',', '.');
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+    return parseFloat(s);
+}
+
+const TYPE_LABEL = {
+    mc: '✅ Auswählen',
+    num: '🔢 Rechnen',
+    match: '🔗 Zuordnen',
+    order: '↕️ Reihenfolge'
+};
+const TYPE_NOTE = {
+    mc: 'Klicke die richtige Antwort an.',
+    num: 'Tippe deine Ergebnisse ein. Komma oder Punkt ist egal.',
+    match: 'Wähle bei jeder Zeile die passende Antwort aus.',
+    order: 'Bringe die Schritte mit ▲ und ▼ in die richtige Reihenfolge.'
+};
+
+// ---------- Aufgabe vorbereiten ----------
+function resolveTask(def) {
+    const generated = (typeof def === 'function');
+    const t = generated ? def() : JSON.parse(JSON.stringify(def));
+    t.regen = generated;
+    if (t.type === 'match') {
+        const items = (t.shuffle === false) ? t.items : shuffle(t.items);
+        // Auswahlliste mischen, damit ihre Reihenfolge nicht die Lösung verrät.
+        // Nicht bei nur 2 Möglichkeiten (z. B. richtig/falsch) oder mit keepOptionOrder: true.
+        let opts = t.options;
+        if (t.keepOptionOrder !== true && opts.length > 2) {
+            const sol = items.map(it => it.answer).join('|');
+            let k = 0;
+            do { opts = shuffle(t.options); k++; }
+            while (k < 20 && opts.slice(0, items.length).join('|') === sol);
+        }
+        t.fields = items.map(it => ({ label: it.left, kind: 'select', options: opts, ans: it.answer, errors: it.errors }));
+    }
+    // typische Fehlerwerte, die zufällig gleich der Lösung sind, entfernen
+    (t.fields || []).forEach(f => { if (f.errors) f.errors = f.errors.filter(e => e.v !== f.ans); });
+    if (t.type === 'order') {
+        let cur;
+        do { cur = shuffle(t.steps.map((s, k) => k)); } while (cur.every((v, k) => v === k));
+        t.cur = cur;
+    }
+    return t;
+}
+
+function qDiv(n, i) { return document.querySelector('.quiz-question[data-module="' + n + '"][data-question="' + i + '"]'); }
+
+// ---------- Darstellung ----------
+function renderTask(n, i) {
+    const t = current[n][i];
+    const id = n + '_' + i;
+    let h = '<div class="quiz-question task-' + t.type + '" data-module="' + n + '" data-question="' + i + '">';
+    h += '<div class="task-head"><span class="task-type">' + TYPE_LABEL[t.type] + '</span>' +
+         (t.book ? '<span class="task-book">📘 Tabellenbuch</span>' : '') + '</div>';
+    h += '<p>' + (i + 1) + '. ' + t.q + '</p>';
+    if (t.svg) h += '<div class="sketch">' + t.svg + '</div>';
+    h += '<div class="task-note">' + (t.note || TYPE_NOTE[t.type]) + '</div>';
+
+    if (t.type === 'mc') {
+        t.options.forEach((opt, j) => {
+            h += '<div class="quiz-option" onclick="answerMC(' + n + ',' + i + ',' + j + ')">' +
+                 '<input type="radio" name="q' + id + '" id="q' + id + '_' + j + '">' +
+                 '<label for="q' + id + '_' + j + '">' + opt + '</label></div>';
+        });
+    } else if (t.type === 'order') {
+        h += '<ol class="order-list">';
+        t.cur.forEach((si, pos) => {
+            h += '<li class="order-item"><span class="order-text">' + t.steps[si] + '</span>' +
+                 '<span class="order-btns">' +
+                 '<button type="button" onclick="moveStep(' + n + ',' + i + ',' + pos + ',-1)" aria-label="nach oben"' + (pos === 0 ? ' disabled' : '') + '>▲</button>' +
+                 '<button type="button" onclick="moveStep(' + n + ',' + i + ',' + pos + ',1)" aria-label="nach unten"' + (pos === t.cur.length - 1 ? ' disabled' : '') + '>▼</button>' +
+                 '</span></li>';
+        });
+        h += '</ol>';
+    } else {
+        h += '<div class="fields">';
+        t.fields.forEach((f, k) => {
+            const fid = 'in' + id + '_' + k;
+            h += '<div class="field-row" id="row' + id + '_' + k + '">' +
+                 '<label class="field-label" for="' + fid + '">' + f.label + '</label><div class="field-input">';
+            if (f.kind === 'select') {
+                h += '<select id="' + fid + '"><option value="">– bitte wählen –</option>' +
+                     f.options.map(o => '<option>' + o + '</option>').join('') + '</select>';
+            } else {
+                if (f.prefix) h += '<span class="field-pre">' + f.prefix + '</span>';
+                h += '<input type="text" inputmode="decimal" autocomplete="off" id="' + fid + '"' +
+                     ' onkeydown="if(event.key===\'Enter\')checkTask(' + n + ',' + i + ')">';
+                h += '<span class="field-unit">' + f.unit + '</span>';
+            }
+            h += '</div><div class="field-msg"></div></div>';
+        });
+        h += '</div>';
+    }
+
+    h += '<div class="task-buttons">';
+    if (t.type !== 'mc') h += '<button type="button" class="btn-check" onclick="checkTask(' + n + ',' + i + ')">Prüfen</button>';
+    if (t.regen) h += '<button type="button" class="btn-new" onclick="newTask(' + n + ',' + i + ')">🎲 ' + (t.newLabel || (t.type === 'num' ? 'Neue Zahlen' : 'Neue Aufgabe')) + '</button>';
+    h += '</div>';
+    h += '<div class="quiz-feedback" data-feedback="' + n + '-' + i + '"></div></div>';
+    return h;
+}
+
+function setResult(n, i, ok, extra) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    const fb = qd.querySelector('.quiz-feedback');
+    fb.classList.add('show');
+    fb.classList.toggle('correct', ok);
+    fb.classList.toggle('wrong', !ok);
+    qd.classList.toggle('correct', ok);
+    qd.classList.toggle('wrong', !ok);
+    fb.innerHTML = ok ? '✓ Richtig! ' + t.explanation
+                      : '✗ Noch nicht ganz richtig. ' + (extra || '') + 'Hinweis: ' + t.hint;
+    if (ok) qd.querySelectorAll('input[type=text], select').forEach(el => el.disabled = true);
+}
+
+// ---------- Antworten prüfen ----------
+function answerMC(n, i, j) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    qd.querySelectorAll('input[type="radio"]').forEach((r, k) => { r.checked = (k === j); });
+    t.picked = j;
+    setResult(n, i, j === t.correct);
+    saveState();
+}
+
+function checkTask(n, i) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    let ok = true, empty = false;
+    t.checked = true;
+
+    if (t.type === 'order') {
+        ok = t.cur.every((v, k) => v === k);
+        qd.querySelectorAll('.order-item').forEach((li, pos) => {
+            li.classList.toggle('ok', t.cur[pos] === pos);
+            li.classList.toggle('bad', t.cur[pos] !== pos);
+        });
+        setResult(n, i, ok);
+        saveState();
+        return;
+    }
+
+    t.fields.forEach((f, k) => {
+        const row = document.getElementById('row' + n + '_' + i + '_' + k);
+        const el = row.querySelector('input, select');
+        const msgEl = row.querySelector('.field-msg');
+        let good = false, msg = '';
+        if (f.kind === 'select') {
+            if (!el.value) { msg = 'Bitte wähle etwas aus.'; empty = true; }
+            else {
+                good = (el.value === f.ans);
+                const e = !good && f.errors && f.errors.find(e => e.v === el.value);
+                if (e) msg = e.msg;
+            }
+        } else {
+            const v = parseNum(el.value);
+            if (el.value.trim() === '') { msg = 'Bitte trage eine Zahl ein.'; empty = true; }
+            else if (isNaN(v)) { msg = 'Das ist keine Zahl. Beispiel: 24,98'; }
+            else {
+                // scale: Stellen der Prüfung (Standard 1000 = drei Nachkommastellen; ans und tol in derselben Stufe)
+                let x = (f.unit === 'µm') ? Math.round(v) : Math.round(v * (f.scale || 1000));
+                if (f.prefix === '±') x = Math.abs(x);
+                // tol: erlaubter Spielraum (gleiche Einheit wie ans), z. B. für Werte aus verschiedenen Tabellenbüchern
+                good = f.tol ? Math.abs(x - f.ans) <= f.tol
+                             : (x === f.ans) && (f.unit !== 'µm' || Math.abs(v - Math.round(v)) < 1e-9);
+                if (!good) {
+                    const e = f.errors && f.errors.find(e => e.v === x);
+                    if (e) msg = e.msg;
+                    else if (f.positive && x === -f.ans) msg = 'Die Toleranz ist immer positiv.';
+                }
+            }
+        }
+        row.classList.toggle('ok', good);
+        row.classList.toggle('bad', !good);
+        msgEl.textContent = msg;
+        if (!good) ok = false;
+    });
+    setResult(n, i, ok, empty ? 'Es fehlen noch Eingaben. ' : '');
+    saveState();
+}
+
+function moveStep(n, i, pos, dir) {
+    const t = current[n][i];
+    const p2 = pos + dir;
+    if (p2 < 0 || p2 >= t.cur.length) return;
+    [t.cur[pos], t.cur[p2]] = [t.cur[p2], t.cur[pos]];
+    t.checked = false;
+    qDiv(n, i).outerHTML = renderTask(n, i);
+    saveState();
+}
+
+function newTask(n, i) {
+    current[n][i] = resolveTask(TASKS[n][i]);
+    qDiv(n, i).outerHTML = renderTask(n, i);
+    saveState();
+}
+
+// ---------- Module öffnen und abschließen ----------
+function openModule(moduleNum) {
+    if (moduleNum > BASIC.length && !basicQuizPassed) {
+        alert('🔒 Dieses Modul ist noch gesperrt. Schließe zuerst die Module 1 bis ' + BASIC.length + ' ab!');
+        return;
+    }
+    current = {};
+    current[moduleNum] = TASKS[moduleNum].map(resolveTask);
+    showModule(moduleNum);
+    window.scrollTo(0, 0);
+    saveState();
+}
+
+function showModule(moduleNum) {
+    openNum = moduleNum;
+    document.getElementById('module-grid').style.display = 'none';
+    const module = modules[moduleNum];
+
+    let html = '<div class="module-content active">' +
+               '<h2>' + module.title + '</h2>' + module.content +
+               '<div class="quiz-section"><h3>📝 Verständnis-Check</h3>';
+    for (let i = 0; i < current[moduleNum].length; i++) html += renderTask(moduleNum, i);
+    html += '</div>' +
+            '<button class="btn btn-back" onclick="backToOverview()">← Übersicht</button>' +
+            '<button class="btn" onclick="completeModule(' + moduleNum + ')">Modul abschließen →</button>' +
+            '</div>';
+    document.getElementById('module-content-container').innerHTML = html;
+}
+
+function completeModule(moduleNum) {
+    for (let i = 0; i < current[moduleNum].length; i++) {
+        const qd = qDiv(moduleNum, i);
+        if (!qd || !qd.classList.contains('correct')) {
+            alert('Aufgabe ' + (i + 1) + ' ist noch nicht richtig gelöst. Löse zuerst alle Aufgaben. Dann kannst du das Modul abschließen.');
+            qd.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+    }
+    completedModules.add(moduleNum);
+    checkUnlocks();
+    updateProgress();
+    saveState();
+    alert('🎉 Modul ' + moduleNum + ' geschafft!');
+    backToOverview();
+}
+
+function backToOverview() {
+    openNum = null;
+    current = {};
+    document.getElementById('module-grid').style.display = 'grid';
+    document.getElementById('module-content-container').innerHTML = '';
+    window.scrollTo(0, 0);
+    saveState();
+}
+
+function checkUnlocks(silent) {
+    if (BASIC.every(m => completedModules.has(m)) && !basicQuizPassed) {
+        basicQuizPassed = true;
+        const profi = Object.keys(modules).map(Number).filter(m => m > BASIC.length);
+        if (!silent) alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module ' +
+                         (profi.length > 1 ? profi.slice(0, -1).join(', ') + ' und ' + profi[profi.length - 1] : profi.join('')) + ' sind jetzt frei!');
+        profi.forEach(m => {
+            const card = document.getElementById('card-' + m);
+            card.classList.remove('locked');
+            card.querySelector('.module-description').textContent = UNLOCK_TEXT[m];
+        });
+    }
+}
+
+function updateProgress() {
+    const total = Object.keys(modules).length;
+    const bar = document.getElementById('progress');
+    bar.style.width = (completedModules.size / total * 100) + '%';
+    bar.textContent = completedModules.size + ' von ' + total + ' Modulen abgeschlossen';
+    completedModules.forEach(m => {
+        const card = document.getElementById('card-' + m);
+        if (card) card.classList.add('completed');
+    });
+    if (completedModules.size === total) document.getElementById('badge').classList.add('show');
+}
+
+// ---------- Fortschritt speichern und wiederherstellen ----------
+// Alles bleibt nur im Browser dieses Geräts. Nichts wird verschickt.
+// Der Schlüssel enthält den Pfad der Datei (Thema + Variante) und einen Fingerabdruck
+// der Aufgaben. Ändern sich Module oder Aufgabenzahl, wird ein alter Stand ignoriert.
+const STORE_KEY = 'lernmodule:' + location.pathname + ':' +
+    Object.keys(TASKS).map(n => n + '.' + TASKS[n].length).join('-') + ':b' + BASIC.length;
+let restoring = false;
+let resetting = false;   // beim Zurücksetzen nichts mehr speichern
+
+function storageGet() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; }
+}
+function storageSet(v) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); return true; } catch (e) { return false; }
+}
+
+// Eingaben aus den Feldern in die Aufgaben-Objekte übernehmen
+function captureInputs() {
+    if (openNum === null || !current[openNum]) return;
+    current[openNum].forEach((t, i) => {
+        if (!t.fields) return;
+        t.vals = t.fields.map((f, k) => {
+            const el = document.getElementById('in' + openNum + '_' + i + '_' + k);
+            return el ? el.value : '';
+        });
+    });
+}
+
+function saveState() {
+    if (restoring || resetting) return;
+    captureInputs();
+    storageSet({
+        v: 1,
+        done: Array.from(completedModules),
+        open: openNum,
+        tasks: openNum !== null ? current[openNum] : null,
+        y: openNum !== null ? Math.round(window.scrollY) : 0
+    });
+}
+
+function restoreTask(n, i) {
+    const t = current[n][i];
+    const qd = qDiv(n, i);
+    if (!qd) return;
+    if (t.type === 'mc') {
+        if (typeof t.picked === 'number') answerMC(n, i, t.picked);
+        return;
+    }
+    if (t.vals) t.vals.forEach((val, k) => {
+        const el = document.getElementById('in' + n + '_' + i + '_' + k);
+        if (el) el.value = val;
+    });
+    if (t.checked) checkTask(n, i);
+}
+
+function restoreState() {
+    const st = storageGet();
+    if (!st || st.v !== 1) return false;
+    restoring = true;
+    try {
+        (st.done || []).forEach(m => { if (modules[m]) completedModules.add(m); });
+        checkUnlocks(true);
+        updateProgress();
+        const n = st.open;
+        if (n !== null && modules[n] && Array.isArray(st.tasks) && st.tasks.length === TASKS[n].length &&
+            (n <= BASIC.length || basicQuizPassed)) {
+            current = {};
+            current[n] = st.tasks;
+            showModule(n);
+            for (let i = 0; i < st.tasks.length; i++) restoreTask(n, i);
+            window.scrollTo(0, st.y || 0);
+        }
+    } catch (e) {
+        // Gespeicherter Stand passt nicht: neu anfangen
+        completedModules = new Set();
+        basicQuizPassed = false;
+        current = {};
+        backToOverviewSilent();
+    }
+    restoring = false;
+    saveState();
+    return completedModules.size > 0 || openNum !== null;
+}
+
+function backToOverviewSilent() {
+    openNum = null;
+    document.getElementById('module-grid').style.display = 'grid';
+    document.getElementById('module-content-container').innerHTML = '';
+}
+
+function resetProgress() {
+    if (!confirm('Willst du wirklich von vorne anfangen? Dein ganzer Fortschritt in diesem Lernmodul wird gelöscht.')) return;
+    resetting = true;
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+}
+
+function showToast(text) {
+    const el = document.createElement('div');
+    el.className = 'save-toast';
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.add('hide'), 3500);
+    setTimeout(() => el.remove(), 4200);
+}
+
+(function initSaving() {
+    const css = document.createElement('style');
+    css.textContent =
+        '.save-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;' +
+        'margin:-15px 0 25px 0;font-size:15px;color:#94a3b8;}' +
+        '.save-bar button{background:transparent;color:#94a3b8;border:1px solid #475569;border-radius:8px;' +
+        'padding:8px 14px;font-size:15px;cursor:pointer;}' +
+        '.save-bar button:hover{color:#f8fafc;border-color:#94a3b8;}' +
+        '.save-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;width:max-content;' +
+        'background:#1e293b;color:#f8fafc;border:2px solid #10b981;border-radius:10px;padding:14px 20px;' +
+        'font-size:16px;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .6s;max-width:calc(100% - 32px);text-align:center;}' +
+        '.save-toast.hide{opacity:0;}';
+    document.head.appendChild(css);
+
+    // Prüfen, ob der Browser speichern darf
+    let canSave = false;
+    try { localStorage.setItem('lernmodule:test', '1'); localStorage.removeItem('lernmodule:test'); canSave = true; } catch (e) {}
+
+    const bar = document.querySelector('.progress-bar');
+    if (canSave && bar) {
+        const info = document.createElement('div');
+        info.className = 'save-bar';
+        info.innerHTML = '<span>💾 Dein Fortschritt wird auf diesem Gerät gespeichert.</span>' +
+                         '<button type="button" onclick="resetProgress()">↺ Von vorne anfangen</button>';
+        bar.insertAdjacentElement('afterend', info);
+    }
+    if (!canSave) return;
+
+    // Eingaben merken, auch bevor "Prüfen" gedrückt wird
+    let timer = null;
+    document.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(saveState, 400); });
+    document.addEventListener('change', saveState);
+    let sTimer = null;
+    window.addEventListener('scroll', () => {
+        if (openNum === null) return;
+        clearTimeout(sTimer); sTimer = setTimeout(saveState, 500);
+    }, { passive: true });
+    window.addEventListener('pagehide', saveState);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveState(); });
+
+    if (restoreState()) showToast('👋 Willkommen zurück! Dein Fortschritt ist wieder da.');
+})();
+
+    </script>
+</body>
+</html>

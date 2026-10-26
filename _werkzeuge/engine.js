@@ -206,7 +206,8 @@ function checkTask(n, i) {
             if (el.value.trim() === '') { msg = 'Bitte trage eine Zahl ein.'; empty = true; }
             else if (isNaN(v)) { msg = 'Das ist keine Zahl. Beispiel: 24,98'; }
             else {
-                let x = (f.unit === 'µm') ? Math.round(v) : Math.round(v * 1000);
+                // scale: Stellen der Prüfung (Standard 1000 = drei Nachkommastellen; ans und tol in derselben Stufe)
+                let x = (f.unit === 'µm') ? Math.round(v) : Math.round(v * (f.scale || 1000));
                 if (f.prefix === '±') x = Math.abs(x);
                 // tol: erlaubter Spielraum (gleiche Einheit wie ans), z. B. für Werte aus verschiedenen Tabellenbüchern
                 good = f.tol ? Math.abs(x - f.ans) <= f.tol
@@ -302,7 +303,8 @@ function checkUnlocks(silent) {
     if (BASIC.every(m => completedModules.has(m)) && !basicQuizPassed) {
         basicQuizPassed = true;
         const profi = Object.keys(modules).map(Number).filter(m => m > BASIC.length);
-        if (!silent) alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module ' + profi.join(' und ') + ' sind jetzt frei!');
+        if (!silent) alert('🔓 Super! Du hast die Grundlagen geschafft. Die Profi-Module ' +
+                         (profi.length > 1 ? profi.slice(0, -1).join(', ') + ' und ' + profi[profi.length - 1] : profi.join('')) + ' sind jetzt frei!');
         profi.forEach(m => {
             const card = document.getElementById('card-' + m);
             card.classList.remove('locked');
