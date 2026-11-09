@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zugprüfmaschine</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    padding: 1.5rem 1rem 3rem;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 1060px; margin: 0 auto; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2.1rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.5rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.15rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card {
+    background: #1e293b; border: 2px solid #334155; border-radius: 16px;
+    padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.25rem;
+}
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+sub { font-size: 0.72em; }
+
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.level {
+    background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 0.4rem;
+}
+.level.done { border-color: #22c55e; }
+.level.locked { opacity: 0.55; }
+.level.lab { border-color: #f59e0b; }
+.level .lv-top { display: flex; justify-content: space-between; align-items: center; }
+.level .lv-name { color: #38bdf8; font-weight: 700; font-size: 1.15rem; }
+.level.lab .lv-name { color: #fbbf24; }
+.level .lv-desc { color: #cbd5e1; font-size: 0.98rem; flex-grow: 1; }
+.level .lv-best { color: #94a3b8; font-size: 0.9rem; }
+.btn {
+    display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600;
+    padding: 0.75rem 1.3rem; border-radius: 10px; color: white;
+    background: linear-gradient(90deg, #0ea5e9, #22c55e);
+}
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.red { background: linear-gradient(90deg, #ef4444, #f97316); }
+.btn.small { padding: 0.45rem 0.9rem; font-size: 0.95rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+
+.hud { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+.hud .pill { background: #0f172a; border: 1px solid #334155; border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.98rem; white-space: nowrap; }
+.progress-container { background: #0f172a; border-radius: 999px; height: 12px; overflow: hidden; border: 1px solid #334155; margin-bottom: 1rem; }
+.progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #0ea5e9, #22c55e); transition: width 0.3s; }
+.task { font-size: 1.08rem; margin-bottom: 0.9rem; }
+.task b { color: #fbbf24; }
+.book { background: #0f172a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+
+/* Prüfstand */
+.bench { display: grid; grid-template-columns: minmax(230px, 0.8fr) 1.4fr; gap: 1rem; align-items: start; }
+.panel { background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 0.5rem; }
+.panel svg { width: 100%; height: auto; display: block; }
+.panel .cap { color: #94a3b8; font-size: 0.85rem; text-align: center; margin-top: 0.2rem; }
+.displays { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.6rem; }
+.disp { background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 0.35rem 0.5rem; text-align: center; }
+.disp .lbl { color: #94a3b8; font-size: 0.8rem; }
+.disp .val { font-family: Consolas, "Courier New", monospace; color: #4ade80; font-size: 1.15rem; font-weight: 700; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin: 0.9rem 0 0.4rem; }
+.ctrl label { color: #cbd5e1; font-size: 0.95rem; }
+select, .inp {
+    font: inherit; padding: 0.45rem 0.6rem; border-radius: 8px; border: 2px solid #334155;
+    background: #0f172a; color: #f8fafc;
+}
+select:focus, .inp:focus { border-color: #38bdf8; outline: none; }
+.inp { width: 7.5rem; text-align: center; font-size: 1.1rem; }
+.inp.ok { border-color: #22c55e; background: #052e16; }
+.inp.bad { border-color: #ef4444; background: #450a0a; }
+.speed { display: inline-flex; border: 1px solid #334155; border-radius: 10px; overflow: hidden; }
+.speed button { background: #0f172a; color: #cbd5e1; border: none; font: inherit; padding: 0.4rem 0.7rem; cursor: pointer; }
+.speed button.on { background: #0ea5e9; color: white; }
+
+.protocol { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.98rem; }
+.protocol th, .protocol td { border: 1px solid #334155; padding: 0.4rem 0.5rem; text-align: center; }
+.protocol th { background: #0f172a; color: #94a3b8; font-weight: 600; }
+.protocol td { font-family: Consolas, "Courier New", monospace; font-weight: 700; color: #fde68a; }
+
+.fieldrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: 0.45rem 0; }
+.fieldrow label { min-width: 15rem; }
+.fieldrow .unit { color: #94a3b8; min-width: 3rem; }
+.bins { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 0.4rem; }
+.bin {
+    border: 2px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 12px;
+    padding: 0.7rem 0.8rem; font: inherit; font-weight: 600; cursor: pointer; text-align: left;
+    min-height: 60px; line-height: 1.3; transition: transform 0.1s, border-color 0.2s;
+}
+.bin:hover, .bin:focus-visible { border-color: #38bdf8; outline: none; transform: translateY(-2px); }
+.bin.right { border-color: #22c55e; background: #14532d; }
+.bin.wrong { border-color: #ef4444; background: #7f1d1d; }
+.bin:disabled { cursor: default; transform: none; }
+.feedback { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.2rem; border: 2px solid #334155; background: #0f172a; min-height: 3.2rem; }
+.feedback.ok { border-color: #22c55e; }
+.feedback.bad { border-color: #ef4444; }
+.feedback.info { border-color: #f59e0b; }
+.feedback b { display: block; margin-bottom: 0.2rem; }
+.feedback .row { margin-top: 0.7rem; }
+.feedback ul { margin: 0.3rem 0 0 1.2rem; }
+.matinfo { color: #cbd5e1; font-size: 0.95rem; margin-top: 0.4rem; }
+
+.result { text-align: center; }
+.stars { font-size: 2.6rem; letter-spacing: 0.3rem; margin: 0.5rem 0; }
+.badge {
+    text-align: center; border: 3px solid #f59e0b; border-radius: 20px; padding: 1.75rem 1.25rem;
+    background: radial-gradient(circle at top, #422006 0%, #1e293b 70%);
+}
+.badge .medal { font-size: 4.5rem; }
+.badge h2 { color: #fbbf24; }
+footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem; }
+
+@media (max-width: 760px) {
+    .bench { grid-template-columns: 1fr; }
+    .bench .panel.machine svg { max-width: 300px; margin: 0 auto; }
+}
+@media (max-width: 520px) {
+    body { font-size: 16px; padding: 1rem 0.75rem 2.5rem; }
+    h1 { font-size: 1.7rem; }
+    .card { padding: 1.05rem; }
+    .fieldrow label { min-width: 0; width: 100%; }
+    .protocol { font-size: 0.85rem; }
+    .protocol th, .protocol td { padding: 0.3rem 0.2rem; }
+    .disp .val { font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back-link" id="back-link" href="../metall/#spiele">← Zurück zur Übersicht</a>
+
+<header>
+    <div class="logo">🔧</div>
+    <h1>Zugprüfmaschine</h1>
+    <p class="sub">Spanne eine Probe ein, ziehe sie bis zum Bruch und werte den Zugversuch aus.</p>
+</header>
+
+<!-- START -->
+<section id="screen-start">
+    <div class="card">
+        <h2>So geht das</h2>
+        <ul class="steps">
+            <li>Die Maschine zieht die Probe langsam auseinander, bis sie bricht.</li>
+            <li>Dabei zeichnet sie das <b>Spannungs-Dehnungs-Diagramm</b>.</li>
+            <li><b>Labor:</b> Teste frei verschiedene Werkstoffe – Stahl, Gusseisen, Aluminium, Kupfer und Kunststoffe.</li>
+            <li><b>Stufe 1:</b> Beobachte genau und beantworte Fragen zum Diagramm.</li>
+            <li><b>Stufe 2:</b> Berechne aus dem Prüfprotokoll die Kennwerte.</li>
+            <li><b>Stufe 3:</b> Hilf der Hofmann Maschinenbau GmbH: Welcher Stahl ist im Bündel?</li>
+        </ul>
+        <div class="book">📘 Für Stufe 2 und 3 brauchst du dein Tabellenbuch und den Taschenrechner. Formeln: Tabelle „Zugversuch“. Stahlwerte: Tabelle „Unlegierte Baustähle“ (Sachwortverzeichnis: Baustahl).</div>
+    </div>
+    <div class="card">
+        <h2>Wähle aus</h2>
+        <div class="levels" id="levels"></div>
+    </div>
+    <div class="badge hidden" id="badge-start">
+        <div class="medal">🏅</div>
+        <h2>Prüflabor-Profi!</h2>
+        <p>Du hast alle drei Stufen geschafft.</p>
+    </div>
+</section>
+
+<!-- PRÜFSTAND (Labor und Stufen) -->
+<section id="screen-game" class="hidden">
+    <div class="card">
+        <div class="hud" id="hud">
+            <span class="pill" id="hud-level"></span>
+            <span class="pill" id="hud-round"></span>
+            <span class="pill" id="hud-points"></span>
+        </div>
+        <div class="progress-container" id="progress-box"><div class="progress-bar" id="progress"></div></div>
+
+        <p class="task" id="task"></p>
+
+        <div class="ctrl" id="lab-ctrl">
+            <label for="sel-mat">Werkstoff:</label>
+            <select id="sel-mat"></select>
+            <label for="sel-d">Durchmesser d<sub>0</sub>:</label>
+            <select id="sel-d"></select>
+        </div>
+        <p class="matinfo" id="matinfo"></p>
+
+        <div class="bench">
+            <div class="panel machine">
+                <svg id="machine" viewBox="0 0 300 430" role="img" aria-label="Zugprüfmaschine mit Probe"></svg>
+                <div class="displays">
+                    <div class="disp"><div class="lbl">Kraft F</div><div class="val" id="d-f">0,0 kN</div></div>
+                    <div class="disp"><div class="lbl">Verlängerung</div><div class="val" id="d-l">0,00 mm</div></div>
+                    <div class="disp"><div class="lbl">Spannung R</div><div class="val" id="d-r">0 N/mm²</div></div>
+                </div>
+            </div>
+            <div class="panel">
+                <svg id="chart" viewBox="0 0 460 310" role="img" aria-label="Spannungs-Dehnungs-Diagramm"></svg>
+                <div class="cap" id="chart-cap">Diagramm nicht maßstäblich: Der gerade Anfang ist zur besseren Sicht gestreckt.</div>
+            </div>
+        </div>
+
+        <div class="ctrl">
+            <button class="btn" type="button" id="btn-run">▶ Prüfung starten</button>
+            <button class="btn grey" type="button" id="btn-reset">↺ Neue Probe</button>
+            <span class="speed" id="speed" aria-label="Geschwindigkeit">
+                <button type="button" data-s="0.5">langsam</button><button type="button" data-s="1" class="on">normal</button><button type="button" data-s="3">schnell</button>
+            </span>
+            <label class="hidden" id="lbl-marks"><input type="checkbox" id="chk-marks"> Kennwerte im Diagramm zeigen</label>
+        </div>
+
+        <div id="protocol-box" class="hidden"></div>
+        <div id="controls"></div>
+        <div class="feedback info hidden" id="feedback"></div>
+    </div>
+    <div class="row"><button class="btn grey small" type="button" id="btn-quit">← Zurück zur Auswahl</button></div>
+</section>
+
+<!-- ERGEBNIS -->
+<section id="screen-result" class="hidden">
+    <div class="card result">
+        <h2 id="res-title"></h2>
+        <div class="stars" id="res-stars"></div>
+        <p id="res-text"></p>
+        <div class="row" style="justify-content:center; margin-top:1rem">
+            <button class="btn" type="button" id="btn-again">Noch einmal</button>
+            <button class="btn grey" type="button" id="btn-menu">Zur Auswahl</button>
+        </div>
+    </div>
+    <div class="badge hidden" id="badge-end">
+        <div class="medal">🏅</div>
+        <h2>Prüflabor-Profi!</h2>
+        <p>Du hast alle drei Stufen geschafft. Du kannst einen Zugversuch durchführen und auswerten.</p>
+    </div>
+</section>
+
+<footer>Lernmodule für die Berufsschule</footer>
+</div>
+
+<script>
+/* =====================================================================
+   Zugprüfmaschine – Spiel zum Thema Zugversuch (Metall, Lernfeld 1)
+   Kennwerte der Werkstoffe sind typische Beispielwerte für die Simulation,
+   keine Tabellenwerte. Die Schüler nehmen die Normwerte aus ihrem Tabellenbuch.
+   Kurventypen: 'yield'  = ausgeprägte Streckgrenze (weicher Stahl)
+                'smooth' = keine ausgeprägte Streckgrenze (R_p0,2)
+                'brittle'= spröde, Bruch ohne Einschnürung (Gusseisen)
+                'k1','k2','k3' = Kunststoff-Kurventypen
+   ===================================================================== */
+var MAT = {
+    'S235JR':            { group: 'Unlegierter Baustahl', typ: 'yield', Re: 285, Rm: 430, A: 31, Ag: 19, Z: 65, info: 'Weicher Baustahl, z. B. für Geländer, Halterungen, Stahlbau.' },
+    'E295':              { group: 'Unlegierter Baustahl', typ: 'yield', Re: 320, Rm: 540, A: 22, Ag: 14, Z: 58, info: 'Baustahl mit höherer Festigkeit, z. B. für Wellen und Bolzen.' },
+    'S355J2':            { group: 'Unlegierter Baustahl', typ: 'yield', Re: 385, Rm: 560, A: 24, Ag: 15, Z: 62, info: 'Fester Baustahl, z. B. für Kranbau und Fahrzeugbau.' },
+    'C45 (vergütet)':    { group: 'Vergütungsstahl', typ: 'smooth', Re: 520, Rm: 750, A: 15, Ag: 7, Z: 50, info: 'Gehärtet und angelassen. Sehr fest, z. B. für Achsen und Zahnräder.' },
+    'EN AW-6060 (Aluminium)': { group: 'Leichtmetall', typ: 'smooth', Re: 160, Rm: 215, A: 12, Ag: 7, Z: 55, info: 'Aluminiumlegierung, z. B. für Profile und Fensterrahmen.' },
+    'Cu-ETP (Kupfer)':   { group: 'Schwermetall', typ: 'smooth', Re: 120, Rm: 230, A: 38, Ag: 26, Z: 72, info: 'Weiches Kupfer, z. B. für Leitungen und Rohre. Sehr gut umformbar.' },
+    'EN-GJL-250 (Gusseisen)': { group: 'Eisen-Gusswerkstoff', typ: 'brittle', Re: 0, Rm: 250, A: 0.6, Ag: 0.6, Z: 0, info: 'Grauguss mit Grafit-Lamellen, z. B. für Maschinengestelle. Spröde.' },
+    'PS (Polystyrol)':   { group: 'Kunststoff', typ: 'k1', Re: 0, Rm: 50, A: 3, Ag: 3, Z: 0, info: 'Hart und steif, z. B. für Gehäuse und Verpackungen.' },
+    'PA (Polyamid)':     { group: 'Kunststoff', typ: 'k2', Re: 70, Rm: 62, A: 60, Ag: 5, Z: 0, info: 'Hart, aber zäh, z. B. für Zahnräder und Gleitlager.' },
+    'PE-LD (Weich-PE)':  { group: 'Kunststoff', typ: 'k3', Re: 0, Rm: 13, A: 500, Ag: 500, Z: 0, info: 'Weich und gummiartig, z. B. für Folien und Tüten.' },
+    'Bündel 1 (Hofmann)':{ group: 'Unbekannter Stahl aus der Handlungssituation', typ: 'yield', fixed: { d: 10, Fe: 24.4, Fm: 42.4, Lu: 60.5, du: 6.2 }, Ag: 13, info: 'Probe aus Bündel 1 – Werte wie auf deinem Arbeitsblatt.' },
+    'Bündel 2 (Hofmann)':{ group: 'Unbekannter Stahl aus der Handlungssituation', typ: 'yield', fixed: { d: 6, Fe: 7.4, Fm: 12.4, Lu: 38.1, du: 3.6 }, Ag: 18, info: 'Probe aus Bündel 2 – Werte wie auf deinem Arbeitsblatt.' }
+};
+var LAB_ORDER = Object.keys(MAT);
+var DIAMS = [6, 8, 10, 12, 14, 16, 20];
+
+var LEVELS = {
+    1: { name: 'Stufe 1: Beobachten', desc: 'Ziehe verschiedene Werkstoffe und beantworte Fragen zum Diagramm.', rounds: 6 },
+    2: { name: 'Stufe 2: Auswerten', desc: 'Lies das Prüfprotokoll und berechne L₀, S₀, Rₑ, Rₘ und A.', rounds: 4 },
+    3: { name: 'Stufe 3: Stahl-Detektiv', desc: 'Welcher Stahl ist im Bündel? Rechne und vergleiche mit dem Tabellenbuch.', rounds: 4 }
+};
+
+var KEY = 'lernmodule:zugpruefmaschine';
+var save = { best: {} };
+try { var raw = localStorage.getItem(KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) {}
+function store() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* ---------- Hilfen ---------- */
+function $(id) { return document.getElementById(id); }
+function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
+function rr(a, b) { return a + Math.random() * (b - a); }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function round(x, d) { var f = Math.pow(10, d || 0); return Math.round(x * f) / f; }
+function de(x, d) { return Number(x).toFixed(d).replace('.', ','); }
+function parseNum(s) { s = String(s || '').trim().replace(/\s+/g, '').replace(',', '.'); if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN; return parseFloat(s); }
+function S0of(d) { return Math.PI * d * d / 4; }
+function show(id) { ['screen-start', 'screen-game', 'screen-result'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); }); window.scrollTo(0, 0); }
+function starsFor(r) { return r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.5 ? 1 : 0; }
+function isPlastic(t) { return t === 'k1' || t === 'k2' || t === 'k3'; }
+var IDX = { e: 'R<sub>e</sub>', m: 'R<sub>m</sub>', p: 'R<sub>p0,2</sub>' };
+
+/* ---------- Probe erzeugen ----------
+   Ergebnis: alle Messwerte so gerundet, wie sie im Prüfprotokoll stehen.
+   Die richtigen Lösungen werden aus diesen gerundeten Werten berechnet. */
+function makeSpecimen(name, d, vals) {
+    var m = MAT[name], s = { name: name, typ: m.typ, d: d };
+    if (m.fixed) { d = s.d = m.fixed.d; }
+    s.L0 = 5 * d; s.S0 = S0of(d);
+    var Re, Rm, A, Z;
+    if (m.fixed) {
+        Re = m.fixed.Fe * 1000 / s.S0; Rm = m.fixed.Fm * 1000 / s.S0;
+        A = (m.fixed.Lu - s.L0) / s.L0 * 100; Z = (1 - Math.pow(m.fixed.du / d, 2)) * 100;
+    } else if (vals) { Re = vals.Re; Rm = vals.Rm; A = vals.A; Z = vals.Z || m.Z; }
+    else { Re = m.Re; Rm = m.Rm; A = m.A; Z = m.Z; }
+    s.Re = Re; s.Rm = Rm; s.A = A; s.Z = Z;
+    s.Ag = Math.min(m.Ag, A * 0.7); if (m.typ === 'brittle' || m.typ === 'k1' || m.typ === 'k3') s.Ag = A;
+    if (m.typ === 'k2') s.Ag = 5;
+    // Protokollwerte
+    s.Fe = (m.typ === 'yield' || m.typ === 'smooth') ? round(Re * s.S0 / 1000, 1) : null;
+    s.Fm = round(Math.max(Rm, m.typ === 'k2' ? Re : 0) * s.S0 / 1000, 1);
+    s.Lu = round(s.L0 * (1 + A / 100), 1);
+    s.du = Z > 0 ? round(d * Math.sqrt(1 - Z / 100), 1) : d;
+    if (m.fixed) { s.Fe = m.fixed.Fe; s.Fm = m.fixed.Fm; s.Lu = m.fixed.Lu; s.du = m.fixed.du; }
+    // Lösungen aus den gerundeten Protokollwerten
+    s.sol = {
+        L0: s.L0, S0: round(s.S0, 1),
+        Re: s.Fe != null ? s.Fe * 1000 / s.S0 : null,
+        Rm: s.Fm * 1000 / s.S0,
+        A: (s.Lu - s.L0) / s.L0 * 100
+    };
+    s.curve = buildCurve(s);
+    return s;
+}
+
+/* ---------- Kurve berechnen ----------
+   Punkte: { e: Dehnung im Diagramm in %, R: Spannung, p: bleibende Dehnung in %, neck: 0..1 } */
+function buildCurve(s) {
+    var pts = [], t = s.typ, i, x, R, ev;
+    var N = 60;
+    if (t === 'yield' || t === 'smooth') {
+        var Re = s.Re, Rm = s.Rm, A = s.A, Ag = s.Ag, eL = t === 'yield' ? Math.max(1, A * 0.06) : 0;
+        ev = A * 0.06;                                   // sichtbarer elastischer Bereich (gestreckt)
+        var Rlim = t === 'yield' ? Re : 0.72 * Re;
+        for (i = 0; i <= 25; i++) { R = Rlim * i / 25; pts.push({ e: ev * R / Re, R: R, p: 0, neck: 0 }); }
+        if (t === 'yield') {
+            var ReL = Re * 0.94;
+            for (i = 1; i <= 40; i++) {
+                x = i / 40; var p = eL * x;
+                R = ReL + Re * 0.018 * Math.sin(x * Math.PI * 9) * (1 - x * 0.6) + (i === 1 ? -Re * 0.02 : 0);
+                pts.push({ e: ev * R / Re + p, R: R, p: p, neck: 0 });
+            }
+            for (i = 1; i <= N; i++) {
+                x = i / N; var p2 = eL + (Ag - eL) * x;
+                R = ReL + (Rm - ReL) * (1 - Math.pow(1 - x, 2));
+                pts.push({ e: ev * R / Re + p2, R: R, p: p2, neck: 0 });
+            }
+        } else {
+            for (i = 1; i <= 20; i++) {                    // Übergang bis R_p0,2
+                x = i / 20; R = Rlim + (Re - Rlim) * Math.sqrt(x); var p3 = 0.2 * x * x;
+                pts.push({ e: ev * R / Re + p3 * 3, R: R, p: p3, neck: 0 });
+            }
+            for (i = 1; i <= N; i++) {
+                x = i / N; var p4 = 0.2 + (Ag - 0.2) * x;
+                R = Re + (Rm - Re) * (1 - Math.pow(1 - x, 2.2));
+                pts.push({ e: ev * R / Re + 0.4 + (p4 - 0.2) * (1 - 0.4 / Ag), R: R, p: p4, neck: 0 });
+            }
+        }
+        var eAg = pts[pts.length - 1].e;
+        var Rb = Rm * 0.8;
+        for (i = 1; i <= 40; i++) {                       // Einschnürung
+            x = i / 40; R = Rm - (Rm - Rb) * Math.pow(x, 1.7);
+            var pe = Ag + (A - Ag) * x;
+            pts.push({ e: eAg + (A - Ag) * x + ev * (R - Rm) / Re, R: R, p: pe, neck: x });
+        }
+    } else if (t === 'brittle' || t === 'k1') {
+        for (i = 0; i <= 60; i++) { x = i / 60; R = s.Rm * (1 - Math.pow(1 - x, t === 'brittle' ? 1.6 : 1.25)) * (t === 'brittle' ? 1 : 1); pts.push({ e: s.A * x, R: R, p: s.A * x * 0.4, neck: 0 }); }
+    } else if (t === 'k2') {
+        var Ry = s.Re;
+        for (i = 0; i <= 40; i++) { x = i / 40; pts.push({ e: 5 * x, R: Ry * Math.sin(x * Math.PI / 2), p: 0, neck: 0 }); }
+        for (i = 1; i <= 30; i++) { x = i / 30; pts.push({ e: 5 + 9 * x, R: Ry - Ry * 0.22 * Math.sin(x * Math.PI / 2), p: 9 * x, neck: Math.min(1, x) * 0.6 }); }
+        for (i = 1; i <= 60; i++) { x = i / 60; pts.push({ e: 14 + (s.A - 14) * x, R: Ry * 0.78 + (s.Rm - Ry * 0.78) * x, p: 9 + (s.A - 14) * x, neck: 0.6 }); }
+    } else if (t === 'k3') {
+        for (i = 0; i <= 120; i++) { x = i / 120; var e3 = s.A * Math.pow(x, 1.6); pts.push({ e: e3, R: 10 * (1 - Math.exp(-e3 / 12)) + (s.Rm - 10) * e3 / s.A, p: e3 * 0.8, neck: 0 }); }
+    }
+    return pts;
+}
+
+/* ---------- Zeichnen: Maschine ---------- */
+var CX = 150, BASE = 395, GRIP_LOW = 330, L_VIS = 120;
+function visExt(e) { return 105 * (1 - Math.exp(-e / 22)); }     // Dehnung in % -> Pixel
+function specimenPath(yBottom, yTop, w, neck, side) {
+    // side: 0 ganz, -1 untere Hälfte, +1 obere Hälfte (nach dem Bruch)
+    var head = 34, taper = 10, hw = 17, yc = (yBottom + yTop) / 2;
+    var left = [], right = [];
+    function add(y, half) { left.push([CX - half, y]); right.push([CX + half, y]); }
+    var g0 = yBottom - head - taper, g1 = yTop + head + taper;
+    var from = side === 1 ? yc - 2 : yBottom, to = side === -1 ? yc + 2 : yTop;
+    var steps = 60;
+    for (var k = 0; k <= steps; k++) {
+        var y = from + (to - from) * k / steps, half;
+        if (y > g0 + taper) half = hw;                                     // unterer Kopf
+        else if (y > g0) half = w / 2 + (hw - w / 2) * (y - g0) / taper;
+        else if (y > g1) {
+            var gl = g0 - g1, sig = Math.max(6, gl * 0.09);
+            half = w / 2 * (1 - neck * Math.exp(-Math.pow((y - yc) / sig, 2)));
+        } else if (y > g1 - taper) half = hw - (hw - w / 2) * (y - (g1 - taper)) / taper;
+        else half = hw;
+        add(y, half);
+    }
+    var d = 'M' + left.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' L');
+    d += ' L' + right.reverse().map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' L') + ' Z';
+    return d;
+}
+function drawMachine(state) {
+    var ext = visExt(state.e), broken = state.broken, gap = broken ? 8 : 0;
+    var yBottom = GRIP_LOW + 34, yTop = GRIP_LOW - 20 - L_VIS - ext - gap;   // Probenenden
+    var cross = yTop - 6;                                                     // Unterkante Traverse
+    var w = 12;
+    var plastic = state.spec && isPlastic(state.spec.typ);
+    var col = plastic ? '#fca5a5' : (state.spec && /Cu/.test(state.spec.name) ? '#f59e0b' : (state.spec && /Alu/.test(state.spec.name) ? '#e2e8f0' : '#94a3b8'));
+    var h = '';
+    h += '<defs><linearGradient id="gcol" x1="0" x2="1"><stop offset="0" stop-color="#475569"/><stop offset="0.5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#475569"/></linearGradient>' +
+         '<linearGradient id="gspec" x1="0" x2="1"><stop offset="0" stop-color="#334155"/><stop offset="0.45" stop-color="' + col + '"/><stop offset="1" stop-color="#334155"/></linearGradient></defs>';
+    // Säulen, Kopf, Fuß
+    h += '<rect x="44" y="18" width="16" height="' + (BASE - 18) + '" fill="url(#gcol)"/><rect x="240" y="18" width="16" height="' + (BASE - 18) + '" fill="url(#gcol)"/>';
+    h += '<rect x="30" y="6" width="240" height="22" rx="4" fill="#1d4ed8"/>';
+    h += '<rect x="14" y="' + BASE + '" width="272" height="30" rx="5" fill="#1d4ed8"/><text x="150" y="' + (BASE + 20) + '" fill="#bfdbfe" font-size="12" text-anchor="middle" font-family="Segoe UI, Arial">Zugprüfmaschine</text>';
+    // unterer Spannkopf (fest)
+    h += '<rect x="112" y="' + (GRIP_LOW + 46) + '" width="76" height="' + (BASE - GRIP_LOW - 46) + '" fill="#475569"/>';
+    // Probe
+    if (!broken) h += '<path d="' + specimenPath(yBottom, yTop, w, state.neck, 0) + '" fill="url(#gspec)" stroke="#0f172a" stroke-width="1"/>';
+    else {
+        var yb2 = yBottom, yt2 = yTop;
+        h += '<path d="' + specimenPath(yb2, yt2, w, state.neck, -1) + '" fill="url(#gspec)" stroke="#0f172a" stroke-width="1"/>';
+        h += '<path d="' + specimenPath(yb2, yt2, w, state.neck, 1) + '" fill="url(#gspec)" stroke="#0f172a" stroke-width="1"/>';
+        var yc = (yb2 + yt2) / 2;
+        h += '<text x="' + (CX + 24) + '" y="' + (yc + 5) + '" fill="#f87171" font-size="15" font-weight="bold" font-family="Segoe UI, Arial">Bruch!</text>';
+    }
+    // Messmarken L0
+    var g0 = yBottom - 44, g1 = yTop + 44, mid = (g0 + g1) / 2, half = (g0 - g1) * 0.42;
+    [mid - half, mid + half].forEach(function (y) { h += '<line x1="' + (CX - 10) + '" x2="' + (CX + 10) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#facc15" stroke-width="2"/>'; });
+    h += '<text x="' + (CX - 30) + '" y="' + (mid + 4).toFixed(1) + '" fill="#facc15" font-size="12" text-anchor="end" font-family="Segoe UI, Arial">L<tspan font-size="9" dy="3">0</tspan></text>';
+    h += '<line x1="' + (CX - 26) + '" x2="' + (CX - 26) + '" y1="' + (mid - half).toFixed(1) + '" y2="' + (mid + half).toFixed(1) + '" stroke="#facc15" stroke-width="1" stroke-dasharray="3 3"/>';
+    // Spannbacken unten
+    h += '<path d="M118,' + (GRIP_LOW) + ' L' + (CX - 17) + ',' + (GRIP_LOW + 6) + ' L' + (CX - 17) + ',' + (GRIP_LOW + 46) + ' L112,' + (GRIP_LOW + 46) + ' Z" fill="#64748b"/>';
+    h += '<path d="M182,' + (GRIP_LOW) + ' L' + (CX + 17) + ',' + (GRIP_LOW + 6) + ' L' + (CX + 17) + ',' + (GRIP_LOW + 46) + ' L188,' + (GRIP_LOW + 46) + ' Z" fill="#64748b"/>';
+    // obere Spannbacken + Traverse (beweglich)
+    var gt = yTop - 2;
+    h += '<path d="M118,' + (gt + 40) + ' L' + (CX - 17) + ',' + (gt + 34) + ' L' + (CX - 17) + ',' + (gt - 4) + ' L112,' + (gt - 4) + ' Z" fill="#64748b"/>';
+    h += '<path d="M182,' + (gt + 40) + ' L' + (CX + 17) + ',' + (gt + 34) + ' L' + (CX + 17) + ',' + (gt - 4) + ' L188,' + (gt - 4) + ' Z" fill="#64748b"/>';
+    h += '<rect x="126" y="' + (gt - 26) + '" width="48" height="22" rx="3" fill="#0ea5e9"/><text x="150" y="' + (gt - 11) + '" fill="#e0f2fe" font-size="8" text-anchor="middle" font-family="Segoe UI, Arial">Kraftmessdose</text>';
+    h += '<rect x="34" y="' + (gt - 50) + '" width="232" height="24" rx="4" fill="#f59e0b"/><text x="150" y="' + (gt - 33) + '" fill="#1e293b" font-size="12" font-weight="bold" text-anchor="middle" font-family="Segoe UI, Arial">Traverse ↑</text>';
+    $('machine').innerHTML = h;
+}
+
+/* ---------- Zeichnen: Diagramm ---------- */
+var PX0 = 58, PX1 = 445, PY0 = 270, PY1 = 18;
+function niceStep(max, n) { var raw = max / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function drawChart(state) {
+    var s = state.spec, h = '';
+    if (!s) { $('chart').innerHTML = ''; return; }
+    var cur = s.curve, last = cur[cur.length - 1];
+    var emax = Math.max.apply(null, cur.map(function (q) { return q.e; })) * 1.08;
+    var rmax = Math.max.apply(null, cur.map(function (q) { return q.R; })) * 1.15;
+    var xs = niceStep(emax, 5), ys = niceStep(rmax, 5);
+    emax = Math.ceil(emax / xs) * xs; rmax = Math.ceil(rmax / ys) * ys;
+    function X(e) { return PX0 + (PX1 - PX0) * e / emax; }
+    function Y(r) { return PY0 - (PY0 - PY1) * r / rmax; }
+    var v;
+    for (v = 0; v <= rmax + 1e-9; v += ys) h += '<line x1="' + PX0 + '" x2="' + PX1 + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="#1e293b"/><text x="' + (PX0 - 6) + '" y="' + (Y(v) + 4) + '" fill="#94a3b8" font-size="12.5" text-anchor="end">' + de(v, v % 1 ? 1 : 0) + '</text>';
+    for (v = 0; v <= emax + 1e-9; v += xs) h += '<line y1="' + PY0 + '" y2="' + PY1 + '" x1="' + X(v) + '" x2="' + X(v) + '" stroke="#1e293b"/><text y="' + (PY0 + 15) + '" x="' + X(v) + '" fill="#94a3b8" font-size="12.5" text-anchor="middle">' + de(v, v % 1 ? 1 : 0) + '</text>';
+    h += '<line x1="' + PX0 + '" x2="' + PX1 + '" y1="' + PY0 + '" y2="' + PY0 + '" stroke="#cbd5e1" stroke-width="1.5"/><line x1="' + PX0 + '" x2="' + PX0 + '" y1="' + PY0 + '" y2="' + PY1 + '" stroke="#cbd5e1" stroke-width="1.5"/>';
+    h += '<text x="' + ((PX0 + PX1) / 2) + '" y="' + (PY0 + 34) + '" fill="#cbd5e1" font-size="13" text-anchor="middle">Dehnung e in %</text>';
+    h += '<text transform="translate(16,' + ((PY0 + PY1) / 2) + ') rotate(-90)" fill="#cbd5e1" font-size="13" text-anchor="middle">Spannung R in N/mm²</text>';
+    var n = state.idx;
+    if (n > 0) {
+        var pts = cur.slice(0, n + 1).map(function (q) { return X(q.e).toFixed(1) + ',' + Y(q.R).toFixed(1); }).join(' ');
+        h += '<polyline points="' + pts + '" fill="none" stroke="#ef4444" stroke-width="3" stroke-linejoin="round"/>';
+        var q = cur[n];
+        h += '<circle cx="' + X(q.e) + '" cy="' + Y(q.R) + '" r="4.5" fill="#fbbf24"/>';
+    }
+    if (state.broken) {
+        h += '<text x="' + (X(last.e) - 7) + '" y="' + (Y(last.R) + 5) + '" fill="#f8fafc" font-size="17" font-weight="bold">×</text>';
+        if (state.marks) h += marksSVG(s, X, Y, emax);
+    }
+    $('chart').innerHTML = h;
+}
+function marksSVG(s, X, Y, emax) {
+    var h = '', cur = s.curve, iMax = 0, k;
+    for (k = 0; k < cur.length; k++) if (cur[k].R > cur[iMax].R) iMax = k;
+    function hl(R, txt, col) {
+        return '<line x1="' + PX0 + '" x2="' + PX1 + '" y1="' + Y(R) + '" y2="' + Y(R) + '" stroke="' + col + '" stroke-dasharray="5 4"/>' +
+               '<text x="' + (PX1 - 4) + '" y="' + (Y(R) - 5) + '" fill="' + col + '" font-size="12" font-weight="bold" text-anchor="end">' + txt + '</text>';
+    }
+    var t = s.typ, rm = cur[iMax].R;
+    if (t === 'yield') h += hl(s.Re, 'Rₑ ≈ ' + Math.round(s.Re) + ' N/mm²', '#38bdf8');
+    if (t === 'smooth') h += hl(s.Re, 'Rp0,2 ≈ ' + Math.round(s.Re) + ' N/mm²', '#38bdf8');
+    if (t === 'k2') h += hl(s.Re, 'Streckspannung', '#38bdf8');
+    h += hl(rm, (isPlastic(t) ? 'Zugfestigkeit ≈ ' : 'Rₘ ≈ ') + Math.round(rm) + ' N/mm²', '#4ade80');
+    if (t === 'yield' || t === 'smooth') {
+        var y = PY0 - 12;
+        h += '<line x1="' + X(0) + '" x2="' + X(s.A) + '" y1="' + y + '" y2="' + y + '" stroke="#fbbf24" stroke-width="1.5"/>' +
+             '<text x="' + ((X(0) + X(s.A)) / 2) + '" y="' + (y - 4) + '" fill="#fbbf24" font-size="12" text-anchor="middle" font-weight="bold">A ≈ ' + de(s.A, 1) + ' %</text>';
+    }
+    return h;
+}
+
+/* ---------- Ablauf der Prüfung ---------- */
+var ST = { spec: null, idx: 0, e: 0, neck: 0, broken: false, running: false, timer: null, speed: 1, marks: false, onBreak: null };
+function setSpecimen(spec) {
+    stopRun();
+    ST.spec = spec; ST.idx = 0; ST.e = 0; ST.neck = 0; ST.broken = false;
+    $('btn-run').disabled = false; $('btn-run').textContent = '▶ Prüfung starten';
+    $('lbl-marks').classList.add('hidden');
+    updateDisplays(); drawMachine(ST); drawChart(ST);
+}
+function updateDisplays() {
+    var s = ST.spec; if (!s) return;
+    var q = s.curve[ST.idx], F = ST.broken ? 0 : q.R * s.S0 / 1000;
+    var dl = q.p / 100 * s.L0 + (isPlastic(s.typ) ? 0 : q.R / 210000 * s.L0);
+    if (isPlastic(s.typ)) dl = q.e / 100 * s.L0;
+    if (ST.broken) dl = (s.Lu - s.L0);
+    $('d-f').textContent = de(F, 1) + ' kN';
+    $('d-l').textContent = de(dl, 2) + ' mm';
+    $('d-r').textContent = (ST.broken ? 0 : Math.round(q.R)) + ' N/mm²';
+}
+function stepRun() {
+    var s = ST.spec, n = s.curve.length;
+    ST.idx = Math.min(n - 1, ST.idx + Math.max(1, Math.round(ST.speed * (n / 240))));
+    var q = s.curve[ST.idx];
+    ST.e = q.e; ST.neck = Math.min(1, q.neck) * (1 - Math.sqrt(1 - Math.max(0, s.Z) / 100));
+    if (ST.idx >= n - 1) { ST.broken = true; stopRun(); $('btn-run').disabled = true; $('btn-run').textContent = '✓ Probe gebrochen'; if (ST.onBreak) ST.onBreak(); }
+    updateDisplays(); drawMachine(ST); drawChart(ST);
+}
+function startRun() {
+    if (!ST.spec || ST.broken) return;
+    if (ST.running) { stopRun(); $('btn-run').textContent = '▶ Weiter'; return; }
+    ST.running = true; $('btn-run').textContent = '⏸ Pause';
+    ST.timer = setInterval(stepRun, 30);
+}
+function stopRun() { ST.running = false; if (ST.timer) clearInterval(ST.timer); ST.timer = null; }
+function finishInstant() { while (!ST.broken) stepRun(); }       // für Tests
+
+/* ---------- Prüfprotokoll ---------- */
+function protocolHTML(s, opts) {
+    opts = opts || {};
+    var fe = s.Fe == null ? '–' : de(s.Fe, 1) + ' kN';
+    var feLabel = s.typ === 'smooth' ? 'F<sub>p0,2</sub>' : 'F<sub>e</sub>';
+    var h = '<h3>📋 Prüfprotokoll' + (opts.title ? ' – ' + opts.title : '') + '</h3><table class="protocol"><tr><th>d<sub>0</sub></th>' +
+            (opts.hideL0 ? '' : '<th>L<sub>0</sub></th>') + '<th>' + feLabel + '</th><th>F<sub>m</sub></th><th>L<sub>u</sub></th><th>d<sub>u</sub></th></tr><tr>' +
+            '<td>' + s.d + ' mm</td>' + (opts.hideL0 ? '' : '<td>' + s.L0 + ' mm</td>') + '<td>' + fe + '</td><td>' + de(s.Fm, 1) + ' kN</td><td>' + de(s.Lu, 1) + ' mm</td><td>' + de(s.du, 1) + ' mm</td></tr></table>';
+    return h;
+}
+
+/* =====================================================================
+   LABOR
+   ===================================================================== */
+var MODE = null;   // 'lab' oder 1..3
+function labSpecimen() {
+    var name = $('sel-mat').value, m = MAT[name];
+    $('sel-d').disabled = !!m.fixed;
+    if (m.fixed) $('sel-d').value = String(m.fixed.d);
+    var s = makeSpecimen(name, Number($('sel-d').value));
+    $('matinfo').innerHTML = '<b>' + name + '</b> – ' + m.group + '. ' + m.info;
+    $('protocol-box').classList.add('hidden');
+    $('feedback').classList.add('hidden');
+    ST.onBreak = function () {
+        $('protocol-box').innerHTML = protocolHTML(s) + labNote(s);
+        $('protocol-box').classList.remove('hidden');
+        $('lbl-marks').classList.remove('hidden');
+    };
+    setSpecimen(s);
+}
+function labNote(s) {
+    var t = s.typ, txt;
+    if (t === 'yield') txt = 'Ausgeprägte Streckgrenze: Am Ende des geraden Anfangs schwankt die Kraft kurz. Der Stahl beginnt zu fließen. Nach der Höchstkraft schnürt sich die Probe ein und bricht.';
+    else if (t === 'smooth') txt = 'Keine ausgeprägte Streckgrenze: Die Kurve geht ohne Zacken in die Krümmung über. Statt Rₑ bestimmt man die Dehngrenze R<sub>p0,2</sub> (0,2 % bleibende Dehnung).';
+    else if (t === 'brittle') txt = 'Spröde: Gusseisen bricht plötzlich, fast ohne sich zu dehnen. Es gibt keine Streckgrenze und keine Einschnürung.';
+    else if (t === 'k1') txt = 'Kunststoff-Typ „hart und steif“: steiler Anstieg, Bruch nach kleiner Dehnung.';
+    else if (t === 'k2') txt = 'Kunststoff-Typ „hart, aber biegsam“: Die Spannung fällt nach dem Hochpunkt (Streckspannung) kurz ab. Dann zieht sich die Probe lang.';
+    else txt = 'Kunststoff-Typ „gummielastisch“: sehr große Reißdehnung bei kleiner Spannung.';
+    return '<div class="book">💡 ' + txt + '</div>';
+}
+function openLab() {
+    MODE = 'lab';
+    $('hud').classList.add('hidden'); $('progress-box').classList.add('hidden');
+    $('lab-ctrl').classList.remove('hidden');
+    $('task').innerHTML = '🔬 <b>Freies Labor:</b> Wähle Werkstoff und Durchmesser. Starte dann die Prüfung. Vergleiche die Kurven!';
+    $('controls').innerHTML = '';
+    show('screen-game');
+    labSpecimen();
+}
+
+/* =====================================================================
+   STUFEN
+   ===================================================================== */
+var G = null;
+var Q1 = {
+    'S235JR': { q: 'Schau auf das Ende des geraden Anfangs. Was passiert dort?', a: 'Die Kraft schwankt kurz. Der Stahl beginnt zu fließen (Streckgrenze).',
+                w: ['Die Probe bricht sofort.', 'Die Kraft fällt auf null.', 'Die Probe wird kürzer.'], ex: 'Das ist die ausgeprägte Streckgrenze Rₑ. Ab hier verformt sich der Stahl bleibend.' },
+    'S355J2': { q: 'Was passiert mit der Probe nach dem höchsten Punkt der Kurve?', a: 'Sie wird an einer Stelle dünner (Einschnürung).',
+                w: ['Sie wird überall gleichmäßig dicker.', 'Sie federt auf ihre alte Länge zurück.', 'Nichts – die Kraft steigt weiter.'], ex: 'Nach der Höchstkraft Fₘ schnürt sich die Probe ein. Darum braucht man weniger Kraft – bis zum Bruch.' },
+    'EN-GJL-250 (Gusseisen)': { q: 'Wie verhält sich Gusseisen im Zugversuch?', a: 'Es bricht plötzlich, fast ohne sich zu dehnen (spröde).',
+                w: ['Es dehnt sich sehr weit, wie Kupfer.', 'Es hat eine ausgeprägte Streckgrenze.', 'Es schnürt sich stark ein.'], ex: 'Gusseisen mit Lamellengrafit ist spröde. Die Bruchdehnung ist sehr klein.' },
+    'C45 (vergütet)': { q: 'Diese Kurve hat keine Zacken am Ende des geraden Anfangs. Welchen Kennwert nimmt man statt Rₑ?', a: 'Die Dehngrenze Rp0,2',
+                w: ['Die Bruchdehnung A', 'Die Brucheinschnürung Z', 'Die Dichte ρ'], ex: 'Ohne ausgeprägte Streckgrenze nimmt man die Spannung bei 0,2 % bleibender Dehnung: R<sub>p0,2</sub>.' },
+    'Cu-ETP (Kupfer)': { q: 'Kupfer hat eine große Bruchdehnung A. Was bedeutet das für die Werkstatt?', a: 'Kupfer lässt sich gut umformen, z. B. biegen.',
+                w: ['Kupfer ist besonders hart.', 'Kupfer bricht schon bei kleiner Kraft.', 'Kupfer kann man nicht biegen.'], ex: 'Große Bruchdehnung = der Werkstoff verformt sich stark, bevor er bricht. Er ist gut umformbar.' },
+    'PE-LD (Weich-PE)': { q: 'Was fällt bei Weich-PE auf?', a: 'Es dehnt sich sehr weit, bevor es reißt.',
+                w: ['Es hält mehr aus als Stahl.', 'Es bricht wie Glas.', 'Es hat eine Zugfestigkeit von über 1000 N/mm².'], ex: 'Weich-PE ist gummiartig: kleine Festigkeit, aber sehr große Reißdehnung.' }
+};
+function makeRound(level) {
+    if (level === 1) return null;   // wird in startLevel gemischt
+    var d = rnd(DIAMS), name, v;
+    if (level === 2) {
+        name = rnd(['S235JR', 'E295', 'S355J2', 'C45 (vergütet)']);
+        v = genVals(name);
+        return { name: name, spec: makeSpecimen(name, d, v) };
+    }
+    var pair = rnd([['S235JR', 'E295'], ['S235JR', 'S355J2']]);
+    name = rnd(pair);
+    v = genVals(name);
+    return { name: name, pair: pair, spec: makeSpecimen(name, d, v) };
+}
+function genVals(name) {
+    // Werte so gewählt, dass die Entscheidung mit dem Tabellenbuch eindeutig ist
+    if (name === 'S235JR') return { Re: rr(250, 290), Rm: rr(390, 480), A: rr(28, 33), Z: rr(60, 70) };
+    if (name === 'E295')   return { Re: rr(305, 340), Rm: rr(500, 590), A: rr(20.5, 24), Z: rr(50, 60) };
+    if (name === 'S355J2') return { Re: rr(370, 420), Rm: rr(520, 600), A: rr(22.5, 25.5), Z: rr(55, 65) };
+    return { Re: rr(480, 560), Rm: rr(700, 800), A: rr(14, 18), Z: rr(45, 55) };
+}
+function startLevel(level) {
+    MODE = level;
+    G = { level: level, i: 0, points: 0, max: 0, rounds: [], mistakes: [] };
+    if (level === 1) {
+        G.rounds = shuffle(Object.keys(Q1)).map(function (n) { return { name: n, spec: makeSpecimen(n, 10) }; });
+    } else for (var i = 0; i < LEVELS[level].rounds; i++) G.rounds.push(makeRound(level));
+    $('hud').classList.remove('hidden'); $('progress-box').classList.remove('hidden');
+    $('lab-ctrl').classList.add('hidden');
+    show('screen-game');
+    nextRound();
+}
+function hud() {
+    $('hud-level').textContent = LEVELS[G.level].name;
+    $('hud-round').textContent = 'Probe ' + (G.i + 1) + ' von ' + G.rounds.length;
+    $('hud-points').textContent = '⭐ ' + G.points + ' Punkte';
+    $('progress').style.width = (100 * G.i / G.rounds.length) + '%';
+}
+function feedback(cls, html) { var f = $('feedback'); f.className = 'feedback ' + cls; f.innerHTML = html; f.classList.remove('hidden'); }
+function nextBtnHTML() { return '<div class="row"><button class="btn" type="button" id="btn-next">' + (G.i + 1 < G.rounds.length ? 'Nächste Probe →' : 'Ergebnis ansehen →') + '</button></div>'; }
+function bindNext() { $('btn-next').addEventListener('click', function () { G.i++; if (G.i < G.rounds.length) nextRound(); else finish(); }); $('btn-next').focus(); }
+
+function nextRound() {
+    var r = G.rounds[G.i], s = r.spec;
+    hud();
+    $('controls').innerHTML = ''; $('feedback').innerHTML = ''; $('feedback').classList.add('hidden');
+    $('protocol-box').classList.add('hidden');
+    r.tries = 0;
+    if (G.level === 1) {
+        $('task').innerHTML = 'Spanne die Probe aus <b>' + r.name + '</b> ein und starte die Prüfung. Beobachte Maschine und Diagramm genau.';
+        $('matinfo').innerHTML = MAT[r.name].info;
+        ST.onBreak = function () { ask1(r); };
+    } else if (G.level === 2) {
+        $('task').innerHTML = 'Prüfe die Probe aus <b>' + r.name + '</b> mit d<sub>0</sub> = <b>' + s.d + ' mm</b>. Werte danach das Prüfprotokoll aus.';
+        $('matinfo').innerHTML = s.typ === 'smooth' ? 'Achtung: Dieser Stahl hat keine ausgeprägte Streckgrenze. Im Protokoll steht deshalb F<sub>p0,2</sub>.' : '';
+        ST.onBreak = function () { ask2(r); };
+    } else {
+        $('task').innerHTML = 'Hofmann Maschinenbau GmbH: Im Lager liegt ein Bündel ohne Etikett. Es ist entweder <b>' + r.pair[0] + '</b> oder <b>' + r.pair[1] + '</b>. Prüfe die Probe (d<sub>0</sub> = ' + s.d + ' mm).';
+        $('matinfo').innerHTML = '';
+        ST.onBreak = function () { ask3(r); };
+    }
+    setSpecimen(s);
+}
+
+/* Stufe 1: Beobachten */
+function ask1(r) {
+    var q = Q1[r.name], opts = shuffle([q.a].concat(q.w));
+    G.max += 2;
+    var h = '<h3>' + q.q + '</h3><div class="bins">';
+    opts.forEach(function (o) { h += '<button class="bin" type="button" data-a="' + o.replace(/"/g, '&quot;') + '">' + o + '</button>'; });
+    $('controls').innerHTML = h + '</div>';
+    Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (b) {
+        b.addEventListener('click', function () {
+            var ok = b.getAttribute('data-a') === q.a;
+            r.tries++;
+            if (ok) {
+                var pts = r.tries === 1 ? 2 : 1; G.points += pts;
+                b.classList.add('right');
+                Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (x) { x.disabled = true; });
+                feedback('ok', '<b>✅ Richtig! +' + pts + ' Punkte</b>' + q.ex + nextBtnHTML()); bindNext(); hud();
+            } else {
+                b.classList.add('wrong'); b.disabled = true;
+                if (r.tries === 1) G.mistakes.push(r.name);
+                feedback('bad', '<b>❌ Leider nicht.</b>Schau dir das Diagramm noch einmal an. Du kannst die Probe mit „Neue Probe“ noch einmal ziehen.');
+            }
+        });
+    });
+    $('lbl-marks').classList.remove('hidden');
+}
+
+/* Stufe 2 und 3: Rechnen */
+function fieldsHTML(list) {
+    return list.map(function (f) {
+        return '<div class="fieldrow"><label for="in-' + f.k + '">' + f.label + '</label><input class="inp" id="in-' + f.k + '" inputmode="decimal" autocomplete="off"><span class="unit">' + f.unit + '</span></div>';
+    }).join('');
+}
+function check(val, ans, kind) {
+    if (isNaN(val)) return false;
+    if (kind === 'L0') return Math.abs(val - ans) < 0.01;
+    if (kind === 'S0') return Math.abs(val - ans) <= Math.max(0.15, ans * 0.003);
+    if (kind === 'R') return Math.abs(val - ans) <= ans * 0.01 + 1;
+    if (kind === 'A') return Math.abs(val - ans) <= 0.15;
+    return false;
+}
+function calcFields(s, withL0) {
+    var reLab = s.typ === 'smooth' ? 'Dehngrenze R<sub>p0,2</sub>' : 'Streckgrenze R<sub>e</sub>';
+    var f = [];
+    if (withL0) f.push({ k: 'L0', label: 'Anfangsmesslänge L<sub>0</sub>', unit: 'mm', ans: s.sol.L0, kind: 'L0' });
+    f.push({ k: 'S0', label: 'Querschnitt S<sub>0</sub> (1 Nachkommastelle)', unit: 'mm²', ans: s.sol.S0, kind: 'S0' });
+    f.push({ k: 'Re', label: reLab + ' (ganze Zahl)', unit: 'N/mm²', ans: s.sol.Re, kind: 'R' });
+    f.push({ k: 'Rm', label: 'Zugfestigkeit R<sub>m</sub> (ganze Zahl)', unit: 'N/mm²', ans: s.sol.Rm, kind: 'R' });
+    f.push({ k: 'A', label: 'Bruchdehnung A (1 Nachkommastelle)', unit: '%', ans: s.sol.A, kind: 'A' });
+    return f;
+}
+function solutionHTML(s) {
+    var S0 = round(s.S0, 1), feL = s.typ === 'smooth' ? 'p0,2' : 'e';
+    return '<ul>' +
+        '<li>L<sub>0</sub> = 5 · d<sub>0</sub> = 5 · ' + s.d + ' mm = ' + s.L0 + ' mm</li>' +
+        '<li>S<sub>0</sub> = π · d<sub>0</sub>² / 4 = π · (' + s.d + ' mm)² / 4 ≈ ' + de(S0, 1) + ' mm²</li>' +
+        '<li>R<sub>' + feL + '</sub> = F<sub>' + feL + '</sub> / S<sub>0</sub> = ' + Math.round(s.Fe * 1000) + ' N / ' + de(S0, 1) + ' mm² ≈ ' + Math.round(s.sol.Re) + ' N/mm²</li>' +
+        '<li>R<sub>m</sub> = F<sub>m</sub> / S<sub>0</sub> = ' + Math.round(s.Fm * 1000) + ' N / ' + de(S0, 1) + ' mm² ≈ ' + Math.round(s.sol.Rm) + ' N/mm²</li>' +
+        '<li>A = (L<sub>u</sub> – L<sub>0</sub>) / L<sub>0</sub> · 100 % = (' + de(s.Lu, 1) + ' – ' + s.L0 + ') mm / ' + s.L0 + ' mm · 100 % ≈ ' + de(s.sol.A, 1) + ' %</li></ul>';
+}
+function ask2(r) {
+    var s = r.spec;
+    $('protocol-box').innerHTML = protocolHTML(s, { hideL0: true });
+    $('protocol-box').classList.remove('hidden');
+    r.fields = calcFields(s, true);
+    G.max += r.fields.length;
+    $('controls').innerHTML = '<div class="book">Das Protokoll nennt L<sub>0</sub> nicht. Du weißt: Es ist ein Proportionalstab. Rechne Kräfte in N um (1 kN = 1000 N).</div>' +
+        fieldsHTML(r.fields) + '<div class="row" style="margin-top:0.6rem"><button class="btn" type="button" id="btn-check">Prüfen</button></div>';
+    bindCheck(r, function () {
+        return { html: solutionHTML(s), extra: '' };
+    });
+}
+function ask3(r) {
+    var s = r.spec;
+    $('protocol-box').innerHTML = protocolHTML(s, { title: 'unbekanntes Bündel' });
+    $('protocol-box').classList.remove('hidden');
+    r.fields = calcFields(s, false).filter(function (f) { return f.k !== 'S0'; });
+    r.fields.unshift({ k: 'S0', label: 'Querschnitt S<sub>0</sub> (1 Nachkommastelle)', unit: 'mm²', ans: s.sol.S0, kind: 'S0' });
+    G.max += r.fields.length + 1;
+    $('controls').innerHTML = '<h3>1. Kennwerte berechnen</h3>' + fieldsHTML(r.fields) +
+        '<h3 style="margin-top:0.8rem">2. Welcher Stahl ist im Bündel? Vergleiche mit dem Tabellenbuch.</h3>' +
+        '<div class="bins">' + r.pair.map(function (p) { return '<button class="bin" type="button" data-m="' + p + '">' + p + '</button>'; }).join('') + '</div>' +
+        '<div class="row" style="margin-top:0.8rem"><button class="btn" type="button" id="btn-check" disabled>Prüfen</button></div>';
+    r.choice = null;
+    Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (b) {
+        b.addEventListener('click', function () {
+            r.choice = b.getAttribute('data-m');
+            Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (x) { x.style.borderColor = x === b ? '#38bdf8' : ''; });
+            $('btn-check').disabled = false;
+        });
+    });
+    bindCheck(r, function (allOk) {
+        var ok = r.choice === r.name;
+        if (ok) G.points += 1; else G.mistakes.push('Bündel war ' + r.name);
+        Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (x) {
+            x.disabled = true; var m = x.getAttribute('data-m');
+            if (m === r.name) x.classList.add('right'); else if (m === r.choice) x.classList.add('wrong');
+        });
+        var lim = { 'S235JR': 'Rₑ ≥ 235 N/mm², Rₘ 360 … 510 N/mm², A ≥ 26 %', 'E295': 'Rₑ ≥ 295 N/mm², Rₘ 470 … 610 N/mm², A ≥ 20 %', 'S355J2': 'Rₑ ≥ 355 N/mm², Rₘ 470 … 630 N/mm², A ≥ 22 %' };
+        return { html: solutionHTML(s) + '<p>' + (ok ? '✅ Richtig entschieden: ' : '❌ Das Bündel ist ') + '<strong>' + r.name + '</strong>.</p>' +
+            '<p style="color:#94a3b8;font-size:0.92rem">Zum Vergleich (Dicke bis 16 mm, kann je nach Tabellenbuch leicht abweichen):<br>' +
+            r.pair.map(function (p) { return p + ': ' + lim[p]; }).join('<br>') + '</p>', decisionOk: ok };
+    });
+}
+function bindCheck(r, after) {
+    var tried = false;
+    $('btn-check').addEventListener('click', function () {
+        var all = true, nOk = 0;
+        r.fields.forEach(function (f) {
+            var el = $('in-' + f.k), ok = check(parseNum(el.value), f.ans, f.kind);
+            el.classList.toggle('ok', ok); el.classList.toggle('bad', !ok);
+            if (ok) nOk++; else all = false;
+        });
+        if (!all && !tried && !(G.level === 3 && false)) {
+            tried = true;
+            feedback('bad', '<b>Noch nicht alles richtig (' + nOk + ' von ' + r.fields.length + ').</b>Prüfe die roten Felder. Hast du kN in N umgerechnet? Hast du wie angegeben gerundet? Du hast noch einen Versuch.');
+            return;
+        }
+        // Wertung: richtige Felder zählen
+        G.points += nOk;
+        if (!all) G.mistakes.push(r.name + ' (d₀ = ' + r.spec.d + ' mm)');
+        r.fields.forEach(function (f) { $('in-' + f.k).disabled = true; });
+        $('btn-check').disabled = true;
+        var res = after(all);
+        var good = all && (res.decisionOk === undefined || res.decisionOk);
+        feedback(good ? 'ok' : 'bad', '<b>' + (good ? '✅ Super, alles richtig!' : 'So wird gerechnet:') + '</b>' + res.html + nextBtnHTML());
+        bindNext(); hud();
+        $('lbl-marks').classList.remove('hidden');
+    });
+    r.fields.forEach(function (f) { $('in-' + f.k).addEventListener('keydown', function (e) { if (e.key === 'Enter' && !$('btn-check').disabled) $('btn-check').click(); }); });
+}
+
+function finish() {
+    stopRun();
+    var lv = G.level, ratio = G.max ? G.points / G.max : 0, st = starsFor(ratio);
+    if (st > (save.best[lv] || 0)) { save.best[lv] = st; store(); }
+    $('res-title').textContent = LEVELS[lv].name + (st > 0 ? ' geschafft!' : ' – noch nicht geschafft');
+    $('res-stars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st);
+    $('res-text').innerHTML = 'Du hast ' + G.points + ' von ' + G.max + ' Punkten.' + (st === 0 ? ' Für einen Stern brauchst du die Hälfte. Versuch es noch einmal!' : '');
+    var all = [1, 2, 3].every(function (k) { return save.best[k] > 0; });
+    $('badge-end').classList.toggle('hidden', !(all && st > 0));
+    show('screen-result');
+}
+
+function menu() {
+    stopRun();
+    var h = '<div class="level lab"><div class="lv-top"><span class="lv-name">🔬 Freies Labor</span></div>' +
+            '<div class="lv-desc">Teste alle Werkstoffe – auch die Proben aus Bündel 1 und 2 vom Arbeitsblatt.</div>' +
+            '<div class="lv-best">Ohne Punkte</div><button class="btn small" type="button" id="btn-lab">Labor öffnen</button></div>';
+    [1, 2, 3].forEach(function (lv) {
+        var unlocked = lv === 1 || (save.best[lv - 1] > 0);
+        var best = save.best[lv] || 0;
+        h += '<div class="level' + (best > 0 ? ' done' : '') + (unlocked ? '' : ' locked') + '">' +
+             '<div class="lv-top"><span class="lv-name">' + LEVELS[lv].name + '</span><span>' + (unlocked ? '' : '🔒') + '</span></div>' +
+             '<div class="lv-desc">' + LEVELS[lv].desc + '</div>' +
+             '<div class="lv-best">' + (best > 0 ? 'Bestes Ergebnis: ' + '★'.repeat(best) + '☆'.repeat(3 - best) : (unlocked ? 'Noch nicht gespielt' : 'Erst Stufe ' + (lv - 1) + ' schaffen')) + '</div>' +
+             '<button class="btn small" type="button" data-lv="' + lv + '"' + (unlocked ? '' : ' disabled') + '>Starten</button></div>';
+    });
+    $('levels').innerHTML = h;
+    $('btn-lab').addEventListener('click', openLab);
+    Array.prototype.forEach.call(document.querySelectorAll('#levels button[data-lv]'), function (b) {
+        b.addEventListener('click', function () { startLevel(Number(b.getAttribute('data-lv'))); });
+    });
+    $('badge-start').classList.toggle('hidden', ![1, 2, 3].every(function (k) { return save.best[k] > 0; }));
+    show('screen-start');
+}
+
+/* ---------- Bedienelemente ---------- */
+$('sel-mat').innerHTML = LAB_ORDER.map(function (n) { return '<option>' + n + '</option>'; }).join('');
+$('sel-d').innerHTML = DIAMS.map(function (d) { return '<option value="' + d + '"' + (d === 10 ? ' selected' : '') + '>' + d + ' mm</option>'; }).join('');
+$('sel-mat').addEventListener('change', labSpecimen);
+$('sel-d').addEventListener('change', labSpecimen);
+$('btn-run').addEventListener('click', startRun);
+$('btn-reset').addEventListener('click', function () {
+    if (MODE === 'lab') { labSpecimen(); return; }
+    var r = G.rounds[G.i], keep = ST.onBreak;
+    var answered = $('controls').innerHTML !== '';
+    ST.onBreak = answered ? null : keep;
+    setSpecimen(r.spec);
+    if (answered) ST.onBreak = null;
+});
+Array.prototype.forEach.call(document.querySelectorAll('#speed button'), function (b) {
+    b.addEventListener('click', function () {
+        ST.speed = Number(b.getAttribute('data-s'));
+        Array.prototype.forEach.call(document.querySelectorAll('#speed button'), function (x) { x.classList.toggle('on', x === b); });
+    });
+});
+$('chk-marks').addEventListener('change', function () { ST.marks = this.checked; drawChart(ST); });
+$('btn-again').addEventListener('click', function () { startLevel(G.level); });
+$('btn-menu').addEventListener('click', menu);
+$('btn-quit').addEventListener('click', function () {
+    if (MODE !== 'lab' && G && G.i < G.rounds.length && !confirm('Stufe abbrechen? Dein Ergebnis in dieser Stufe zählt dann nicht.')) return;
+    menu();
+});
+
+menu();
+
+/* Testzugang für automatische Prüfung */
+window.__zug = {
+    MAT: MAT, makeSpecimen: makeSpecimen, makeRound: makeRound, genVals: genVals, check: check,
+    state: function () { return { G: G, ST: ST, MODE: MODE }; },
+    finishInstant: finishInstant, startLevel: startLevel, openLab: openLab
+};
+</script>
+</body>
+</html>
