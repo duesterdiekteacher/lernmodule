@@ -268,8 +268,8 @@ var MAT = {
     'PS (Polystyrol)':   { group: 'Kunststoff', typ: 'k1', Re: 0, Rm: 50, A: 3, Ag: 3, Z: 0, info: 'Hart und steif, z. B. für Gehäuse und Verpackungen.' },
     'PA (Polyamid)':     { group: 'Kunststoff', typ: 'k2', Re: 70, Rm: 62, A: 60, Ag: 5, Z: 0, info: 'Hart, aber zäh, z. B. für Zahnräder und Gleitlager.' },
     'PE-LD (Weich-PE)':  { group: 'Kunststoff', typ: 'k3', Re: 0, Rm: 13, A: 500, Ag: 500, Z: 0, info: 'Weich und gummiartig, z. B. für Folien und Tüten.' },
-    'Bündel 1 (Hofmann)':{ group: 'Unbekannter Stahl aus der Handlungssituation', typ: 'yield', fixed: { d: 10, Fe: 24.4, Fm: 42.4, Lu: 60.5, du: 6.2 }, Ag: 13, info: 'Probe aus Bündel 1 – Werte wie auf deinem Arbeitsblatt.' },
-    'Bündel 2 (Hofmann)':{ group: 'Unbekannter Stahl aus der Handlungssituation', typ: 'yield', fixed: { d: 6, Fe: 7.4, Fm: 12.4, Lu: 38.1, du: 3.6 }, Ag: 18, info: 'Probe aus Bündel 2 – Werte wie auf deinem Arbeitsblatt.' }
+    'Bündel 1 (Hofmann)':{ group: 'Unbekannter Stahl aus der Handlungssituation', typ: 'yield', fixed: { d: 14, Fe: 45.4, Fm: 83.1, Lu: 84.7, du: 8.7 }, Ag: 13, info: 'Probe aus Bündel 1 – Werte wie auf deinem Arbeitsblatt.' },
+    'Bündel 2 (Hofmann)':{ group: 'Unbekannter Stahl aus der Handlungssituation', typ: 'yield', fixed: { d: 6, Fe: 7.4, Fm: 12.4, Lu: 38.1, du: 3.6 }, Ag: 18, info: 'Probe aus Bündel 2 – das ist der andere Stahl aus der Handlungssituation.' }
 };
 var LAB_ORDER = Object.keys(MAT);
 var DIAMS = [6, 8, 10, 12, 14, 16, 20];
@@ -718,7 +718,7 @@ function finish() {
 function menu() {
     stopRun();
     var h = '<div class="level lab"><div class="lv-top"><span class="lv-name">🔬 Freies Labor</span></div>' +
-            '<div class="lv-desc">Teste alle Werkstoffe – auch die Proben aus Bündel 1 und 2 vom Arbeitsblatt.</div>' +
+            '<div class="lv-desc">Teste alle Werkstoffe – auch die Probe aus Bündel 1 vom Arbeitsblatt.</div>' +
             '<div class="lv-best">Ohne Punkte</div><button class="btn small" type="button" id="btn-lab">Labor öffnen</button></div>';
     [1].forEach(function (lv) {
         var unlocked = lv === 1 || (save.best[lv - 1] > 0);
