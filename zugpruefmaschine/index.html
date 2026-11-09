@@ -149,7 +149,7 @@ footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem
 <header>
     <div class="logo">🔧</div>
     <h1>Zugprüfmaschine</h1>
-    <p class="sub">Spanne eine Probe ein, ziehe sie bis zum Bruch und werte den Zugversuch aus.</p>
+    <p class="sub">Spanne eine Probe ein, ziehe sie bis zum Bruch und beobachte, was passiert.</p>
 </header>
 
 <!-- START -->
@@ -160,11 +160,8 @@ footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem
             <li>Die Maschine zieht die Probe langsam auseinander, bis sie bricht.</li>
             <li>Dabei zeichnet sie das <b>Spannungs-Dehnungs-Diagramm</b>.</li>
             <li><b>Labor:</b> Teste frei verschiedene Werkstoffe – Stahl, Gusseisen, Aluminium, Kupfer und Kunststoffe.</li>
-            <li><b>Stufe 1:</b> Beobachte genau und beantworte Fragen zum Diagramm.</li>
-            <li><b>Stufe 2:</b> Berechne aus dem Prüfprotokoll die Kennwerte.</li>
-            <li><b>Stufe 3:</b> Hilf der Hofmann Maschinenbau GmbH: Welcher Stahl ist im Bündel?</li>
+            <li><b>Beobachten:</b> Ziehe sechs Werkstoffe und beantworte Fragen zum Diagramm. Sammle Sterne!</li>
         </ul>
-        <div class="book">📘 Für Stufe 2 und 3 brauchst du dein Tabellenbuch und den Taschenrechner. Formeln: Tabelle „Zugversuch“. Stahlwerte: Tabelle „Unlegierte Baustähle“ (Sachwortverzeichnis: Baustahl).</div>
     </div>
     <div class="card">
         <h2>Wähle aus</h2>
@@ -173,11 +170,11 @@ footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem
     <div class="badge hidden" id="badge-start">
         <div class="medal">🏅</div>
         <h2>Prüflabor-Profi!</h2>
-        <p>Du hast alle drei Stufen geschafft.</p>
+        <p>Du hast die Beobachten-Runde mit drei Sternen geschafft.</p>
     </div>
 </section>
 
-<!-- PRÜFSTAND (Labor und Stufen) -->
+<!-- PRÜFSTAND (Labor und Beobachten) -->
 <section id="screen-game" class="hidden">
     <div class="card">
         <div class="hud" id="hud">
@@ -243,7 +240,7 @@ footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem
     <div class="badge hidden" id="badge-end">
         <div class="medal">🏅</div>
         <h2>Prüflabor-Profi!</h2>
-        <p>Du hast alle drei Stufen geschafft. Du kannst einen Zugversuch durchführen und auswerten.</p>
+        <p>Drei Sterne! Du kannst ein Spannungs-Dehnungs-Diagramm sicher lesen.</p>
     </div>
 </section>
 
@@ -278,9 +275,7 @@ var LAB_ORDER = Object.keys(MAT);
 var DIAMS = [6, 8, 10, 12, 14, 16, 20];
 
 var LEVELS = {
-    1: { name: 'Stufe 1: Beobachten', desc: 'Ziehe verschiedene Werkstoffe und beantworte Fragen zum Diagramm.', rounds: 6 },
-    2: { name: 'Stufe 2: Auswerten', desc: 'Lies das Prüfprotokoll und berechne L₀, S₀, Rₑ, Rₘ und A.', rounds: 4 },
-    3: { name: 'Stufe 3: Stahl-Detektiv', desc: 'Welcher Stahl ist im Bündel? Rechne und vergleiche mit dem Tabellenbuch.', rounds: 4 }
+    1: { name: 'Beobachten', desc: 'Ziehe sechs Werkstoffe bis zum Bruch und beantworte je eine Frage zu Maschine und Diagramm.', rounds: 6 }
 };
 
 var KEY = 'lernmodule:zugpruefmaschine';
@@ -295,7 +290,6 @@ function rr(a, b) { return a + Math.random() * (b - a); }
 function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function round(x, d) { var f = Math.pow(10, d || 0); return Math.round(x * f) / f; }
 function de(x, d) { return Number(x).toFixed(d).replace('.', ','); }
-function parseNum(s) { s = String(s || '').trim().replace(/\s+/g, '').replace(',', '.'); if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN; return parseFloat(s); }
 function S0of(d) { return Math.PI * d * d / 4; }
 function show(id) { ['screen-start', 'screen-game', 'screen-result'].forEach(function (s) { $(s).classList.toggle('hidden', s !== id); }); window.scrollTo(0, 0); }
 function starsFor(r) { return r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.5 ? 1 : 0; }
@@ -653,32 +647,10 @@ var Q1 = {
     'PE-LD (Weich-PE)': { q: 'Was fällt bei Weich-PE auf?', a: 'Es dehnt sich sehr weit, bevor es reißt.',
                 w: ['Es hält mehr aus als Stahl.', 'Es bricht wie Glas.', 'Es hat eine Zugfestigkeit von über 1000 N/mm².'], ex: 'Weich-PE ist gummiartig: kleine Festigkeit, aber sehr große Reißdehnung.' }
 };
-function makeRound(level) {
-    if (level === 1) return null;   // wird in startLevel gemischt
-    var d = rnd(DIAMS), name, v;
-    if (level === 2) {
-        name = rnd(['S235JR', 'E295', 'S355J2', 'C45 (vergütet)']);
-        v = genVals(name);
-        return { name: name, spec: makeSpecimen(name, d, v) };
-    }
-    var pair = rnd([['S235JR', 'E295'], ['S235JR', 'S355J2']]);
-    name = rnd(pair);
-    v = genVals(name);
-    return { name: name, pair: pair, spec: makeSpecimen(name, d, v) };
-}
-function genVals(name) {
-    // Werte so gewählt, dass die Entscheidung mit dem Tabellenbuch eindeutig ist
-    if (name === 'S235JR') return { Re: rr(250, 290), Rm: rr(390, 480), A: rr(28, 33), Z: rr(60, 70) };
-    if (name === 'E295')   return { Re: rr(305, 340), Rm: rr(500, 590), A: rr(20.5, 24), Z: rr(50, 60) };
-    if (name === 'S355J2') return { Re: rr(370, 420), Rm: rr(520, 600), A: rr(22.5, 25.5), Z: rr(55, 65) };
-    return { Re: rr(480, 560), Rm: rr(700, 800), A: rr(14, 18), Z: rr(45, 55) };
-}
 function startLevel(level) {
     MODE = level;
     G = { level: level, i: 0, points: 0, max: 0, rounds: [], mistakes: [] };
-    if (level === 1) {
-        G.rounds = shuffle(Object.keys(Q1)).map(function (n) { return { name: n, spec: makeSpecimen(n, 10) }; });
-    } else for (var i = 0; i < LEVELS[level].rounds; i++) G.rounds.push(makeRound(level));
+    G.rounds = shuffle(Object.keys(Q1)).map(function (n) { return { name: n, spec: makeSpecimen(n, 10) }; });
     $('hud').classList.remove('hidden'); $('progress-box').classList.remove('hidden');
     $('lab-ctrl').classList.add('hidden');
     show('screen-game');
@@ -700,23 +672,13 @@ function nextRound() {
     $('controls').innerHTML = ''; $('feedback').innerHTML = ''; $('feedback').classList.add('hidden');
     $('protocol-box').classList.add('hidden');
     r.tries = 0;
-    if (G.level === 1) {
-        $('task').innerHTML = 'Spanne die Probe aus <b>' + r.name + '</b> ein und starte die Prüfung. Beobachte Maschine und Diagramm genau.';
-        $('matinfo').innerHTML = MAT[r.name].info;
-        ST.onBreak = function () { ask1(r); };
-    } else if (G.level === 2) {
-        $('task').innerHTML = 'Prüfe die Probe aus <b>' + r.name + '</b> mit d<sub>0</sub> = <b>' + s.d + ' mm</b>. Werte danach das Prüfprotokoll aus.';
-        $('matinfo').innerHTML = s.typ === 'smooth' ? 'Achtung: Dieser Stahl hat keine ausgeprägte Streckgrenze. Im Protokoll steht deshalb F<sub>p0,2</sub>.' : '';
-        ST.onBreak = function () { ask2(r); };
-    } else {
-        $('task').innerHTML = 'Hofmann Maschinenbau GmbH: Im Lager liegt ein Bündel ohne Etikett. Es ist entweder <b>' + r.pair[0] + '</b> oder <b>' + r.pair[1] + '</b>. Prüfe die Probe (d<sub>0</sub> = ' + s.d + ' mm).';
-        $('matinfo').innerHTML = '';
-        ST.onBreak = function () { ask3(r); };
-    }
+    $('task').innerHTML = 'Spanne die Probe aus <b>' + r.name + '</b> ein und starte die Prüfung. Beobachte Maschine und Diagramm genau.';
+    $('matinfo').innerHTML = MAT[r.name].info;
+    ST.onBreak = function () { ask1(r); };
     setSpecimen(s);
 }
 
-/* Stufe 1: Beobachten */
+/* Beobachten: Fragen zum Diagramm */
 function ask1(r) {
     var q = Q1[r.name], opts = shuffle([q.a].concat(q.w));
     G.max += 2;
@@ -742,111 +704,6 @@ function ask1(r) {
     $('lbl-marks').classList.remove('hidden');
 }
 
-/* Stufe 2 und 3: Rechnen */
-function fieldsHTML(list) {
-    return list.map(function (f) {
-        return '<div class="fieldrow"><label for="in-' + f.k + '">' + f.label + '</label><input class="inp" id="in-' + f.k + '" inputmode="decimal" autocomplete="off"><span class="unit">' + f.unit + '</span></div>';
-    }).join('');
-}
-function check(val, ans, kind) {
-    if (isNaN(val)) return false;
-    if (kind === 'L0') return Math.abs(val - ans) < 0.01;
-    if (kind === 'S0') return Math.abs(val - ans) <= Math.max(0.15, ans * 0.003);
-    if (kind === 'R') return Math.abs(val - ans) <= ans * 0.01 + 1;
-    if (kind === 'A') return Math.abs(val - ans) <= 0.15;
-    return false;
-}
-function calcFields(s, withL0) {
-    var reLab = s.typ === 'smooth' ? 'Dehngrenze R<sub>p0,2</sub>' : 'Streckgrenze R<sub>e</sub>';
-    var f = [];
-    if (withL0) f.push({ k: 'L0', label: 'Anfangsmesslänge L<sub>0</sub>', unit: 'mm', ans: s.sol.L0, kind: 'L0' });
-    f.push({ k: 'S0', label: 'Querschnitt S<sub>0</sub> (1 Nachkommastelle)', unit: 'mm²', ans: s.sol.S0, kind: 'S0' });
-    f.push({ k: 'Re', label: reLab + ' (ganze Zahl)', unit: 'N/mm²', ans: s.sol.Re, kind: 'R' });
-    f.push({ k: 'Rm', label: 'Zugfestigkeit R<sub>m</sub> (ganze Zahl)', unit: 'N/mm²', ans: s.sol.Rm, kind: 'R' });
-    f.push({ k: 'A', label: 'Bruchdehnung A (1 Nachkommastelle)', unit: '%', ans: s.sol.A, kind: 'A' });
-    return f;
-}
-function solutionHTML(s) {
-    var S0 = round(s.S0, 1), feL = s.typ === 'smooth' ? 'p0,2' : 'e';
-    return '<ul>' +
-        '<li>L<sub>0</sub> = 5 · d<sub>0</sub> = 5 · ' + s.d + ' mm = ' + s.L0 + ' mm</li>' +
-        '<li>S<sub>0</sub> = π · d<sub>0</sub>² / 4 = π · (' + s.d + ' mm)² / 4 ≈ ' + de(S0, 1) + ' mm²</li>' +
-        '<li>R<sub>' + feL + '</sub> = F<sub>' + feL + '</sub> / S<sub>0</sub> = ' + Math.round(s.Fe * 1000) + ' N / ' + de(S0, 1) + ' mm² ≈ ' + Math.round(s.sol.Re) + ' N/mm²</li>' +
-        '<li>R<sub>m</sub> = F<sub>m</sub> / S<sub>0</sub> = ' + Math.round(s.Fm * 1000) + ' N / ' + de(S0, 1) + ' mm² ≈ ' + Math.round(s.sol.Rm) + ' N/mm²</li>' +
-        '<li>A = (L<sub>u</sub> – L<sub>0</sub>) / L<sub>0</sub> · 100 % = (' + de(s.Lu, 1) + ' – ' + s.L0 + ') mm / ' + s.L0 + ' mm · 100 % ≈ ' + de(s.sol.A, 1) + ' %</li></ul>';
-}
-function ask2(r) {
-    var s = r.spec;
-    $('protocol-box').innerHTML = protocolHTML(s, { hideL0: true });
-    $('protocol-box').classList.remove('hidden');
-    r.fields = calcFields(s, true);
-    G.max += r.fields.length;
-    $('controls').innerHTML = '<div class="book">Das Protokoll nennt L<sub>0</sub> nicht. Du weißt: Es ist ein Proportionalstab. Rechne Kräfte in N um (1 kN = 1000 N).</div>' +
-        fieldsHTML(r.fields) + '<div class="row" style="margin-top:0.6rem"><button class="btn" type="button" id="btn-check">Prüfen</button></div>';
-    bindCheck(r, function () {
-        return { html: solutionHTML(s), extra: '' };
-    });
-}
-function ask3(r) {
-    var s = r.spec;
-    $('protocol-box').innerHTML = protocolHTML(s, { title: 'unbekanntes Bündel' });
-    $('protocol-box').classList.remove('hidden');
-    r.fields = calcFields(s, false).filter(function (f) { return f.k !== 'S0'; });
-    r.fields.unshift({ k: 'S0', label: 'Querschnitt S<sub>0</sub> (1 Nachkommastelle)', unit: 'mm²', ans: s.sol.S0, kind: 'S0' });
-    G.max += r.fields.length + 1;
-    $('controls').innerHTML = '<h3>1. Kennwerte berechnen</h3>' + fieldsHTML(r.fields) +
-        '<h3 style="margin-top:0.8rem">2. Welcher Stahl ist im Bündel? Vergleiche mit dem Tabellenbuch.</h3>' +
-        '<div class="bins">' + r.pair.map(function (p) { return '<button class="bin" type="button" data-m="' + p + '">' + p + '</button>'; }).join('') + '</div>' +
-        '<div class="row" style="margin-top:0.8rem"><button class="btn" type="button" id="btn-check" disabled>Prüfen</button></div>';
-    r.choice = null;
-    Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (b) {
-        b.addEventListener('click', function () {
-            r.choice = b.getAttribute('data-m');
-            Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (x) { x.style.borderColor = x === b ? '#38bdf8' : ''; });
-            $('btn-check').disabled = false;
-        });
-    });
-    bindCheck(r, function (allOk) {
-        var ok = r.choice === r.name;
-        if (ok) G.points += 1; else G.mistakes.push('Bündel war ' + r.name);
-        Array.prototype.forEach.call(document.querySelectorAll('#controls .bin'), function (x) {
-            x.disabled = true; var m = x.getAttribute('data-m');
-            if (m === r.name) x.classList.add('right'); else if (m === r.choice) x.classList.add('wrong');
-        });
-        var lim = { 'S235JR': 'Rₑ ≥ 235 N/mm², Rₘ 360 … 510 N/mm², A ≥ 26 %', 'E295': 'Rₑ ≥ 295 N/mm², Rₘ 470 … 610 N/mm², A ≥ 20 %', 'S355J2': 'Rₑ ≥ 355 N/mm², Rₘ 470 … 630 N/mm², A ≥ 22 %' };
-        return { html: solutionHTML(s) + '<p>' + (ok ? '✅ Richtig entschieden: ' : '❌ Das Bündel ist ') + '<strong>' + r.name + '</strong>.</p>' +
-            '<p style="color:#94a3b8;font-size:0.92rem">Zum Vergleich (Dicke bis 16 mm, kann je nach Tabellenbuch leicht abweichen):<br>' +
-            r.pair.map(function (p) { return p + ': ' + lim[p]; }).join('<br>') + '</p>', decisionOk: ok };
-    });
-}
-function bindCheck(r, after) {
-    var tried = false;
-    $('btn-check').addEventListener('click', function () {
-        var all = true, nOk = 0;
-        r.fields.forEach(function (f) {
-            var el = $('in-' + f.k), ok = check(parseNum(el.value), f.ans, f.kind);
-            el.classList.toggle('ok', ok); el.classList.toggle('bad', !ok);
-            if (ok) nOk++; else all = false;
-        });
-        if (!all && !tried && !(G.level === 3 && false)) {
-            tried = true;
-            feedback('bad', '<b>Noch nicht alles richtig (' + nOk + ' von ' + r.fields.length + ').</b>Prüfe die roten Felder. Hast du kN in N umgerechnet? Hast du wie angegeben gerundet? Du hast noch einen Versuch.');
-            return;
-        }
-        // Wertung: richtige Felder zählen
-        G.points += nOk;
-        if (!all) G.mistakes.push(r.name + ' (d₀ = ' + r.spec.d + ' mm)');
-        r.fields.forEach(function (f) { $('in-' + f.k).disabled = true; });
-        $('btn-check').disabled = true;
-        var res = after(all);
-        var good = all && (res.decisionOk === undefined || res.decisionOk);
-        feedback(good ? 'ok' : 'bad', '<b>' + (good ? '✅ Super, alles richtig!' : 'So wird gerechnet:') + '</b>' + res.html + nextBtnHTML());
-        bindNext(); hud();
-        $('lbl-marks').classList.remove('hidden');
-    });
-    r.fields.forEach(function (f) { $('in-' + f.k).addEventListener('keydown', function (e) { if (e.key === 'Enter' && !$('btn-check').disabled) $('btn-check').click(); }); });
-}
-
 function finish() {
     stopRun();
     var lv = G.level, ratio = G.max ? G.points / G.max : 0, st = starsFor(ratio);
@@ -854,8 +711,7 @@ function finish() {
     $('res-title').textContent = LEVELS[lv].name + (st > 0 ? ' geschafft!' : ' – noch nicht geschafft');
     $('res-stars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st);
     $('res-text').innerHTML = 'Du hast ' + G.points + ' von ' + G.max + ' Punkten.' + (st === 0 ? ' Für einen Stern brauchst du die Hälfte. Versuch es noch einmal!' : '');
-    var all = [1, 2, 3].every(function (k) { return save.best[k] > 0; });
-    $('badge-end').classList.toggle('hidden', !(all && st > 0));
+    $('badge-end').classList.toggle('hidden', st < 3);
     show('screen-result');
 }
 
@@ -864,7 +720,7 @@ function menu() {
     var h = '<div class="level lab"><div class="lv-top"><span class="lv-name">🔬 Freies Labor</span></div>' +
             '<div class="lv-desc">Teste alle Werkstoffe – auch die Proben aus Bündel 1 und 2 vom Arbeitsblatt.</div>' +
             '<div class="lv-best">Ohne Punkte</div><button class="btn small" type="button" id="btn-lab">Labor öffnen</button></div>';
-    [1, 2, 3].forEach(function (lv) {
+    [1].forEach(function (lv) {
         var unlocked = lv === 1 || (save.best[lv - 1] > 0);
         var best = save.best[lv] || 0;
         h += '<div class="level' + (best > 0 ? ' done' : '') + (unlocked ? '' : ' locked') + '">' +
@@ -878,7 +734,7 @@ function menu() {
     Array.prototype.forEach.call(document.querySelectorAll('#levels button[data-lv]'), function (b) {
         b.addEventListener('click', function () { startLevel(Number(b.getAttribute('data-lv'))); });
     });
-    $('badge-start').classList.toggle('hidden', ![1, 2, 3].every(function (k) { return save.best[k] > 0; }));
+    $('badge-start').classList.toggle('hidden', (save.best[1] || 0) < 3);
     show('screen-start');
 }
 
@@ -906,7 +762,7 @@ $('chk-marks').addEventListener('change', function () { ST.marks = this.checked;
 $('btn-again').addEventListener('click', function () { startLevel(G.level); });
 $('btn-menu').addEventListener('click', menu);
 $('btn-quit').addEventListener('click', function () {
-    if (MODE !== 'lab' && G && G.i < G.rounds.length && !confirm('Stufe abbrechen? Dein Ergebnis in dieser Stufe zählt dann nicht.')) return;
+    if (MODE !== 'lab' && G && G.i < G.rounds.length && !confirm('Runde abbrechen? Dein Ergebnis zählt dann nicht.')) return;
     menu();
 });
 
@@ -914,7 +770,7 @@ menu();
 
 /* Testzugang für automatische Prüfung */
 window.__zug = {
-    MAT: MAT, makeSpecimen: makeSpecimen, makeRound: makeRound, genVals: genVals, check: check,
+    MAT: MAT, makeSpecimen: makeSpecimen,
     state: function () { return { G: G, ST: ST, MODE: MODE }; },
     finishInstant: finishInstant, step: function (dt) { stepRun(dt); }, startLevel: startLevel, openLab: openLab
 };
