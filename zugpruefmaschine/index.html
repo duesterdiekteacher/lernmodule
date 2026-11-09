@@ -440,13 +440,27 @@ function drawMachine(state) {
         h += '<path d="' + specimenPath(yb2, yt2, w, state.neck, -1) + '" fill="url(#gspec)" stroke="#0f172a" stroke-width="1"/>';
         h += '<path d="' + specimenPath(yb2, yt2, w, state.neck, 1) + '" fill="url(#gspec)" stroke="#0f172a" stroke-width="1"/>';
         var yc = (yb2 + yt2) / 2;
-        h += '<text x="' + (CX + 24) + '" y="' + (yc + 5) + '" fill="#f87171" font-size="15" font-weight="bold" font-family="Segoe UI, Arial">Bruch!</text>';
+        h += '<text x="' + (CX + 42) + '" y="' + (yc + 5) + '" fill="#f87171" font-size="15" font-weight="bold" font-family="Segoe UI, Arial">Bruch!</text>';
     }
-    // Messmarken L0
+    // Messmarken: Sie wandern mit der Probe auseinander (aktuelle Länge L, nach dem Bruch Lᵤ).
+    // L₀ bleibt fest: Klammer links mit der Anfangslänge, unten an der unteren Marke angelegt.
     var g0 = yBottom - 44, g1 = yTop + 44, mid = (g0 + g1) / 2, half = (g0 - g1) * 0.42;
-    [mid - half, mid + half].forEach(function (y) { h += '<line x1="' + (CX - 10) + '" x2="' + (CX + 10) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#facc15" stroke-width="2"/>'; });
-    h += '<text x="' + (CX - 30) + '" y="' + (mid + 4).toFixed(1) + '" fill="#facc15" font-size="12" text-anchor="end" font-family="Segoe UI, Arial">L<tspan font-size="9" dy="3">0</tspan></text>';
-    h += '<line x1="' + (CX - 26) + '" x2="' + (CX - 26) + '" y1="' + (mid - half).toFixed(1) + '" y2="' + (mid + half).toFixed(1) + '" stroke="#facc15" stroke-width="1" stroke-dasharray="3 3"/>';
+    var g1s = GRIP_LOW - 20 - L_VIS + 44, half0 = (g0 - g1s) * 0.42;           // Probe vor dem Versuch
+    var mLow = mid + half, mUp = mid - half, l0Top = mLow - 2 * half0;
+    [mUp, mLow].forEach(function (y) { h += '<line x1="' + (CX - 10) + '" x2="' + (CX + 10) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#facc15" stroke-width="2"/>'; });
+    function bracket(x, y1, y2, col, dash) {
+        return '<line x1="' + x + '" x2="' + x + '" y1="' + y1.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="' + col + '" stroke-width="1.5"' + (dash ? ' stroke-dasharray="3 3"' : '') + '/>' +
+               '<line x1="' + (x - 4) + '" x2="' + (x + 4) + '" y1="' + y1.toFixed(1) + '" y2="' + y1.toFixed(1) + '" stroke="' + col + '" stroke-width="1.5"/>' +
+               '<line x1="' + (x - 4) + '" x2="' + (x + 4) + '" y1="' + y2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="' + col + '" stroke-width="1.5"/>';
+    }
+    var xL0 = CX - 32;
+    h += bracket(xL0, l0Top, mLow, '#e2e8f0', false);
+    h += '<text x="' + (xL0 - 6) + '" y="' + ((l0Top + mLow) / 2 + 4).toFixed(1) + '" fill="#e2e8f0" font-size="13" font-weight="bold" text-anchor="end" font-family="Segoe UI, Arial">L<tspan font-size="9" dy="3">0</tspan></text>';
+    if (mLow - mUp > 2 * half0 + 1.5) {                                     // Probe ist länger geworden
+        var xL = CX + 26, lbl = broken ? 'u' : '';
+        h += bracket(xL, mUp, mLow, '#facc15', true);
+        h += '<text x="' + (xL + 7) + '" y="' + (mUp + 14).toFixed(1) + '" fill="#facc15" font-size="13" font-weight="bold" font-family="Segoe UI, Arial">L' + (lbl ? '<tspan font-size="9" dy="3">u</tspan>' : '') + '</text>';
+    }
     // Spannbacken unten
     h += '<path d="M118,' + (GRIP_LOW) + ' L' + (CX - 17) + ',' + (GRIP_LOW + 6) + ' L' + (CX - 17) + ',' + (GRIP_LOW + 46) + ' L112,' + (GRIP_LOW + 46) + ' Z" fill="#64748b"/>';
     h += '<path d="M182,' + (GRIP_LOW) + ' L' + (CX + 17) + ',' + (GRIP_LOW + 6) + ' L' + (CX + 17) + ',' + (GRIP_LOW + 46) + ' L188,' + (GRIP_LOW + 46) + ' Z" fill="#64748b"/>';
