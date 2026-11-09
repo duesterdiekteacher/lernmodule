@@ -774,6 +774,9 @@ window.__zug = {
     state: function () { return { G: G, ST: ST, MODE: MODE }; },
     finishInstant: finishInstant, step: function (dt) { stepRun(dt); }, startLevel: startLevel, openLab: openLab
 };
+
+/* Zurück-Link: Aufruf von der SHK-Seite mit ?von=shk */
+try { if (new URLSearchParams(location.search).get("von") === "shk") document.getElementById("back-link").href = "../shk/#spiele"; } catch (e) {}
 </script>
 </body>
 </html>
