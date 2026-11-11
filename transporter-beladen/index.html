@@ -233,7 +233,11 @@ footer { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 2rem
    Nur Stoffe aus dem SHK-Tabellenbuch. m′-Werte der Kupferrohre sind
    selbst berechnet (ρ = 8,92 kg/dm³), nicht abgeschrieben.
    Dichte: [Prüfwert, Spielraum] in kg/dm³.
+   Mit ?von=metall: Variante für den Bereich Metall (Stoffe aus dem
+   Metall-Tabellenbuch, m′-Werte selbst berechnet mit ρ Stahl = 7,85).
    ===================================================================== */
+var METALL = false;
+try { METALL = new URLSearchParams(location.search).get('von') === 'metall'; } catch (e) {}
 var RHO = { 'Kupfer': [8.92, 0.05], 'Zink': [7.13, 0.08], 'Aluminium': [2.7, 0.03], 'Blei': [11.34, 0.07] };
 var ROHR = [['15 × 1', 0.39], ['18 × 1', 0.48], ['22 × 1', 0.59], ['28 × 1,5', 1.11], ['35 × 1,5', 1.41], ['42 × 1,5', 1.70], ['54 × 2', 2.91]];
 var LEVELS = {
@@ -241,7 +245,7 @@ var LEVELS = {
     2: { name: 'Stufe 2: Bleche', desc: 'Dazu Bleche: m″ = ρ · s selbst berechnen. Mit Tabellenbuch.', rounds: 3 },
     3: { name: 'Stufe 3: Gemischt', desc: 'Alles zusammen, dazu Volumen · Dichte. Mit Tabellenbuch.', rounds: 3 }
 };
-var KEY = 'lernmodule:transporter-beladen';
+var KEY = 'lernmodule:transporter-beladen' + (METALL ? ':metall' : '');
 var save = { best: {} };
 try { var raw = localStorage.getItem(KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) {}
 function store() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
@@ -360,9 +364,86 @@ function makeOrder(level) {
         if (best < cap * 0.7) continue;
         items = shuffle(items);
         items.forEach(function (it, i) { it.id = i; it.solved = !!it.known; it.tries = 0; it.loaded = false; it.firstTry = false; });
-        return { cap: cap, items: items, best: best, site: rnd(['Neubau Einfamilienhaus', 'Altbausanierung', 'Badsanierung', 'Heizungstausch im Mehrfamilienhaus', 'Dachrinne und Anschlüsse', 'Neubau Kita']) };
+        return { cap: cap, items: items, best: best, site: rnd(SITES) };
     }
 }
+var SITES = ['Neubau Einfamilienhaus', 'Altbausanierung', 'Badsanierung', 'Heizungstausch im Mehrfamilienhaus', 'Dachrinne und Anschlüsse', 'Neubau Kita'];
+
+/* ---------- Variante Metall ---------- */
+if (METALL) {
+    RHO = { 'Stahl': [7.85, 0.06], 'Aluminium': [2.7, 0.03], 'Kupfer': [8.96, 0.06] };
+    LEVELS[1].name = 'Stufe 1: Profile';
+    LEVELS[1].desc = 'Stäbe und Profile mit m′ (m = m′ · l) und Geräte. Ohne Tabellenbuch.';
+    SITES = ['Montage Stahltreppe', 'Geländer für ein Mehrfamilienhaus', 'Maschinenaufstellung beim Kunden', 'Umbau einer Werkstatt', 'Carport aus Stahl', 'Wartung in einer Fertigungshalle'];
+    var PROFIL = [['Rundstahl d = 20 mm', 2.47], ['Rundstahl d = 30 mm', 5.55], ['Flachstahl 50 × 10', 3.93], ['Flachstahl 30 × 8', 1.88], ['Vierkant 25 × 25', 4.91], ['Stahlrohr 30 × 3', 2.00]];
+    itRohre = function () {
+        var r = rnd(PROFIL), n = rint(3, 12), L = 6;
+        var m = n * L * r[1];
+        return { name: r[0], emo: '🔩', ds: n + ' Stangen, je ' + L + ' m lang. m′ = ' + de(r[1], 2) + ' kg/m.',
+                 m: m, tol: 0.15, hint: 'm = m′ · l. Gesamtlänge: Anzahl · 6 m.',
+                 expl: n + ' · ' + L + ' m = ' + (n * L) + ' m; m = ' + de(r[1], 2) + ' kg/m · ' + (n * L) + ' m = ' + de(m, 2) + ' kg',
+                 errs: [[r[1] * L, 'Das ist nur eine Stange. Mal die Anzahl!'], [r[1] * n, 'Jede Stange ist 6 m lang. Rechne mit der Gesamtlänge.']] };
+    };
+    itRing = function () {
+        var n = rint(3, 10), e = rnd([15, 18]);
+        return { name: 'Schweißdraht-Spulen', emo: '➰', ds: n + ' Spulen, je ' + e + ' kg.', m: n * e, tol: 0.1, hint: 'Anzahl · Masse je Spule.', expl: n + ' · ' + e + ' kg = ' + (n * e) + ' kg' };
+    };
+    itHeizkoerper = function () {
+        var p = rnd([['Kisten mit Schrauben und Muttern', [12, 18, 25]], ['Schraubstöcke', [16, 22, 28]]]);
+        var n = rint(3, 8), e = rnd(p[1]);
+        return { name: p[0], emo: '📦', ds: n + ' Stück, je ' + e + ' kg.', m: n * e, tol: 0.1, hint: 'Anzahl · Masse je Stück.', expl: n + ' · ' + e + ' kg = ' + (n * e) + ' kg' };
+    };
+    itKnown = function () {
+        return rnd([
+            { name: 'Schweißgerät (MAG)', emo: '⚡', ds: 'Masse laut Datenblatt.', m: rnd([65, 85, 110]) },
+            { name: 'Säulenbohrmaschine', emo: '🛠️', ds: 'Masse laut Datenblatt.', m: rnd([95, 120, 150]) },
+            { name: 'Werkzeugwagen', emo: '🧰', ds: 'Masse laut Packliste.', m: rnd([55, 70, 85]) },
+            { name: 'Gasflasche Argon (voll)', emo: '🧯', ds: 'Masse laut Etikett.', m: rnd([70, 80]) }
+        ]);
+    };
+    itBlech = function () {
+        var b = rnd([['Stahl', 'Stahlblech', [1, 1.5, 2, 3]], ['Aluminium', 'Aluminiumblech', [1, 1.5, 2, 3]], ['Kupfer', 'Kupferblech', [0.5, 0.8, 1]]]);
+        var s = rnd(b[2]), n = rint(4, 15), A = 2;
+        var rho = RHO[b[0]][0], mpp = rho * s, m = n * A * mpp;
+        return { name: b[1] + ', ' + de(s) + ' mm', emo: '🟫', ds: n + ' Tafeln, je 2 m × 1 m.', book: b[0],
+                 m: m, tol: m * relB(b[0]), hint: 'm″ = ρ · s (s in mm). Fläche: Anzahl · 2 m². Dann m = m″ · A.',
+                 expl: 'm″ = ' + de(rho) + ' · ' + de(s) + ' ≈ ' + de(mpp, 2) + ' kg/m²; A = ' + n + ' · 2 m² = ' + (n * A) + ' m²; m ≈ ' + de(m, 1) + ' kg',
+                 errs: [[rho * s * A, 'Das ist nur eine Tafel.'], [rho * s * n, 'Eine Tafel hat 2 m², nicht 1 m².']] };
+    };
+    itBleirolle = function () {
+        var s = rnd([4, 5, 6]), n = rint(2, 8), L = rnd([1, 1.2]), B = 0.5;
+        var A = L * B, rho = RHO['Stahl'][0], m = n * A * rho * s;
+        return { name: 'Zuschnitte Stahlblech, ' + s + ' mm', emo: '▭', ds: n + ' Zuschnitte, je ' + de(L * 1000) + ' mm × 500 mm (für Fußplatten).', book: 'Stahl',
+                 m: m, tol: m * relB('Stahl'), hint: 'm″ = ρ · s. A = Länge · Breite je Zuschnitt (in m), mal Anzahl.',
+                 expl: 'm″ = ' + de(rho) + ' · ' + s + ' ≈ ' + de(rho * s, 2) + ' kg/m²; A = ' + n + ' · ' + de(L) + ' m · 0,5 m = ' + de(n * A) + ' m²; m ≈ ' + de(m, 1) + ' kg',
+                 errs: [[A * rho * s, 'Das ist nur ein Zuschnitt.']] };
+    };
+    itRund = function () {
+        var d = rnd([40, 50, 60]), L = rnd([1, 2, 3]), n = rint(2, 8);
+        var V = Math.PI / 4 * Math.pow(d / 100, 2) * L * 10 * n, rho = RHO['Stahl'][0], m = V * rho;
+        return { name: 'Rundstahl ⌀ ' + d + ' mm (ohne m′)', emo: '🥢', ds: n + ' Stangen, je ' + L + ' m lang (massiv).', book: 'Stahl',
+                 m: m, tol: m * relB('Stahl'), hint: 'In dm rechnen: V = π/4 · d² · l, mal Anzahl. Dann m = V · ρ.',
+                 expl: 'V = π/4 · ' + de(d / 100) + '² · ' + (L * 10) + ' · ' + n + ' ≈ ' + de(V, 3) + ' dm³; m ≈ ' + de(V, 3) + ' · ' + de(rho) + ' ≈ ' + de(m, 1) + ' kg' };
+    };
+    itPlatte = function () {
+        var p = rnd([['Stahl', 'Stahlplatten', [[500, 500, 10], [400, 300, 20], [600, 400, 15]]], ['Aluminium', 'Aluminiumplatten', [[1000, 500, 10], [1000, 1000, 5], [800, 600, 8]]]]);
+        var dm = rnd(p[2]), n = rint(2, 8);
+        var V1 = dm[0] / 100 * dm[1] / 100 * dm[2] / 100, V = V1 * n, rho = RHO[p[0]][0], m = V * rho;
+        return { name: p[1], emo: '⬛', ds: n + ' Stück, je ' + dm[0] + ' × ' + dm[1] + ' × ' + dm[2] + ' mm.', book: p[0],
+                 m: m, tol: m * relB(p[0]), hint: 'Maße in dm, V = l · b · h, mal Anzahl. Dann m = V · ρ.',
+                 expl: 'V = ' + de(dm[0] / 100) + ' · ' + de(dm[1] / 100) + ' · ' + de(dm[2] / 100) + ' · ' + n + ' = ' + de(V, 3) + ' dm³; m ≈ ' + de(V, 3) + ' · ' + de(rho) + ' ≈ ' + de(m, 1) + ' kg',
+                 errs: [[V1 * rho, 'Das ist nur ein Stück.']] };
+    };
+    itWasser = function () {
+        var n = rint(3, 8), l = rnd([10, 20, 25]);
+        var m = n * (l + 1);
+        return { name: 'Kühlschmierstoff (Emulsion)', emo: '💧', ds: n + ' Kanister mit je ' + l + ' Liter. 1 Liter wiegt etwa 1 kg. Ein leerer Kanister wiegt 1 kg.',
+                 m: m, tol: 0.1, hint: '1 Liter wiegt etwa 1 kg. Den Kanister nicht vergessen!',
+                 expl: n + ' · (' + l + ' kg + 1 kg) = ' + m + ' kg', errs: [[n * l, 'Die leeren Kanister wiegen auch etwas: je 1 kg.']] };
+    };
+    try { document.querySelector('.back-link').href = '../metall/#spiele'; } catch (e) {}
+}
+
 // Teile mit bekannter Masse kennzeichnen
 var _itKnown = itKnown;
 itKnown = function () { var x = _itKnown(); x.known = true; x.tol = 0; x.expl = 'Masse steht im Datenblatt.'; return x; };
