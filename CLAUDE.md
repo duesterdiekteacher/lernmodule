@@ -33,5 +33,6 @@
   - Standard: Module 1–4 sind Grundlagen, danach Profi-Module. Ein Thema kann in `tasks.js` `const BASIC_MODULES = [1, 2, 3, 4, 5];` setzen (so bei `mathe-grundlagen-metall` und `werkstoffe-metall`).
 - `_werkzeuge/<thema>/build.py` + `tasks.js`: Lerntexte und Aufgaben eines Themas. Bauen mit `python3 _werkzeuge/<thema>/build.py`, das schreibt die drei HTML-Dateien in den Themenordner.
 - SHK-Module mit Dichte: nur Stoffe verwenden, die im SHK-Tabellenbuch stehen (chemische Elemente, flüssige und gasförmige Stoffe), also z. B. kein Stahl, Messing, Gusseisen, PE, PP. Kupfer 8,92; Heizöl als Bereich 0,8 … 0,86.
+- Metall-Modul mit Dichte (`dichte-metall`): Stoffe aus dem Metall-Tabellenbuch, z. B. Stahl 7,85; Kupfer 8,96; Gusseisen 7,25; Titan 4,5; Messing (CuZn) als Bereich 8,4 … 8,7.
 - Lösungswerte aus Tabellen (ISO 2768, ISO 286) nur als einzelne Übungsfälle in `tasks.js`, nie ganze Tabellen. Vor dem Hochladen gegen unabhängige Nachrechnung prüfen.
 - Vor jedem Hochladen im Browser testen: alle Generatoren mehrfach erzeugen, jedes Modul automatisch lösen, Handybreite 375 px.
