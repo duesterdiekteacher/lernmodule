@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prüfungssimulation AP Teil 1 – Industrie- und Werkzeugmechaniker</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 1.2rem 1rem 4rem; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header.top { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.45rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.12rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card { background: #1e293b; border: 2px solid #334155; border-radius: 16px; padding: 1.4rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.2rem; }
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+.btn { display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600; padding: 0.75rem 1.3rem; border-radius: 10px; color: white; background: linear-gradient(90deg, #0ea5e9, #22c55e); text-decoration: none; }
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.red { background: linear-gradient(90deg, #ef4444, #f97316); }
+.btn.small { padding: 0.4rem 0.85rem; font-size: 0.92rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.info { background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+.warn { border-left-color: #f59e0b; }
+table.tbl { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: 0.95rem; }
+table.tbl th, table.tbl td { border: 1px solid #334155; padding: 0.35rem 0.55rem; text-align: left; }
+table.tbl th { background: #0f172a; color: #38bdf8; }
+
+/* Kopfleiste */
+.bar { position: sticky; top: 0; z-index: 50; background: rgba(15,23,42,0.97); border-bottom: 2px solid #334155; }
+.bar-in { max-width: 980px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.timer { font-family: Consolas, "Courier New", monospace; font-size: 1.5rem; font-weight: 700; color: #4ade80; background: #020617; border: 2px solid #334155; border-radius: 10px; padding: 0.1rem 0.7rem; min-width: 7.2rem; text-align: center; }
+.timer.yellow { color: #fbbf24; border-color: #f59e0b; }
+.timer.red { color: #f87171; border-color: #ef4444; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.6; } }
+.tabs { display: flex; gap: 0.4rem; }
+.tab { background: #1e293b; border: 2px solid #334155; color: #cbd5e1; border-radius: 10px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+.tab.on { border-color: #38bdf8; color: #38bdf8; }
+.btn-draw { background: linear-gradient(90deg, #f59e0b, #f97316); color: #111; border: none; border-radius: 10px; padding: 0.45rem 0.9rem; font: inherit; font-weight: 700; cursor: pointer; }
+.stat { color: #94a3b8; font-size: 0.88rem; }
+
+/* Markierungsbogen */
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 0.35rem; margin-top: 0.6rem; }
+.cell { background: #0f172a; border: 2px solid #334155; border-radius: 8px; text-align: center; font-size: 0.85rem; padding: 0.15rem 0; cursor: pointer; color: #cbd5e1; }
+.cell.ans { border-color: #22c55e; color: #4ade80; }
+.cell.abw { border-color: #64748b; color: #64748b; text-decoration: line-through; }
+.cell .lk { font-size: 0.65rem; display: block; line-height: 1; }
+
+/* Aufgaben */
+.qa { background: #1e293b; border: 2px solid #334155; border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; scroll-margin-top: 80px; }
+.qa.struck { opacity: 0.55; border-style: dashed; }
+.qhead { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.qnr { color: #38bdf8; font-weight: 700; }
+.badge { font-size: 0.8rem; border-radius: 999px; padding: 0.1rem 0.6rem; background: #0f172a; border: 1px solid #334155; color: #94a3b8; }
+.badge.lock { border-color: #f59e0b; color: #fbbf24; }
+.abw-btn { background: #0f172a; border: 2px solid #64748b; color: #cbd5e1; border-radius: 8px; padding: 0.15rem 0.6rem; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.abw-btn.on { background: #64748b; color: #fff; }
+.qtext { margin-bottom: 0.6rem; }
+.qtext b { color: #fbbf24; }
+.opts { display: flex; flex-direction: column; gap: 0.4rem; }
+.opt { display: flex; gap: 0.6rem; align-items: flex-start; background: #0f172a; border: 2px solid #334155; border-radius: 10px; padding: 0.5rem 0.7rem; cursor: pointer; }
+.opt input { display: none; }
+.opt .onr { flex: 0 0 1.7rem; height: 1.7rem; border: 2px solid #64748b; border-radius: 6px; text-align: center; line-height: 1.45rem; font-weight: 700; color: #94a3b8; }
+.opt.sel { border-color: #38bdf8; }
+.opt.sel .onr { background: #38bdf8; border-color: #38bdf8; color: #0f172a; }
+.opt.right { border-color: #22c55e; }
+.opt.wrong { border-color: #ef4444; }
+.part { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 0.8rem 0.9rem; margin-top: 0.7rem; }
+.part .pl { color: #fbbf24; font-weight: 700; margin-right: 0.3rem; }
+.part .pp { float: right; color: #94a3b8; font-size: 0.85rem; }
+.inp, select.sel { background: #020617; color: #f8fafc; border: 2px solid #334155; border-radius: 8px; padding: 0.35rem 0.5rem; font: inherit; }
+.inp { width: 8.5rem; }
+.numrow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.45rem; }
+.numrow label { min-width: 13rem; color: #cbd5e1; }
+textarea.inp { width: 100%; min-height: 6.5rem; resize: vertical; line-height: 1.45; }
+.ord { list-style: none; margin-top: 0.5rem; }
+.ord li { display: flex; align-items: center; gap: 0.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.35rem 0.5rem; margin-bottom: 0.3rem; }
+.ord li .n { color: #38bdf8; font-weight: 700; width: 1.5rem; }
+.ord li .t { flex: 1; }
+.ord button { background: #334155; color: #fff; border: none; border-radius: 6px; width: 2rem; height: 2rem; cursor: pointer; font-size: 1rem; }
+.mrow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+.mrow .ml { flex: 1 1 14rem; }
+.ok { color: #4ade80; }
+.bad { color: #f87171; }
+.muster { background: #052e16; border: 1px solid #166534; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; color: #dcfce7; }
+.yours { background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.4rem; white-space: pre-wrap; color: #e2e8f0; min-height: 2.2rem; }
+.crit { display: flex; gap: 0.5rem; align-items: flex-start; margin-top: 0.35rem; cursor: pointer; }
+.crit input { width: 1.2rem; height: 1.2rem; margin-top: 0.25rem; }
+.expl { color: #cbd5e1; font-size: 0.95rem; margin-top: 0.45rem; }
+
+/* Ergebnis */
+.grade { text-align: center; padding: 1rem 0; }
+.grade .big { font-size: 4rem; font-weight: 800; line-height: 1; }
+.grade .word { font-size: 1.3rem; font-weight: 700; margin-top: 0.3rem; }
+.g1,.g2 { color: #4ade80; } .g3 { color: #a3e635; } .g4 { color: #fbbf24; } .g5,.g6 { color: #f87171; }
+.lfbar { display: grid; grid-template-columns: 14rem 1fr 3.2rem; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; font-size: 0.95rem; }
+.lfbar .track { background: #0f172a; border: 1px solid #334155; height: 14px; border-radius: 999px; overflow: hidden; }
+.lfbar .fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #22c55e); }
+
+/* Zeichnungs-Overlay */
+.ov { position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,0.97); display: flex; flex-direction: column; }
+.ov-head { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; padding: 0.5rem 0.8rem; background: #0f172a; border-bottom: 2px solid #334155; }
+.ov-head .tab { font-size: 0.9rem; }
+.ov-head .sp { flex: 1; }
+.ov-body { flex: 1; overflow: auto; padding: 0.8rem; }
+.paper { background: #fff; color: #000; border-radius: 6px; margin: 0 auto; padding: 0.6rem; }
+.paper svg { display: block; width: 100%; height: auto; }
+.paper.text { max-width: 820px; padding: 1.2rem 1.4rem; font-size: 1rem; line-height: 1.55; }
+.paper.text h3 { color: #000; font-size: 1.15rem; margin: 0.6rem 0 0.3rem; }
+.paper table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.paper th, .paper td { border: 1px solid #000; padding: 0.3rem 0.45rem; text-align: left; vertical-align: top; }
+.paper th { background: #e5e7eb; }
+.zoomctl button { background: #334155; color: #fff; border: none; border-radius: 8px; padding: 0.3rem 0.7rem; font: inherit; font-weight: 700; cursor: pointer; }
+.zoomctl span { color: #cbd5e1; font-size: 0.9rem; min-width: 3.2rem; display: inline-block; text-align: center; }
+
+.modal { position: fixed; inset: 0; z-index: 200; background: rgba(2,6,23,0.8); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.modal .card { max-width: 520px; width: 100%; }
+.toast { position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%); z-index: 150; background: #f59e0b; color: #111; font-weight: 700; padding: 0.6rem 1.1rem; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,.5); }
+
+@media (max-width: 600px) {
+    h1 { font-size: 1.55rem; }
+    .timer { font-size: 1.2rem; min-width: 6rem; }
+    .numrow label { min-width: 100%; }
+    .lfbar { grid-template-columns: 1fr 3rem; }
+    .lfbar .track { grid-column: 1 / 3; grid-row: 2; }
+    .bar-in { padding: 0.4rem 0.6rem; }
+    .stat { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Kopfleiste während der Prüfung -->
+<div class="bar hidden" id="bar">
+    <div class="bar-in">
+        <div class="row" style="gap:.5rem">
+            <div class="timer" id="timer" title="Restzeit">90:00</div>
+            <span class="stat" id="stat"></span>
+        </div>
+        <div class="tabs" id="partTabs">
+            <button class="tab on" data-part="A">Teil A</button>
+            <button class="tab" data-part="B">Teil B</button>
+        </div>
+        <button class="btn-draw" id="drawBtn">📐 Zeichnung</button>
+    </div>
+</div>
+
+<div class="wrap">
+
+<!-- START -->
+<section id="scrStart">
+    <a class="back-link" href="../metall/">← Zurück zur Übersicht Metall</a>
+    <header class="top">
+        <div class="logo">📝</div>
+        <h1>Prüfungssimulation Abschlussprüfung Teil 1</h1>
+        <p class="sub">Industriemechaniker/-in und Werkzeugmechaniker/-in · Schriftliche Aufgabenstellungen</p>
+    </header>
+
+    <div class="card">
+        <h2>So läuft die Prüfung</h2>
+        <ul class="steps">
+            <li>Du hast <b>90 Minuten</b>. Die Uhr läuft oben rückwärts.</li>
+            <li><b>Teil A:</b> 23 Aufgaben zum Ankreuzen. Pro Aufgabe ist genau eine Antwort richtig.</li>
+            <li>In Teil A musst du <b>3 Aufgaben abwählen</b>. Diese werden nicht gewertet. Aufgaben mit 🔒 kannst du nicht abwählen.</li>
+            <li>Wählst du nicht ab, werden die <b>letzten 3 abwählbaren Aufgaben</b> nicht gewertet. So ist es auch in der echten Prüfung.</li>
+            <li><b>Teil B:</b> 8 Aufgaben mit je 10 Punkten. Du rechnest, ordnest zu und schreibst Antworten.</li>
+            <li>Mit dem Knopf <b>📐 Zeichnung</b> öffnest du jederzeit alle Unterlagen. Ein Klick genügt.</li>
+            <li>Am Ende vergleichst du deine Texte mit der Musterlösung. Danach bekommst du Punkte und Note.</li>
+        </ul>
+        <div class="info warn">
+            <b>Hilfsmittel:</b> Tabellenbuch Metall, Taschenrechner, Papier für Nebenrechnungen. Kein Fachbuch.
+        </div>
+        <table class="tbl">
+            <tr><th>Teil</th><th>Aufgaben</th><th>Punkte</th><th>Anteil an der Note</th></tr>
+            <tr><td>A – gebunden</td><td>23, davon 3 abwählen</td><td>20 × 1 Punkt</td><td>50 %</td></tr>
+            <tr><td>B – ungebunden</td><td>8, keine Abwahl</td><td>8 × 10 Punkte</td><td>50 %</td></tr>
+        </table>
+        <p class="stat" style="display:block">Die Aufgaben sind selbst erstellt. Sie sind keine Originalaufgaben der PAL, folgen aber deren Aufbau.</p>
+        <div class="row" style="margin-top:1rem">
+            <button class="btn" id="startBtn">▶ Prüfung starten</button>
+            <button class="btn grey" id="resumeBtn" style="display:none">Weiter zur laufenden Prüfung</button>
+        </div>
+    </div>
+</section>
+
+<!-- PRÜFUNG -->
+<section id="scrExam" class="hidden">
+    <div id="partA">
+        <div class="card">
+            <h2>Teil A – Gebundene Aufgaben</h2>
+            <p>Kreuze pro Aufgabe eine Antwort an. Wähle 3 Aufgaben ab (<span id="abwCount">0</span> von 3 abgewählt).</p>
+            <div class="sheet" id="sheet"></div>
+            <p class="stat" style="display:block;margin-top:.4rem">Grün = beantwortet · durchgestrichen = abgewählt · 🔒 = nicht abwählbar. Klick springt zur Aufgabe.</p>
+        </div>
+        <div id="listA"></div>
+        <div class="row"><button class="btn" id="toB">Weiter zu Teil B →</button></div>
+    </div>
+    <div id="partB" class="hidden">
+        <div class="card">
+            <h2>Teil B – Ungebundene Aufgaben</h2>
+            <p>Arbeite mit den Unterlagen (📐 Zeichnung) und deinem Tabellenbuch. Gib Zahlen mit Komma oder Punkt ein.</p>
+        </div>
+        <div id="listB"></div>
+        <div class="row"><button class="btn grey" id="toA">← Zurück zu Teil A</button></div>
+    </div>
+    <div class="card" style="margin-top:1.5rem">
+        <h3>Fertig?</h3>
+        <p>Wenn du abgibst, kannst du nichts mehr ändern.</p>
+        <div class="row" style="margin-top:.6rem"><button class="btn red" id="submitBtn">Prüfung abgeben</button></div>
+    </div>
+</section>
+
+<!-- SELBSTBEWERTUNG -->
+<section id="scrSelf" class="hidden">
+    <header class="top">
+        <div class="logo">✍️</div>
+        <h1>Selbstbewertung</h1>
+        <p class="sub">Vergleiche deine Antworten mit der Musterlösung. Hake nur ab, was du wirklich geschrieben hast. Sei ehrlich zu dir.</p>
+    </header>
+    <div id="selfList"></div>
+    <div class="row"><button class="btn" id="toResult">Ergebnis anzeigen →</button></div>
+</section>
+
+<!-- ERGEBNIS -->
+<section id="scrResult" class="hidden">
+    <header class="top">
+        <div class="logo">🏁</div>
+        <h1>Dein Ergebnis</h1>
+    </header>
+    <div class="card" id="resCard"></div>
+    <div class="card" id="lfCard"></div>
+    <div class="card">
+        <h2>Lösungen ansehen</h2>
+        <p>Hier siehst du jede Aufgabe mit der richtigen Lösung und einer Erklärung.</p>
+        <div class="row" style="margin-top:.6rem">
+            <button class="btn grey small" id="showRevA">Teil A</button>
+            <button class="btn grey small" id="showRevB">Teil B</button>
+            <button class="btn-draw" id="drawBtn2">📐 Zeichnung</button>
+        </div>
+    </div>
+    <div id="review"></div>
+    <div class="card">
+        <div class="row">
+            <button class="btn" id="newBtn">🔄 Neue Prüfung (neue Zahlen)</button>
+            <a class="btn grey" href="../metall/">Zur Übersicht</a>
+        </div>
+    </div>
+</section>
+
+</div>
+
+<!-- Overlay Unterlagen -->
+<div class="ov hidden" id="ov">
+    <div class="ov-head">
+        <div class="tabs" id="ovTabs" style="flex-wrap:wrap"></div>
+        <span class="sp"></span>
+        <div class="zoomctl row" style="gap:.3rem">
+            <button id="zOut" aria-label="Verkleinern">−</button><span id="zVal">100 %</span><button id="zIn" aria-label="Vergrößern">+</button>
+        </div>
+        <button class="btn-draw" id="ovClose">✕ Schließen</button>
+    </div>
+    <div class="ov-body" id="ovBody"></div>
+</div>
+
+<div class="modal hidden" id="modal"><div class="card" id="modalCard"></div></div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   Grundlagen
+   ============================================================ */
+const KEY = 'ap1-metall-satz1';
+const DURATION = 90 * 60 * 1000;
+const $ = id => document.getElementById(id);
+const fmt = (x, d) => (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace('.', ',');
+const parseNum = s => { if (s === undefined || s === null) return NaN; s = String(s).trim().replace(/\s/g, '').replace(',', '.'); if (s === '') return NaN; return Number(s); };
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rngFor(key) { return mulberry(hashStr(state.seed + ':' + key)); }
+function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
+function shuffle(r, arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+let state = null;
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.seed) return s; } catch (e) {} return null; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function freshState() { return { seed: String(Date.now()) + Math.floor(Math.random() * 1e6), phase: 'exam', start: Date.now(), ansA: {}, abw: [], ansB: {}, self: {}, timeUp: false }; }
+
+const LFNAMES = {
+    LF1: 'LF 1 – Fertigen mit handgeführten Werkzeugen',
+    LF2: 'LF 2 – Fertigen mit Maschinen',
+    LF3: 'LF 3 – Herstellen von Baugruppen',
+    LF4: 'LF 4 – Warten technischer Systeme',
+    LF5: 'LF 5 – Fertigen mit Werkzeugmaschinen',
+    LF6: 'LF 6 – Steuerungstechnik',
+    TM: 'Technische Mathematik',
+    TK: 'Technische Kommunikation'
+};
+
+/* ============================================================
+   TEIL A – gebundene Aufgaben (erste Option = richtig)
+   ============================================================ */
+const A_DEF = [
+ { lf: 'TK', lock: true,
+   q: 'Sieh in die <b>Stückliste</b>. Für welche Position ist der Werkstoff <b>16MnCr5</b> vorgesehen?',
+   o: ['Pos. 4 – Führungsleiste', 'Pos. 3 – Spannbacke', 'Pos. 1 – Grundplatte', 'Pos. 2 – Anschlagleiste', 'Pos. 5 – Zylinderhalter'],
+   e: 'In der Stückliste steht 16MnCr5 bei Pos. 4, den Führungsleisten. Das ist ein Einsatzstahl.' },
+ { lf: 'LF3',
+   q: 'Die Anschlagleiste (Pos. 2) ist aus <b>C45</b>. Was bedeutet diese Bezeichnung?',
+   o: ['Unlegierter Stahl mit etwa 0,45 % Kohlenstoff', 'Stahl mit einer Mindeststreckgrenze von 45 N/mm²', 'Gusseisen mit 4,5 % Kohlenstoff', 'Legierter Stahl mit 45 % Chrom', 'Baustahl mit 450 N/mm² Mindestzugfestigkeit'],
+   e: 'C steht für unlegierten Stahl. Die Zahl geteilt durch 100 ist der Kohlenstoffgehalt in Prozent: 45 : 100 = 0,45 %.' },
+ { lf: 'LF1',
+   q: 'Warum körnt man den Mittelpunkt einer Bohrung vor dem Bohren an?',
+   o: ['Damit die Bohrerspitze geführt wird und der Bohrer nicht verläuft.', 'Damit die Bohrung tiefer wird.', 'Damit der Werkstoff an dieser Stelle härter wird.', 'Damit man das Werkstück nicht spannen muss.', 'Damit man die Bohrung später nicht entgraten muss.'],
+   e: 'Die Körnung ist eine kleine Mulde. Die Bohrerspitze findet darin Halt. So beginnt die Bohrung an der richtigen Stelle.' },
+ { lf: 'TM', lock: true, gen: true },   // 4: Masse Grundplatte
+ { lf: 'LF1',
+   q: 'Ein dünnwandiges Rohr soll von Hand gesägt werden. Welches Sägeblatt wählst du?',
+   o: ['Ein Sägeblatt mit feiner Zahnteilung, damit mindestens 3 Zähne im Eingriff sind.', 'Ein Sägeblatt mit grober Zahnteilung, damit die Späne gut Platz haben.', 'Ein Sägeblatt ohne Schränkung, damit der Schnitt schmal bleibt.', 'Ein Holzsägeblatt, weil es schneller schneidet.', 'Die Zahnteilung ist egal, es zählt nur die Länge des Blattes.'],
+   e: 'Bei dünnen Wänden würden grobe Zähne einhaken und ausbrechen. Mit feiner Teilung sind immer mehrere Zähne im Eingriff.' },
+ { lf: 'LF1',
+   q: 'Für die Gewinde M6 wird ein dreiteiliger Satz Handgewindebohrer verwendet. Woran erkennst du den <b>Vorschneider</b>?',
+   o: ['Er hat einen Ring am Schaft.', 'Er hat zwei Ringe am Schaft.', 'Er hat den kürzesten Anschnitt.', 'Er hat den größten Außendurchmesser.', 'Er ist an der Spitze rot lackiert.'],
+   e: 'Vorschneider: 1 Ring. Mittelschneider: 2 Ringe. Fertigschneider: kein Ring. Der Vorschneider hat den längsten Anschnitt.' },
+ { lf: 'TK', lock: true,
+   q: 'In der Einzelteilzeichnung steht <b>Ø8 H7</b>. Was gibt der Großbuchstabe <b>H</b> an?',
+   o: ['Die Lage des Toleranzfeldes einer Bohrung: Das untere Abmaß ist null.', 'Den Grundtoleranzgrad (die Größe der Toleranz).', 'Die Härte der Bohrungswand.', 'Dass es sich um eine Welle handelt.', 'Dass das obere Abmaß null ist.'],
+   e: 'Großbuchstaben stehen für Bohrungen (Innenmaße), Kleinbuchstaben für Wellen. Bei H ist das untere Abmaß 0. Die Zahl 7 ist der Toleranzgrad.' },
+ { lf: 'LF2',
+   q: 'Warum werden die Bohrungen Ø8 H7 nach dem Bohren gerieben?',
+   o: ['Reiben erzeugt eine maßgenaue Bohrung mit glatter Oberfläche.', 'Reiben ist schneller als Bohren.', 'Beim Reiben entsteht ein Gewinde für die Stifte.', 'Reiben härtet die Bohrungswand.', 'Durch Reiben wird die Bohrung kegelig.'],
+   e: 'Ein Bohrer erreicht etwa IT11 bis IT12. Für H7 und eine geringe Rauheit muss man reiben.' },
+ { lf: 'LF3',
+   q: 'Der Zylinderstift <b>8 m6</b> sitzt in der Bohrung <b>8 H7</b>. Welche Passungsart liegt vor? Nutze dein Tabellenbuch.',
+   o: ['Übergangspassung', 'Spielpassung', 'Übermaßpassung', 'Gleitpassung', 'Es liegt keine Passung vor, weil die Toleranzgrade verschieden sind.'],
+   e: 'H7: 0 bis +15 µm. m6: +6 bis +15 µm. Es kann Spiel (bis 9 µm) oder Übermaß (bis 15 µm) entstehen. Das ist eine Übergangspassung.' },
+ { lf: 'LF3',
+   q: 'Die Zylinderschrauben haben die Festigkeitsklasse <b>8.8</b>. Was bedeutet das?',
+   o: ['Zugfestigkeit 800 N/mm², Streckgrenze 640 N/mm²', 'Zugfestigkeit 88 N/mm²', 'Streckgrenze 800 N/mm², Zugfestigkeit 640 N/mm²', 'Härte 88 HRC', 'Zugfestigkeit 800 N/mm², Bruchdehnung 8 %'],
+   e: 'Erste Zahl × 100 = Zugfestigkeit: 8 × 100 = 800 N/mm². Beide Zahlen multipliziert × 10 = Streckgrenze: 8 × 8 × 10 = 640 N/mm².' },
+ { lf: 'LF3',
+   q: 'Die Anschlagleiste (Pos. 2) wird mit Schrauben (Pos. 7) <b>und</b> Zylinderstiften (Pos. 8) befestigt. Warum braucht man die Stifte?',
+   o: ['Die Stifte legen die Lage genau fest. Die Schrauben haben Spiel im Durchgangsloch.', 'Die Stifte ersetzen eine Schraubensicherung.', 'Die Stifte drücken die Leiste fester auf die Grundplatte.', 'Ohne Stifte könnte man die Leiste nicht demontieren.', 'Die Stifte leiten die Wärme beim Bohren ab.'],
+   e: 'Schrauben halten (kraftschlüssig). Stifte sichern die Lage formschlüssig. Nach einer Demontage sitzt die Leiste wieder genau an der gleichen Stelle.' },
+ { lf: 'TM', lock: true, gen: true },   // 12: Drehzahl Messerkopf
+ { lf: 'LF5',
+   q: 'Welche Aussage zum <b>Gleichlauffräsen</b> trifft zu?',
+   o: ['Schnittbewegung und Vorschub haben an der Eingriffsstelle die gleiche Richtung. Die Maschine braucht einen spielfreien Vorschubantrieb.', 'Schnittbewegung und Vorschub sind an der Eingriffsstelle entgegengesetzt.', 'Der Fräser versucht, das Werkstück vom Tisch abzuheben.', 'Gleichlauffräsen ist nur mit HSS-Fräsern möglich.', 'Die Spandicke beginnt bei null und wird dann größer.'],
+   e: 'Beim Gleichlauf zieht der Fräser das Werkstück mit. Gibt es Spiel in der Spindel, kann das Werkstück ruckartig nachgezogen werden.' },
+ { lf: 'LF5',
+   q: 'Welche Aussage zu den Schneidstoffen <b>Hartmetall</b> und <b>HSS</b> trifft zu?',
+   o: ['Hartmetall erlaubt höhere Schnittgeschwindigkeiten als HSS. Es ist aber spröder.', 'HSS ist härter als Hartmetall.', 'Hartmetall darf nicht wärmer als 200 °C werden.', 'Hartmetall ist zäher und stoßunempfindlicher als HSS.', 'Mit Hartmetall wählt man eine kleinere Drehzahl als mit HSS.'],
+   e: 'Hartmetall bleibt auch bei hohen Temperaturen hart. Deshalb sind hohe Schnittgeschwindigkeiten möglich. Es ist aber empfindlich gegen Stöße.' },
+ { lf: 'LF2',
+   q: 'Welche Aufgabe hat ein Kühlschmierstoff <b>nicht</b>?',
+   o: ['Die Schnittkraft erhöhen.', 'Werkzeug und Werkstück kühlen.', 'Die Reibung an der Schneide verringern.', 'Späne aus der Bohrung spülen.', 'Werkstück und Maschine vor Korrosion schützen.'],
+   e: 'Kühlschmierstoffe kühlen, schmieren, spülen Späne weg und schützen vor Rost. Sie verringern die Schnittkraft eher.' },
+ { lf: 'TK', lock: true,
+   q: 'In der Einzelteilzeichnung zeigt ein Toleranzrahmen mit dem <b>Parallelogramm-Symbol</b> und dem Wert <b>0,05</b> auf die Oberseite. Was bedeutet das?',
+   o: ['Die Oberseite muss zwischen zwei parallelen Ebenen mit 0,05 mm Abstand liegen.', 'Die Plattendicke darf um 0,05 mm abweichen.', 'Die Oberseite muss parallel zur Unterseite sein, Abweichung 0,05 mm.', 'Die Rauheit der Oberseite darf höchstens 0,05 µm betragen.', 'Die Oberseite muss rechtwinklig zur Seitenfläche sein, Toleranz 0,05 mm.'],
+   e: 'Das Parallelogramm ist das Zeichen für Ebenheit. Es ist eine Formtoleranz und braucht keinen Bezug.' },
+ { lf: 'LF2',
+   q: 'Die Bohrungen Ø8 H7 sollen bei vielen Grundplatten schnell geprüft werden. Welches Prüfmittel ist am besten geeignet?',
+   o: ['Grenzlehrdorn', 'Messschieber', 'Haarlineal', 'Grenzrachenlehre', 'Radiuslehre'],
+   e: 'Der Grenzlehrdorn prüft Bohrungen: Die Gutseite muss hineingehen, die Ausschussseite nicht. Die Grenzrachenlehre ist für Wellen.' },
+ { lf: 'LF4',
+   q: 'Was versteht man nach DIN 31051 unter <b>Inspektion</b>?',
+   o: ['Den Istzustand feststellen und beurteilen.', 'Den Sollzustand erhalten, zum Beispiel durch Schmieren.', 'Ein defektes Bauteil austauschen.', 'Die Zuverlässigkeit dauerhaft verbessern.', 'Die Anlage verschrotten und ersetzen.'],
+   e: 'Inspektion = nachsehen und beurteilen. Wartung = Zustand erhalten. Instandsetzung = reparieren. Verbesserung = besser machen als vorher.' },
+ { lf: 'LF4',
+   q: 'In welcher Reihenfolge strömt die Druckluft durch eine Wartungseinheit?',
+   o: ['Filter mit Wasserabscheider → Druckregelventil mit Manometer → Öler (falls vorhanden)', 'Druckregelventil → Filter → Öler', 'Öler → Filter → Druckregelventil', 'Manometer → Öler → Filter', 'Filter → Öler → Druckregelventil'],
+   e: 'Zuerst wird die Luft gereinigt und entwässert. Dann wird der Druck eingestellt. Ganz am Ende kann Öl zugegeben werden.' },
+ { lf: 'LF6',
+   q: 'Das Ventil 1V1 im Schaltplan ist ein <b>5/2-Wegeventil</b>. Was bedeuten die Zahlen?',
+   o: ['5 Anschlüsse und 2 Schaltstellungen', '5 Schaltstellungen und 2 Anschlüsse', '5 bar Betriebsdruck und 2 Zylinder', '2 Eingänge und 5 Ausgänge', '5 Wege und 2 Ventile'],
+   e: 'Die erste Zahl nennt die Anschlüsse (1 bis 5). Die zweite Zahl nennt die Schaltstellungen (zwei Kästchen).' },
+ { lf: 'LF6',
+   q: 'Das Ventil 1V2 drosselt beim Ausfahren die Abluft des Zylinders. Warum wählt man beim doppeltwirkenden Zylinder die <b>Abluftdrosselung</b>?',
+   o: ['Der Kolben ist zwischen zwei Luftpolstern eingespannt. So bewegt er sich gleichmäßig, auch wenn sich die Last ändert.', 'So wird weniger Druckluft verbraucht.', 'Der Zylinder erreicht dadurch eine höhere Kraft.', 'Die Zuluft wird dadurch gereinigt.', 'Damit fährt der Zylinder schneller aus.'],
+   e: 'Bei Zuluftdrosselung kann der Kolben ruckeln (Stick-Slip). Bei Abluftdrosselung bremst das Luftpolster auf der Abluftseite gleichmäßig.' },
+ { lf: 'LF2',
+   q: 'Du bohrst die Kernlöcher an der Ständerbohrmaschine. Welche Schutzmaßnahme ist richtig?',
+   o: ['Das Werkstück sicher spannen (z. B. im Maschinenschraubstock) und keine Handschuhe tragen.', 'Handschuhe tragen, damit die Späne nicht verletzen.', 'Kleine Werkstücke mit der Hand festhalten.', 'Späne bei laufender Spindel mit der Hand entfernen.', 'Die Schutzhaube abnehmen, damit man besser sieht.'],
+   e: 'Handschuhe können vom Bohrer erfasst werden. Ein nicht gespanntes Werkstück kann mitgerissen werden. Späne nur mit Pinsel oder Haken entfernen, bei Stillstand.' },
+ { lf: 'TM', lock: true, gen: true }    // 23: Vorschubgeschwindigkeit
+];
+
+function uniqOpts(list) { // list: [correct, ...]; entfernt doppelte Texte
+    const seen = new Set(); const out = [];
+    list.forEach(t => { if (!seen.has(t)) { seen.add(t); out.push(t); } });
+    return out;
+}
+function genA(i) {
+    const r = rngFor('A' + i);
+    if (i === 4) {
+        return { q: 'Berechne die Masse der Grundplatte (Pos. 1) <b>ohne</b> Bohrungen und Fasen. Die Maße stehen in der Einzelteilzeichnung. Dichte Stahl: ρ = 7,85 kg/dm³.',
+                 o: ['2,51 kg', '25,12 kg', '0,25 kg', '3,40 kg', '1,26 kg'],
+                 e: 'V = 1,6 dm · 1,0 dm · 0,2 dm = 0,32 dm³. m = V · ρ = 0,32 dm³ · 7,85 kg/dm³ ≈ 2,51 kg.' };
+    }
+    if (i === 12) {
+        const vc = pick(r, [120, 140, 150, 160, 180, 200]);
+        const n = vc * 1000 / (Math.PI * 63);
+        const o = uniqOpts([Math.round(n), Math.round(vc * 1000 / 63), Math.round(vc * 1000 / (Math.PI * 31.5)), Math.round(vc * 100 / (Math.PI * 63)), Math.round(vc * 1000 * Math.PI / 63)].map(x => x.toLocaleString('de-DE') + ' 1/min'));
+        return { q: `Die Oberseite der Grundplatte wird mit einem Messerkopf <b>Ø63 mm</b> plangefräst. Die Schnittgeschwindigkeit ist <b>v<sub>c</sub> = ${vc} m/min</b>. Welche Drehzahl stellst du ungefähr ein?`,
+                 o, e: `n = v<sub>c</sub> · 1000 / (π · d) = ${vc} · 1000 / (π · 63) ≈ ${Math.round(n)} 1/min. Die 1000 rechnet Meter in Millimeter um.` };
+    }
+    if (i === 23) {
+        const n = pick(r, [500, 630, 710, 800, 900]);
+        const fz = pick(r, [0.08, 0.1, 0.12, 0.15]);
+        const vf = n * 5 * fz;
+        const f = x => fmt(x, 1) + ' mm/min';
+        const o = uniqOpts([f(vf), f(n * fz), f(vf * 10), f(vf / 60), f(n * 5 / fz / 100)]);
+        return { q: `Der Messerkopf hat <b>z = 5</b> Schneiden. Die Drehzahl ist <b>n = ${n} 1/min</b>, der Vorschub je Schneide <b>f<sub>z</sub> = ${fmt(fz, 2)} mm</b>. Wie groß ist die Vorschubgeschwindigkeit v<sub>f</sub>?`,
+                 o, e: `v<sub>f</sub> = n · z · f<sub>z</sub> = ${n} · 5 · ${fmt(fz, 2)} mm = ${fmt(vf, 1)} mm/min.` };
+    }
+}
+let A = [];
+function buildA() {
+    A = A_DEF.map((d, idx) => {
+        const nr = idx + 1;
+        const base = d.gen ? genA(nr) : { q: d.q, o: d.o, e: d.e };
+        const r = rngFor('Aorder' + nr);
+        const order = shuffle(r, base.o.map((_, k) => k)); // order[pos] = original index
+        return { nr, lf: d.lf, lock: !!d.lock, q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
+    });
+}
+
+/* ============================================================
+   TEIL B – ungebundene Aufgaben
+   Teiltypen: order, num (Felder), select, match, text (Selbstbewertung)
+   ============================================================ */
+let B = [];
+function buildB() {
+    const r3 = rngFor('B3'), r5 = rngFor('B5'), r8 = rngFor('B8');
+    const vc3 = pick(r3, [20, 22, 25, 28, 30]);
+    const n3 = vc3 * 1000 / (Math.PI * 6.8);
+    const p5 = pick(r5, [5, 5.5, 6, 6.5, 7]);
+    const A5 = Math.PI / 4 * 32 * 32, AR = Math.PI / 4 * (32 * 32 - 12 * 12);
+    const F5 = p5 * 0.1 * A5, FR = p5 * 0.1 * AR;
+    // Istmaße für Prüfprotokoll
+    const ist = [];
+    const mk = (name, ok, okVals, badVals) => ist.push({ name, ok, val: ok ? pick(r8, okVals) : pick(r8, badVals) });
+    mk('Stiftabstand 60 ±0,02', r8() < 0.5, ['59,985', '60,012', '60,018', '59,991'], ['60,025', '59,975', '60,031', '59,978']);
+    mk('Dicke 20 ±0,05', r8() < 0.5, ['20,04', '19,96', '20,02', '19,97'], ['20,07', '19,93', '20,06', '19,94']);
+    mk('Länge 160 (ISO 2768-m)', r8() < 0.5, ['160,4', '159,7', '160,3', '159,6'], ['160,6', '159,4', '160,7', '159,3']);
+    mk('Bohrung Ø8 H7', r8() < 0.5, ['8,012', '8,004', '8,009', '8,014'], ['7,997', '8,018', '8,021', '7,995']);
+
+    B = [
+    { id: 'B1', title: 'Arbeitsplan für die Stiftbohrungen', intro: 'In die Grundplatte (Pos. 1) sollen die Bohrungen 1 und 2 (Ø8 H7) gefertigt werden. Sieh dir die Einzelteilzeichnung an.',
+      parts: [
+        { id: 'a', type: 'order', pts: 6, lf: 'LF2', q: 'Bringe die Arbeitsschritte in die richtige Reihenfolge. Nutze die Pfeile.',
+          items: ['Bohrungsmittelpunkte nach Maßen anreißen', 'Mittelpunkte ankörnen', 'Mit Ø7,8 mm vorbohren', 'Bohrungen beidseitig leicht ansenken (entgraten)', 'Mit Maschinenreibahle Ø8 H7 reiben', 'Bohrungen mit Grenzlehrdorn prüfen'],
+          e: 'Erst anreißen und körnen, dann vorbohren und entgraten, dann reiben. Zum Schluss prüfen.' },
+        { id: 'b', type: 'num', pts: 2, lf: 'LF2', q: 'Welchen Durchmesser wählst du zum Vorbohren? Die Reibzugabe ist 0,2 mm.',
+          fields: [{ label: 'Vorbohr-Durchmesser', unit: 'mm', ans: 7.8, tol: 0.05, show: '7,8' }],
+          e: '8 mm − 0,2 mm Reibzugabe = 7,8 mm.' },
+        { id: 'c', type: 'text', pts: 2, lf: 'LF2', q: 'Nenne zwei Fehler, die man beim Reiben vermeiden muss.',
+          crit: [{ t: 'Ein richtiger Fehler genannt, z. B.: Reibahle rückwärts drehen, ohne Schmierung reiben, schief ansetzen, zu große Reibzugabe, zu hohe Drehzahl.', p: 1 },
+                 { t: 'Einen zweiten, anderen richtigen Fehler genannt.', p: 1 }],
+          muster: 'Die Reibahle nie rückwärts drehen (Schneiden brechen aus). Immer schmieren. Gerade ansetzen. Nicht zu viel Zugabe lassen. Bei Maschinenreibahlen Drehzahl klein und Vorschub eher groß wählen.' }
+      ] },
+    { id: 'B2', title: 'Passung Ø8 H7/m6', intro: 'Der Zylinderstift 8 m6 (Pos. 8) sitzt in der Bohrung 8 H7 der Grundplatte. Suche die Abmaße in deinem Tabellenbuch (Tabelle ISO-Toleranzen bzw. Grenzabmaße für Bohrungen und Wellen, über das Sachwortverzeichnis „Passungen“).',
+      parts: [
+        { id: 'a', type: 'num', pts: 4, lf: 'TK', q: 'Gib die Grenzabmaße in <b>µm</b> ein. Vorzeichen nicht vergessen (Plus kannst du weglassen).',
+          fields: [{ label: 'Bohrung H7: oberes Abmaß ES', unit: 'µm', ans: 15, tol: 0.1, show: '+15' },
+                   { label: 'Bohrung H7: unteres Abmaß EI', unit: 'µm', ans: 0, tol: 0.1, show: '0' },
+                   { label: 'Welle m6: oberes Abmaß es', unit: 'µm', ans: 15, tol: 0.1, show: '+15' },
+                   { label: 'Welle m6: unteres Abmaß ei', unit: 'µm', ans: 6, tol: 0.1, show: '+6' }],
+          e: 'H7 im Bereich über 6 bis 10 mm: +15 / 0 µm. m6 im gleichen Bereich: +15 / +6 µm.' },
+        { id: 'b', type: 'num', pts: 4, lf: 'TM', q: 'Berechne Höchstspiel und Höchstübermaß. Gib die Beträge in <b>µm</b> ein.',
+          fields: [{ label: 'Höchstspiel P<sub>SH</sub> = ES − ei', unit: 'µm', ans: 9, tol: 0.1, show: '9' },
+                   { label: 'Höchstübermaß P<sub>ÜH</sub> = EI − es (Betrag)', unit: 'µm', ans: 15, tol: 0.1, show: '15' }],
+          e: 'Höchstspiel = 15 − 6 = 9 µm. Höchstübermaß = 0 − 15 = −15 µm, also 15 µm Übermaß.' },
+        { id: 'c', type: 'select', pts: 2, lf: 'LF3', q: 'Welche Passungsart liegt vor?',
+          options: ['Übergangspassung', 'Spielpassung', 'Übermaßpassung'], ans: 0,
+          e: 'Es kann Spiel oder Übermaß entstehen. Das ist eine Übergangspassung.' }
+      ] },
+    { id: 'B3', title: 'Gewinde herstellen', intro: 'In der Grundplatte sind Gewinde M8 und M6 vorgesehen (Bohrungstabelle).',
+      parts: [
+        { id: 'a', type: 'num', pts: 4, lf: 'LF2', q: 'Bestimme mit dem Tabellenbuch die Kernlochdurchmesser für Regelgewinde.',
+          fields: [{ label: 'Kernlochbohrer für M8', unit: 'mm', ans: 6.8, tol: 0.05, show: '6,8' },
+                   { label: 'Kernlochbohrer für M6', unit: 'mm', ans: 5.0, tol: 0.05, show: '5,0' }],
+          e: 'Faustformel: Kernloch ≈ Nenndurchmesser − Steigung. M8: 8 − 1,25 = 6,75 → 6,8 mm. M6: 6 − 1 = 5 mm.' },
+        { id: 'b', type: 'num', pts: 3, lf: 'TM', q: `Berechne die Drehzahl für den Kernlochbohrer M8 (HSS). Die Schnittgeschwindigkeit ist <b>v<sub>c</sub> = ${vc3} m/min</b>. Runde auf eine ganze Zahl.`,
+          fields: [{ label: 'Drehzahl n', unit: '1/min', ans: n3, tol: n3 * 0.015, show: String(Math.round(n3)) }],
+          e: `n = v<sub>c</sub> · 1000 / (π · d) = ${vc3} · 1000 / (π · 6,8) ≈ ${Math.round(n3)} 1/min.` },
+        { id: 'c', type: 'text', pts: 3, lf: 'LF2', q: 'Die Kernlöcher für M6 werden 15 mm tief gebohrt, das Gewinde ist nur 12 mm tief. Warum? Und warum senkt man das Kernloch vor dem Gewindeschneiden an?',
+          crit: [{ t: 'Der Gewindebohrer hat einen Anschnitt. Die ersten Gänge sind nicht voll ausgeschnitten.', p: 1 },
+                 { t: 'Unten braucht man Platz für die Späne (und die Bohrerspitze).', p: 1 },
+                 { t: 'Ansenken: Der Gewindebohrer setzt leichter und gerade an, und es wird kein Grat aufgeworfen.', p: 1 }],
+          muster: 'Der Gewindebohrer hat vorne einen kegeligen Anschnitt. Dort entsteht kein volles Gewinde. Außerdem sammeln sich unten die Späne. Darum bohrt man tiefer. Das Ansenken hilft beim geraden Ansetzen und verhindert, dass sich der erste Gewindegang aufwirft.' }
+      ] },
+    { id: 'B4', title: 'Pneumatikschaltplan', intro: 'Sieh dir den Schaltplan der Spannvorrichtung an. In der gezeichneten Stellung ist der Zylinder eingefahren.',
+      parts: [
+        { id: 'a', type: 'match', pts: 4, lf: 'LF6', q: 'Ordne den Kennzeichnungen das richtige Bauteil zu.',
+          rows: ['1A1', '1V1', '1V2', '0Z1'],
+          options: ['Doppeltwirkender Zylinder', '5/2-Wegeventil mit Handhebel und Raste', 'Drosselrückschlagventil', 'Wartungseinheit (Druckluftaufbereitung)'],
+          ans: [0, 1, 2, 3],
+          e: '1A1 = Zylinder (Antrieb), 1V1 = Wegeventil, 1V2 = Drosselrückschlagventil, 0Z1 = Wartungseinheit.' },
+        { id: 'b', type: 'select', pts: 2, lf: 'LF6', q: 'Über welchen Anschluss von 1V1 strömt die Druckluft in den Kolbenraum, wenn der Zylinder ausfährt (spannt)?',
+          options: ['Anschluss 4', 'Anschluss 2', 'Anschluss 1', 'Anschluss 3', 'Anschluss 5'], ans: 0,
+          e: 'Die Leitung von Anschluss 4 führt zum Kolbenraum (links). Anschluss 2 führt über 1V2 zum Ringraum.' },
+        { id: 'c', type: 'text', pts: 4, lf: 'LF6', q: 'Der Handhebel von 1V1 wird umgelegt. Beschreibe, was in der Steuerung passiert, bis das Werkstück gespannt ist.',
+          crit: [{ t: '1V1 schaltet um: Druckluft strömt von 1 nach 4 in den Kolbenraum.', p: 1 },
+                 { t: 'Der Kolben fährt aus, die Spannbacke spannt das Werkstück.', p: 1 },
+                 { t: 'Die Luft aus dem Ringraum muss durch die Drossel von 1V2 (Rückschlagventil sperrt) – darum fährt der Zylinder langsam aus.', p: 1 },
+                 { t: 'Die Abluft strömt in 1V1 von 2 nach 3 ins Freie. Die Raste hält das Ventil in Stellung.', p: 1 }],
+          muster: 'Das Ventil 1V1 schaltet um. Druckluft strömt von 1 nach 4 und in den Kolbenraum. Der Kolben fährt aus. Die Luft im Ringraum muss raus. Das Rückschlagventil in 1V2 sperrt, also strömt sie durch die Drossel. Dadurch fährt der Zylinder langsam und gleichmäßig. Im Ventil strömt die Abluft von 2 nach 3 ins Freie. Durch die Raste bleibt das Ventil geschaltet, das Werkstück bleibt gespannt.' }
+      ] },
+    { id: 'B5', title: 'Kraft des Pneumatikzylinders', intro: `Daten des Zylinders (Pos. 6): Kolbendurchmesser D = 32 mm, Kolbenstange d = 12 mm. Betriebsdruck <b>p<sub>e</sub> = ${fmt(p5, 1)} bar</b>, Wirkungsgrad η = 0,85. Hinweis: 1 bar = 0,1 N/mm². Rechne mit der π-Taste und runde auf eine Nachkommastelle.`,
+      parts: [
+        { id: 'a', type: 'num', pts: 4, lf: 'TM', q: 'Ausfahren: Berechne Kolbenfläche und wirksame Kolbenkraft.',
+          fields: [{ label: 'Kolbenfläche A', unit: 'mm²', ans: A5, tol: A5 * 0.01, show: fmt(A5, 1) },
+                   { label: 'Wirksame Kraft F (mit η)', unit: 'N', ans: F5 * 0.85, tol: F5 * 0.85 * 0.01, show: fmt(F5 * 0.85, 1) }],
+          e: `A = π · D² / 4 = π · 32² / 4 ≈ ${fmt(A5, 1)} mm². F = p · A · η = ${fmt(p5 * 0.1, 2)} N/mm² · ${fmt(A5, 1)} mm² · 0,85 ≈ ${fmt(F5 * 0.85, 1)} N.` },
+        { id: 'b', type: 'num', pts: 4, lf: 'TM', q: 'Einfahren: Die Luft drückt nur auf die Ringfläche. Berechne Ringfläche und wirksame Kraft.',
+          fields: [{ label: 'Ringfläche A<sub>R</sub>', unit: 'mm²', ans: AR, tol: AR * 0.01, show: fmt(AR, 1) },
+                   { label: 'Wirksame Kraft F<sub>R</sub> (mit η)', unit: 'N', ans: FR * 0.85, tol: FR * 0.85 * 0.01, show: fmt(FR * 0.85, 1) }],
+          e: `A<sub>R</sub> = π · (D² − d²) / 4 = π · (32² − 12²) / 4 ≈ ${fmt(AR, 1)} mm². F<sub>R</sub> = ${fmt(p5 * 0.1, 2)} · ${fmt(AR, 1)} · 0,85 ≈ ${fmt(FR * 0.85, 1)} N.` },
+        { id: 'c', type: 'select', pts: 2, lf: 'LF6', q: 'Warum ist die Kraft beim Einfahren kleiner?',
+          options: ['Die Kolbenstange verkleinert die wirksame Fläche.', 'Beim Einfahren ist der Druck kleiner.', 'Die Drossel 1V2 senkt den Druck dauerhaft.', 'Die Reibung ist beim Einfahren doppelt so groß.'], ans: 0,
+          e: 'Auf der Stangenseite nimmt die Kolbenstange einen Teil der Fläche weg. Bei gleichem Druck ist die Kraft deshalb kleiner.' }
+      ] },
+    { id: 'B6', title: 'Instandhaltung der Vorrichtung', intro: 'Die Spannvorrichtung ist seit einem Jahr im Einsatz und soll instand gehalten werden.',
+      parts: [
+        { id: 'a', type: 'match', pts: 4, lf: 'LF4', q: 'Ordne jede Tätigkeit der richtigen Maßnahme nach DIN 31051 zu.',
+          rows: ['Filter der Wartungseinheit reinigen und Kondensat ablassen', 'Schläuche und Verschraubungen auf Risse und Undichtheit sichtprüfen', 'Defekte Dichtung der Kolbenstange austauschen', 'Einen größeren Zylinder einbauen, damit die Spannkraft dauerhaft reicht'],
+          options: ['Wartung', 'Inspektion', 'Instandsetzung', 'Verbesserung'],
+          ans: [0, 1, 2, 3],
+          e: 'Reinigen = Wartung. Prüfen = Inspektion. Reparieren = Instandsetzung. Dauerhaft besser machen = Verbesserung.' },
+        { id: 'b', type: 'select', pts: 2, lf: 'LF4', q: 'Der Zylinder spannt nicht mehr fest genug. Was ist die wahrscheinlichste Ursache?',
+          options: ['Der Betriebsdruck ist zu niedrig, z. B. wegen einer Undichtheit oder falsch eingestelltem Druckregelventil.', 'Die Drossel von 1V2 ist zu weit geöffnet.', 'Die Raste von 1V1 ist zu stark.', 'Die Führungsleisten sind aus Einsatzstahl.'], ans: 0,
+          e: 'Die Spannkraft hängt vom Druck ab (F = p · A · η). Die Drossel ändert nur die Geschwindigkeit.' },
+        { id: 'c', type: 'text', pts: 4, lf: 'LF4', q: 'Nenne vier Sicherheitsmaßnahmen, bevor du an der Vorrichtung arbeitest.',
+          crit: [{ t: 'Druckluftzufuhr absperren.', p: 1 }, { t: 'Gegen Wiedereinschalten sichern (z. B. Schloss, Warnschild).', p: 1 },
+                 { t: 'Anlage entlüften und Drucklosigkeit prüfen (Manometer).', p: 1 }, { t: 'Persönliche Schutzausrüstung, z. B. Schutzbrille, oder: Zylinder in sichere Stellung bringen, Werkstück entnehmen.', p: 1 }],
+          muster: 'Druckluft am Hauptventil absperren. Gegen Wiedereinschalten sichern und ein Warnschild anbringen. Die Anlage entlüften und am Manometer prüfen, dass sie drucklos ist. Schutzbrille tragen. Werkstück entnehmen, Zylinder in sichere Endlage bringen.' }
+      ] },
+    { id: 'B7', title: 'Werkstoffe und Wärmebehandlung', intro: 'Sieh in die Stückliste. Für die Bauteile wurden verschiedene Stähle gewählt.',
+      parts: [
+        { id: 'a', type: 'match', pts: 3, lf: 'TK', q: 'Ordne jedem Bauteil den Werkstoff aus der Stückliste zu.',
+          rows: ['Grundplatte (Pos. 1)', 'Spannbacke (Pos. 3)', 'Führungsleiste (Pos. 4)'],
+          options: ['S235JR', 'C45', '16MnCr5'], ans: [0, 1, 2],
+          e: 'Grundplatte: S235JR. Spannbacke: C45 (vergütet). Führungsleiste: 16MnCr5 (einsatzgehärtet).' },
+        { id: 'b', type: 'text', pts: 4, lf: 'LF3', q: 'Die Spannbacke aus C45 wird <b>vergütet</b>. Beschreibe die zwei Schritte des Vergütens und das Ziel.',
+          crit: [{ t: 'Härten: Erwärmen auf Härtetemperatur (bei C45 etwa 820–860 °C) …', p: 1 },
+                 { t: '… und schnell abschrecken (Wasser oder Öl).', p: 1 },
+                 { t: 'Anlassen: erneut erwärmen auf eine hohe Anlasstemperatur (etwa 550–660 °C) und abkühlen.', p: 1 },
+                 { t: 'Ziel: hohe Festigkeit bei guter Zähigkeit.', p: 1 }],
+          muster: 'Vergüten = Härten + Anlassen bei hoher Temperatur. Beim Härten wird der Stahl auf etwa 820 bis 860 °C erwärmt und dann schnell in Wasser oder Öl abgeschreckt. Er wird hart, aber spröde. Beim Anlassen wird er wieder auf etwa 550 bis 660 °C erwärmt. So wird er zäher. Das Ergebnis ist ein fester und zäher Stahl.' },
+        { id: 'c', type: 'select', pts: 3, lf: 'LF3', q: 'Warum werden die Führungsleisten aus 16MnCr5 <b>einsatzgehärtet</b>?',
+          options: ['Die Oberfläche wird hart und verschleißfest, der Kern bleibt zäh.', 'Das ganze Bauteil wird durch und durch glashart.', 'Der Stahl wird weicher und lässt sich besser zerspanen.', 'Der Stahl rostet danach nicht mehr.'], ans: 0,
+          e: 'Beim Einsatzhärten wird die Randschicht mit Kohlenstoff angereichert und dann gehärtet. Der Kern bleibt zäh. Das ist ideal für Führungen.' }
+      ] },
+    { id: 'B8', title: 'Prüfen der Grundplatte', intro: 'Eine gefertigte Grundplatte wird geprüft. Nutze die Einzelteilzeichnung und dein Tabellenbuch.',
+      parts: [
+        { id: 'a', type: 'num', pts: 2, lf: 'LF2', q: 'Bestimme die Toleranz und die Allgemeintoleranz.',
+          fields: [{ label: 'Toleranz T für 60 ±0,02', unit: 'mm', ans: 0.04, tol: 0.0005, show: '0,04' },
+                   { label: 'Grenzabmaß für 160 nach ISO 2768-m (±)', unit: 'mm', ans: 0.5, tol: 0.005, show: '0,5' }],
+          e: 'T = Höchstmaß − Mindestmaß = 60,02 − 59,98 = 0,04 mm. ISO 2768-m für über 120 bis 400 mm: ±0,5 mm.' },
+        { id: 'b', type: 'match', pts: 4, lf: 'LF2', q: 'Prüfprotokoll: Entscheide für jedes Istmaß, ob es in Ordnung ist.',
+          rows: ist.map(x => `${x.name} – Istmaß ${x.val} mm`), options: ['i. O.', 'n. i. O.'],
+          ans: ist.map(x => x.ok ? 0 : 1), keepOrder: true,
+          e: 'Grenzmaße: 59,98 … 60,02 · 19,95 … 20,05 · 159,5 … 160,5 · 8,000 … 8,015 mm.' },
+        { id: 'c', type: 'text', pts: 4, lf: 'LF2', q: 'Beim Messen mit dem Messschieber können Fehler entstehen. Nenne zwei Ursachen und je eine Abhilfe.',
+          crit: [{ t: 'Ursache 1, z. B. Parallaxe (schräg abgelesen), Kippen des Messschiebers, zu große Messkraft, Schmutz/Grat, Temperatur.', p: 1 },
+                 { t: 'Passende Abhilfe zu Ursache 1.', p: 1 },
+                 { t: 'Ursache 2 (andere Ursache).', p: 1 },
+                 { t: 'Passende Abhilfe zu Ursache 2.', p: 1 }],
+          muster: 'Schräg abgelesen (Parallaxe) → senkrecht auf die Skala sehen. Messschieber verkantet → Messschenkel gerade und nah an der Schiene ansetzen. Zu fest gedrückt → mit gleichmäßiger, kleiner Messkraft messen. Schmutz oder Grat → Werkstück reinigen und entgraten. Werkstück warm → bei 20 °C messen.' }
+      ] }
+    ];
+}
+
+/* ============================================================
+   ZEICHNUNGEN (selbst gezeichnet, SVG)
+   ============================================================ */
+const SVGSTYLE = `<style>
+.v{stroke:#000;stroke-width:1.7;fill:none}.vf{stroke:#000;stroke-width:1.7;fill:#fff}.t{stroke:#000;stroke-width:.7;fill:none}
+.h{stroke:#000;stroke-width:.9;stroke-dasharray:5 3;fill:none}.c{stroke:#000;stroke-width:.6;stroke-dasharray:16 3 2 3;fill:none}
+.p{stroke:#444;stroke-width:.9;stroke-dasharray:12 3 2 3 2 3;fill:none}.d{stroke:#000;stroke-width:.6;fill:none}
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}.fill{fill:#000;stroke:none}.grey{fill:#e5e7eb;stroke:#000;stroke-width:1.2}
+</style>`;
+function defs(id) { return `<defs><marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="3" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,3 L0,6 z" fill="#000"/></marker></defs>`; }
+const Ln = (x1, y1, x2, y2, c = 'v') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"/>`;
+const Rc = (x, y, w, h, c = 'v') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${c}"/>`;
+const Ci = (x, y, r, c = 'v') => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"/>`;
+const Tx = (x, y, s, size = 13, anchor = 'middle', extra = '') => `<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" ${extra}>${s}</text>`;
+function dimH(m, x1, x2, y, yref, label) {
+    const dir = y < yref ? -1 : 1;
+    return Ln(x1, yref + dir * 3, x1, y + dir * 6, 'd') + Ln(x2, yref + dir * 3, x2, y + dir * 6, 'd') +
+        `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` +
+        Tx((x1 + x2) / 2, y - 4, label, 14);
+}
+function dimV(m, y1, y2, x, xref, label, xref2) {
+    const dir = x < xref ? -1 : 1;
+    const xr2 = xref2 === undefined ? xref : xref2;
+    return Ln(xref + dir * 3, y1, x + dir * 6, y1, 'd') + Ln(xr2 + dir * 3, y2, x + dir * 6, y2, 'd') +
+        `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` +
+        `<text x="${x - 5}" y="${(y1 + y2) / 2}" font-size="14" text-anchor="middle" transform="rotate(-90 ${x - 5} ${(y1 + y2) / 2})">${label}</text>`;
+}
+function cross(x, y, r) { return Ln(x - r, y, x + r, y, 'c') + Ln(x, y - r, x, y + r, 'c'); }
+function threadTop(x, y, rCore, rMaj) { // Draufsicht Gewinde: Kern voll, Außen 3/4-Bogen dünn
+    const a0 = 0, a1 = 1.5 * Math.PI;
+    const p = a => [x + rMaj * Math.cos(a), y - rMaj * Math.sin(a)];
+    const [sx, sy] = p(a0), [ex, ey] = p(a1);
+    return Ci(x, y, rCore) + `<path d="M${sx},${sy} A${rMaj},${rMaj} 0 1 0 ${ex},${ey}" class="t" transform="rotate(10 ${x} ${y})"/>`;
+}
+function projSymbol(x, y) { // Projektionsmethode 1
+    return `<g transform="translate(${x},${y})">${Ln(0, 6, 22, 0, 't')}${Ln(0, 14, 22, 20, 't')}${Ln(0, 6, 0, 14, 't')}${Ln(22, 0, 22, 20, 't')}` +
+        `${Ci(42, 10, 10, 't')}${Ci(42, 10, 4, 't')}${Ln(-4, 10, 56, 10, 'c')}</g>`;
+}
+function flatFrame(x, y) { // Toleranzrahmen Ebenheit 0,05
+    return Rc(x, y, 30, 20, 't') + Rc(x + 30, y, 44, 20, 't') +
+        `<polygon points="${x + 6},${y + 14} ${x + 12},${y + 6} ${x + 25},${y + 6} ${x + 19},${y + 14}" class="t"/>` + Tx(x + 52, y + 15, '0,05', 13);
+}
+
+function svgGrundplatte() {
+    const m = 'arG', k = 3, ox = 110, oyV = 80, oyT = 210;
+    const X = x => ox + x * k, Zv = z => oyV + (20 - z) * k, Yt = y => oyT + (100 - y) * k;
+    let s = `<svg viewBox="0 0 720 1020" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 712, 1012, 't');
+    // --- Vorderansicht
+    s += Tx(X(80), 30, 'Grundplatte – Pos. 1', 18, 'middle', 'font-weight="bold"');
+    s += Rc(X(0), Zv(20), 160 * k, 20 * k);
+    [[18.5, 26.5, 20, 0], [136.6, 143.4, 20, 0]].forEach(([a, b]) => { s += Ln(X(a), Zv(20), X(a), Zv(0), 'h') + Ln(X(b), Zv(20), X(b), Zv(0), 'h'); });
+    [60, 105].forEach(x => { s += Ln(X(x - 2.5), Zv(20), X(x - 2.5), Zv(5), 'h') + Ln(X(x + 2.5), Zv(20), X(x + 2.5), Zv(5), 'h') + Ln(X(x - 2.5), Zv(5), X(x), Zv(3.5), 'h') + Ln(X(x + 2.5), Zv(5), X(x), Zv(3.5), 'h'); });
+    [22.5, 60, 105, 140].forEach(x => { s += Ln(X(x), Zv(20) - 8, X(x), Zv(0) + 8, 'c'); });
+    s += dimV(m, Zv(20), Zv(0), X(0) - 40, X(0), '20 ±0,05');
+    // Ebenheit
+    s += flatFrame(X(95), 34) + `<line x1="${X(95) + 15}" y1="54" x2="${X(95) + 15}" y2="${Zv(20)}" class="d" marker-end="url(#${m})"/>`;
+    // --- Draufsicht
+    s += Rc(X(0), Yt(100), 160 * k, 100 * k);
+    const holes = [[1, 22.5, 20, 'p8'], [2, 22.5, 80, 'p8'], [3, 22.5, 35, 'm8'], [4, 22.5, 65, 'm8'], [5, 60, 15, 'm6'], [6, 105, 15, 'm6'], [7, 60, 85, 'm6'], [8, 105, 85, 'm6'], [9, 140, 35, 'm8'], [10, 140, 65, 'm8']];
+    holes.forEach(([n, x, y, t]) => {
+        const cx = X(x), cy = Yt(y);
+        if (t === 'p8') s += Ci(cx, cy, 4 * k); else if (t === 'm8') s += threadTop(cx, cy, 3.4 * k, 4 * k); else s += threadTop(cx, cy, 2.5 * k, 3 * k);
+        s += cross(cx, cy, 4 * k + 7);
+        s += Tx(cx + 15, cy - 14, n, 12, 'start', 'font-weight="bold"');
+    });
+    // Nullpunkt + Achsen
+    s += Ci(X(0), Yt(0), 7, 't') + `<path d="M${X(0)},${Yt(0) - 7} A7,7 0 0 1 ${X(0) + 7},${Yt(0)} L${X(0)},${Yt(0)} Z" class="fill"/>` + `<path d="M${X(0)},${Yt(0) + 7} A7,7 0 0 1 ${X(0) - 7},${Yt(0)} L${X(0)},${Yt(0)} Z" class="fill"/>`;
+    s += `<line x1="${X(0)}" y1="${Yt(0) + 22}" x2="${X(0) + 45}" y2="${Yt(0) + 22}" class="d" marker-end="url(#${m})"/>` + Tx(X(0) + 52, Yt(0) + 27, 'X', 13, 'start');
+    s += `<line x1="${X(0) - 22}" y1="${Yt(0)}" x2="${X(0) - 22}" y2="${Yt(0) - 30}" class="d" marker-end="url(#${m})"/>` + Tx(X(0) - 22, Yt(0) - 36, 'Y', 13);
+    // Maße
+    s += dimH(m, X(0), X(160), Yt(0) + 55, Yt(0), '160');
+    s += dimV(m, Yt(100), Yt(0), X(160) + 45, X(160), '100');
+    s += dimV(m, Yt(80), Yt(20), X(0) - 55, X(22.5) - 18, '60 ±0,02');
+    // Bohrungstabelle
+    const ty = 640, cols = [110, 160, 225, 290, 420, 620];
+    const rows = [['Nr.', 'X', 'Y', 'Form', 'Tiefe'], ['1', '22,5', '20', 'Ø8 H7', 'durchgehend'], ['2', '22,5', '80', 'Ø8 H7', 'durchgehend'], ['3', '22,5', '35', 'M8', 'durchgehend'], ['4', '22,5', '65', 'M8', 'durchgehend'],
+        ['5', '60', '15', 'M6', 'Gewinde 12 / Kernloch 15'], ['6', '105', '15', 'M6', 'Gewinde 12 / Kernloch 15'], ['7', '60', '85', 'M6', 'Gewinde 12 / Kernloch 15'], ['8', '105', '85', 'M6', 'Gewinde 12 / Kernloch 15'], ['9', '140', '35', 'M8', 'durchgehend'], ['10', '140', '65', 'M8', 'durchgehend']];
+    rows.forEach((r, i) => {
+        const y = ty + i * 22;
+        if (i === 0) s += `<rect x="${cols[0]}" y="${y}" width="${cols[5] - cols[0]}" height="22" class="grey"/>`;
+        s += Ln(cols[0], y, cols[5], y, 't');
+        r.forEach((c, j) => { s += Tx(cols[j] + 6, y + 16, c, 13, 'start', i === 0 ? 'font-weight="bold"' : ''); });
+    });
+    s += Ln(cols[0], ty + 11 * 22, cols[5], ty + 11 * 22, 't');
+    cols.forEach(x => { s += Ln(x, ty, x, ty + 11 * 22, 't'); });
+    s += Tx(cols[0], ty - 8, 'Bohrungstabelle (Maße in mm, bezogen auf den Nullpunkt)', 13, 'start', 'font-weight="bold"');
+    // Hinweise
+    const ny = 910;
+    s += Tx(110, ny, 'Bohrungen 1 und 2: Ra 0,8 · übrige Flächen: Ra 3,2 · alle Außenkanten Fase 1 × 45°', 13, 'start');
+    s += Tx(110, ny + 18, 'Gewinde 90° ansenken · Gewindeauslauf nach Norm', 13, 'start');
+    // Schriftfeld
+    const sy = 940;
+    s += Rc(110, sy, 510, 66, 't') + Ln(110, sy + 33, 620, sy + 33, 't') + Ln(330, sy, 330, sy + 66, 't') + Ln(480, sy, 480, sy + 66, 't');
+    s += Tx(116, sy + 13, 'Benennung', 9, 'start') + Tx(116, sy + 28, 'Grundplatte', 15, 'start', 'font-weight="bold"');
+    s += Tx(336, sy + 13, 'Werkstoff', 9, 'start') + Tx(336, sy + 28, 'S235JR', 14, 'start');
+    s += Tx(486, sy + 13, 'Zeichnungs-Nr.', 9, 'start') + Tx(486, sy + 28, 'SV-01-001', 14, 'start');
+    s += Tx(116, sy + 46, 'Allgemeintoleranz', 9, 'start') + Tx(116, sy + 61, 'ISO 2768-m · Tolerierung ISO 8015', 13, 'start');
+    s += Tx(336, sy + 46, 'Maßstab', 9, 'start') + Tx(336, sy + 61, 'nicht maßstäblich', 13, 'start');
+    s += projSymbol(500, sy + 40);
+    return s + '</svg>';
+}
+
+function svgGesamt() {
+    const m = 'arS', k = 2.6, ox = 50, oyV = 70, oyT = 330;
+    const X = x => ox + x * k, Z = z => oyV + (70 - z) * k, Y = y => oyT + (100 - y) * k;
+    const R = (x1, a, x2, b, f, cls = 'vf') => Rc(X(x1), f(b), (x2 - x1) * k, (f(a) - f(b)), cls); // Rechteck in mm
+    let s = `<svg viewBox="0 0 760 700" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 752, 692, 't');
+    s += Tx(380, 28, 'Gesamtzeichnung Spannvorrichtung (vereinfacht)', 17, 'middle', 'font-weight="bold"');
+    // --- Vorderansicht
+    s += R(0, 0, 160, 20, Z);
+    s += R(10, 20, 35, 50, Z);                      // Anschlagleiste
+    s += Rc(X(35), Z(45), 35 * k, 25 * k, 'p');      // Werkstück
+    s += Tx(X(52.5), Z(39), 'Werkstück', 11);
+    s += R(70, 20, 95, 50, Z);                      // Spannbacke
+    s += R(45, 20, 120, 32, Z);                     // Führungsleiste vorne
+    s += `<polygon points="${X(125)},${Z(20)} ${X(160)},${Z(20)} ${X(160)},${Z(70)} ${X(150)},${Z(70)} ${X(150)},${Z(28)} ${X(125)},${Z(28)}" class="vf"/>`; // Halter
+    s += R(95, 30, 150, 42, Z);                     // Kolbenstange
+    s += R(96, 28, 104, 44, Z) + Ln(X(96), Z(36) - 3 * k, X(104), Z(36) - 3 * k, 't') + Ln(X(96), Z(36) + 3 * k, X(104), Z(36) + 3 * k, 't'); // Mutter
+    s += R(160, 16, 250, 56, Z) + Ln(X(168), Z(16), X(168), Z(56), 't') + Ln(X(242), Z(16), X(242), Z(56), 't'); // Zylinder
+    s += R(170, 56, 176, 61, Z) + R(234, 56, 240, 61, Z);   // Anschlüsse
+    s += Ln(X(90), Z(36), X(256), Z(36), 'c');
+    s += Tx(X(205), Z(46), 'Ø32 · Hub 25', 11);
+    // Schrauben Pos 7 verdeckt
+    s += Ln(X(18.5), Z(50), X(18.5), Z(0), 'h') + Ln(X(26.5), Z(50), X(26.5), Z(0), 'h');
+    // --- Draufsicht
+    s += R(0, 0, 160, 100, Y);
+    s += R(10, 10, 35, 90, Y);
+    s += R(45, 10, 120, 20, Y) + R(45, 80, 120, 90, Y);
+    s += Rc(X(35), Y(70), 35 * k, 40 * k, 'p');
+    s += R(70, 22, 95, 78, Y);
+    s += R(95, 44, 150, 56, Y);
+    s += `<polygon points="${X(96)},${Y(50)} ${X(98)},${Y(58)} ${X(102)},${Y(58)} ${X(104)},${Y(50)} ${X(102)},${Y(42)} ${X(98)},${Y(42)}" class="vf"/>`;
+    s += R(125, 25, 160, 75, Y) + Ln(X(150), Y(75), X(150), Y(25), 'v');
+    s += R(160, 30, 250, 70, Y) + Ln(X(168), Y(30), X(168), Y(70), 't') + Ln(X(242), Y(30), X(242), Y(70), 't');
+    s += Ci(X(173), Y(50), 3 * k) + Ci(X(237), Y(50), 3 * k);
+    s += Ln(X(90), Y(50), X(256), Y(50), 'c');
+    const hexS = (x, y, r) => { let p = ''; for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; p += `${x + r * Math.cos(a)},${y + r * Math.sin(a)} `; } return `<polygon points="${p}" class="t"/>`; };
+    [[22.5, 35], [22.5, 65]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 6.5 * k) + hexS(X(x), Y(y), 3 * k); });
+    [[60, 15], [105, 15], [60, 85], [105, 85]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 4.6 * k) + hexS(X(x), Y(y), 2.2 * k); });
+    [[140, 35], [140, 65]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 6.5 * k) + hexS(X(x), Y(y), 3 * k); });
+    [[22.5, 20], [22.5, 80]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 4 * k); });
+    // Positionsnummern
+    const ball = (tx, ty, bx, by, n) => Ln(tx, ty, bx, by - (by > ty ? 13 : -13), 't') + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+    const by = 640;
+    s += ball(X(6), Y(4), X(6), by, 1);
+    s += ball(X(22.5), Y(80), X(22.5) - 10, by - 335, 8);
+    s += ball(X(22.5), Y(20), X(22.5), by, 8);
+    s += ball(X(22.5), Y(35), X(40), by, 7);
+    s += ball(X(60), Y(15), X(62), by, 9);
+    s += ball(X(85), Y(12), X(84), by, 4);
+    s += ball(X(82), Y(30), X(104), by, 3);
+    s += ball(X(100), Y(45), X(124), by, 10);
+    s += ball(X(132), Y(28), X(144), by, 5);
+    s += ball(X(140), Y(35), X(164), by, 11);
+    s += ball(X(205), Y(32), X(205), by, 6);
+    s += ball(X(20), Z(48), X(20), 46, 2);
+    s += Tx(X(205), Z(70) - 6, 'Vorderansicht', 12, 'middle', 'fill="#555"');
+    s += Tx(X(205), Y(100) - 8, 'Draufsicht', 12, 'middle', 'fill="#555"');
+    return s + '</svg>';
+}
+
+function svgSchaltplan() {
+    const m = 'arP';
+    let s = `<svg viewBox="0 0 600 640" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 592, 632, 't');
+    s += Tx(300, 30, 'Pneumatikschaltplan Spannvorrichtung', 17, 'middle', 'font-weight="bold"');
+    // Zylinder 1A1 (eingefahren)
+    s += Rc(150, 60, 240, 50) + Rc(170, 62, 8, 46, 'fill') + Rc(178, 81, 250, 8, 'vf');
+    s += Tx(120, 92, '1A1', 15, 'end', 'font-weight="bold"');
+    // Leitungen vom Zylinder
+    const c1 = 165, c2 = 375;
+    s += Ln(c1, 110, c1, 330) + Ln(c1, 330, 285, 330) + Ln(285, 330, 285, 400);   // Kolbenraum ← 4
+    s += Ln(c2, 110, c2, 180) + Ln(c2, 260, c2, 345) + Ln(c2, 345, 315, 345) + Ln(315, 345, 315, 400); // Ringraum ← 1V2 ← 2
+    // 1V2 Drosselrückschlagventil
+    s += Rc(335, 180, 80, 80, 'h');
+    s += Ln(c2, 180, c2, 195) + Ln(c2, 245, c2, 260) + Ln(352, 195, 398, 195) + Ln(352, 245, 398, 245);
+    s += Ln(352, 195, 352, 212) + Ln(352, 228, 352, 245);
+    s += `<path d="M346,212 Q352,220 346,228 M358,212 Q352,220 358,228" class="v"/>`;
+    s += `<line x1="340" y1="234" x2="366" y2="206" class="t" marker-end="url(#${m})"/>`;
+    s += Ln(398, 195, 398, 212) + Ln(398, 236, 398, 245);
+    s += Ci(398, 220, 7) + `<polyline points="388,224 398,236 408,224" class="v"/>`;
+    s += Tx(425, 224, '1V2', 15, 'start', 'font-weight="bold"');
+    // 1V1 5/2-Wegeventil
+    const vy = 400, vh = 60;
+    s += Rc(210, vy, 60, vh) + Rc(270, vy, 60, vh);
+    // rechtes Feld (gezeichnete Stellung): 1→2, 4→5
+    s += `<line x1="300" y1="${vy + vh}" x2="315" y2="${vy}" class="t" marker-end="url(#${m})"/>`;
+    s += `<line x1="285" y1="${vy}" x2="280" y2="${vy + vh}" class="t" marker-end="url(#${m})"/>`;
+    // linkes Feld: 1→4, 2→3
+    s += `<line x1="240" y1="${vy + vh}" x2="225" y2="${vy}" class="t" marker-end="url(#${m})"/>`;
+    s += `<line x1="255" y1="${vy}" x2="260" y2="${vy + vh}" class="t" marker-end="url(#${m})"/>`;
+    // Anschlüsse unten
+    s += Ln(280, vy + vh, 280, vy + vh + 14) + Ln(320, vy + vh, 320, vy + vh + 14) + Ln(300, vy + vh, 300, 500);
+    s += `<polygon points="273,${vy + vh + 14} 287,${vy + vh + 14} 280,${vy + vh + 25}" class="v"/>`;
+    s += `<polygon points="313,${vy + vh + 14} 327,${vy + vh + 14} 320,${vy + vh + 25}" class="v"/>`;
+    s += Tx(294, vy - 6, '4', 12) + Tx(324, vy - 6, '2', 12) + Tx(272, vy + vh + 12, '5', 12) + Tx(308, vy + vh + 12, '1', 12) + Tx(331, vy + vh + 12, '3', 12);
+    // Betätigung: Handhebel + Raste
+    s += Rc(192, 418, 18, 24, 't') + `<polyline points="192,424 198,430 192,436" class="t"/>`;
+    s += Ln(192, 430, 172, 430) + Ln(172, 430, 162, 414);
+    s += Tx(120, 435, '1V1', 15, 'end', 'font-weight="bold"');
+    // 0Z1 Wartungseinheit (vereinfacht)
+    s += Rc(270, 500, 60, 46, 'h');
+    s += `<polygon points="300,505 322,523 300,541 278,523" class="v"/>` + Ln(278, 523, 322, 523, 't') + Ci(300, 523, 4, 'fill');
+    s += Tx(255, 528, '0Z1', 15, 'end', 'font-weight="bold"');
+    s += Ln(300, 546, 300, 580);
+    s += Ci(300, 595, 13) + `<polygon points="300,585 309,600 291,600" class="fill"/>`;
+    return s + '</svg>';
+}
+
+const STUECKLISTE = [
+    ['1', '1', 'Grundplatte', 'S235JR', '160 × 100 × 20, Zeichnung SV-01-001'],
+    ['2', '1', 'Anschlagleiste', 'C45', '80 × 25 × 30'],
+    ['3', '1', 'Spannbacke', 'C45', 'vergütet, Gewinde M10 × 1,25 für Kolbenstange'],
+    ['4', '2', 'Führungsleiste', '16MnCr5', 'einsatzgehärtet'],
+    ['5', '1', 'Zylinderhalter', 'S235JR', 'Winkel, geschweißt'],
+    ['6', '1', 'Pneumatikzylinder, doppeltwirkend', '–', 'Kaufteil · D = 32 mm, d = 12 mm, Hub 25 mm, Kolbenstange M10 × 1,25'],
+    ['7', '2', 'Zylinderschraube ISO 4762 – M8 × 30 – 8.8', 'Stahl', 'Anschlagleiste'],
+    ['8', '2', 'Zylinderstift ISO 2338 – 8 m6 × 30', 'Stahl', 'Lagesicherung Anschlagleiste'],
+    ['9', '4', 'Zylinderschraube ISO 4762 – M6 × 16 – 8.8', 'Stahl', 'Führungsleisten'],
+    ['10', '1', 'Sechskantmutter ISO 8675 – M10 × 1,25 – 8', 'Stahl', 'Kontermutter an der Kolbenstange'],
+    ['11', '2', 'Zylinderschraube ISO 4762 – M8 × 25 – 8.8', 'Stahl', 'Zylinderhalter']
+];
+const SITUATION = `<h3>Situation</h3>
+<p>Dein Ausbildungsbetrieb fertigt Halter in Kleinserie. Die Halter werden gebohrt. Damit das schnell und sicher geht, wird eine <b>pneumatische Spannvorrichtung</b> gebaut.</p>
+<p>Die Anschlagleiste (Pos. 2) ist fest. Das Werkstück liegt zwischen Anschlagleiste und Spannbacke (Pos. 3). Der Pneumatikzylinder (Pos. 6) schiebt die Spannbacke nach links und spannt das Werkstück. Zwei Führungsleisten (Pos. 4) führen die Spannbacke.</p>
+<p>Gesteuert wird der Zylinder von Hand mit einem Wegeventil. Eine Drossel sorgt dafür, dass die Spannbacke langsam anfährt.</p>
+<h3>Deine Aufgaben</h3>
+<ul style="margin-left:1.2rem"><li>die Grundplatte (Pos. 1) fertigen und prüfen,</li><li>die Vorrichtung montieren,</li><li>die Pneumatik in Betrieb nehmen,</li><li>die Vorrichtung warten und instand halten.</li></ul>
+<h3>Unterlagen</h3>
+<p>Gesamtzeichnung · Einzelteilzeichnung Grundplatte · Pneumatikschaltplan · Stückliste. Die Zeichnungen sind vereinfacht und nicht maßstäblich. Es gelten nur die eingetragenen Maße.</p>`;
+
+/* ============================================================
+   Overlay
+   ============================================================ */
+const OVTABS = [
+    { id: 'sit', label: 'Situation', html: () => `<div class="paper text">${SITUATION}</div>`, svg: false },
+    { id: 'ges', label: 'Gesamtzeichnung', html: () => `<div class="paper" data-zoom>${svgGesamt()}</div>`, svg: true },
+    { id: 'gp', label: 'Grundplatte (Pos. 1)', html: () => `<div class="paper" data-zoom>${svgGrundplatte()}</div>`, svg: true },
+    { id: 'sp', label: 'Schaltplan', html: () => `<div class="paper" data-zoom>${svgSchaltplan()}</div>`, svg: true },
+    { id: 'sl', label: 'Stückliste', html: () => `<div class="paper text" style="max-width:900px"><h3>Stückliste Spannvorrichtung</h3><table><tr><th>Pos.</th><th>Menge</th><th>Benennung / Norm</th><th>Werkstoff</th><th>Bemerkung</th></tr>${STUECKLISTE.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`, svg: false }
+];
+let ovTab = 'ges', zoom = 1;
+const zoomByTab = {};
+function renderOv() {
+    $('ovTabs').innerHTML = OVTABS.map(t => `<button class="tab ${t.id === ovTab ? 'on' : ''}" data-ov="${t.id}">${t.label}</button>`).join('');
+    const t = OVTABS.find(x => x.id === ovTab);
+    $('ovBody').innerHTML = t.html();
+    zoom = zoomByTab[ovTab] || 1;
+    applyZoom();
+    document.querySelector('.zoomctl').style.visibility = t.svg ? 'visible' : 'hidden';
+}
+function applyZoom() {
+    const p = $('ovBody').querySelector('[data-zoom]');
+    if (p) { p.style.width = (zoom * 100) + '%'; p.style.maxWidth = (zoom * 1000) + 'px'; }
+    $('zVal').textContent = Math.round(zoom * 100) + ' %';
+}
+function openOv() { renderOv(); $('ov').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+function closeOv() { $('ov').classList.add('hidden'); document.body.style.overflow = ''; }
+function toggleOv() { if ($('ov').classList.contains('hidden')) openOv(); else closeOv(); }
+$('ovTabs').addEventListener('click', e => { const b = e.target.closest('[data-ov]'); if (b) { ovTab = b.dataset.ov; renderOv(); } });
+$('zIn').onclick = () => { zoom = Math.min(3, zoom + 0.25); zoomByTab[ovTab] = zoom; applyZoom(); };
+$('zOut').onclick = () => { zoom = Math.max(0.5, zoom - 0.25); zoomByTab[ovTab] = zoom; applyZoom(); };
+$('ovClose').onclick = closeOv;
+$('drawBtn').onclick = toggleOv;
+$('drawBtn2').onclick = toggleOv;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ov').classList.contains('hidden')) closeOv(); });
+
+/* ============================================================
+   Ansicht Prüfung
+   ============================================================ */
+function show(id) { ['scrStart', 'scrExam', 'scrSelf', 'scrResult'].forEach(s => $(s).classList.toggle('hidden', s !== id)); $('bar').classList.toggle('hidden', id !== 'scrExam'); window.scrollTo(0, 0); }
+let curPart = 'A';
+function setPart(p) {
+    curPart = p;
+    $('partA').classList.toggle('hidden', p !== 'A'); $('partB').classList.toggle('hidden', p !== 'B');
+    document.querySelectorAll('#partTabs .tab').forEach(b => b.classList.toggle('on', b.dataset.part === p));
+    window.scrollTo(0, 0);
+}
+$('partTabs').addEventListener('click', e => { const b = e.target.closest('[data-part]'); if (b) setPart(b.dataset.part); });
+$('toB').onclick = () => setPart('B');
+$('toA').onclick = () => setPart('A');
+
+function renderA() {
+    $('listA').innerHTML = A.map(a => `
+    <div class="qa" id="qa-${a.nr}">
+      <div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span>
+        ${a.lock ? `<span class="badge lock">🔒 nicht abwählbar · ${a.lf === 'TM' ? 'Mathematik' : 'Techn. Kommunikation'}</span>` : `<button class="abw-btn" data-abw="${a.nr}">Abwählen</button>`}
+      </div>
+      <div class="qtext">${a.q}</div>
+      <div class="opts">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
+    </div>`).join('');
+    refreshA();
+}
+function refreshA() {
+    A.forEach(a => {
+        document.querySelectorAll(`[data-q="${a.nr}"]`).forEach(l => l.classList.toggle('sel', state.ansA[a.nr] === Number(l.dataset.k)));
+        const struck = state.abw.includes(a.nr);
+        $('qa-' + a.nr).classList.toggle('struck', struck);
+        const b = document.querySelector(`[data-abw="${a.nr}"]`);
+        if (b) { b.classList.toggle('on', struck); b.textContent = struck ? 'Abgewählt ✓ (rückgängig)' : 'Abwählen'; }
+    });
+    $('abwCount').textContent = state.abw.length;
+    $('sheet').innerHTML = A.map(a => `<div class="cell ${state.abw.includes(a.nr) ? 'abw' : (state.ansA[a.nr] !== undefined ? 'ans' : '')}" data-go="${a.nr}">${a.nr}${a.lock ? '<span class="lk">🔒</span>' : ''}</div>`).join('');
+    updStat();
+}
+$('listA').addEventListener('click', e => {
+    const l = e.target.closest('.opt');
+    if (l) { e.preventDefault(); if (state.phase !== 'exam') return; const q = Number(l.dataset.q), k = Number(l.dataset.k); if (state.ansA[q] === k) delete state.ansA[q]; else state.ansA[q] = k; save(); refreshA(); return; }
+    const b = e.target.closest('[data-abw]');
+    if (b) { const n = Number(b.dataset.abw); const i = state.abw.indexOf(n); if (i >= 0) state.abw.splice(i, 1); else { if (state.abw.length >= 3) { toast('Du hast schon 3 Aufgaben abgewählt.'); return; } state.abw.push(n); } save(); refreshA(); }
+});
+$('sheet').addEventListener('click', e => { const c = e.target.closest('[data-go]'); if (c) $('qa-' + c.dataset.go).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+
+function pKey(t, p) { return t.id + p.id; }
+function partHtml(t, p, mode) { // mode: exam | review
+    const key = pKey(t, p), v = state.ansB[key];
+    const ro = mode !== 'exam' ? 'disabled' : '';
+    let h = `<div class="part"><span class="pp">${p.pts} P.</span><span class="pl">${p.id})</span>${p.q}`;
+    if (p.type === 'num') {
+        h += p.fields.map((f, i) => {
+            const val = v && v[i] !== undefined ? v[i] : '';
+            let fb = '';
+            if (mode === 'review') { const ok = numOk(f, val); fb = ok ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${f.show} ${f.unit}</span>`; }
+            return `<div class="numrow"><label>${f.label}</label><input class="inp" inputmode="decimal" data-key="${key}" data-i="${i}" value="${esc(val)}" ${ro}> <span>${f.unit}</span>${fb}</div>`;
+        }).join('');
+    } else if (p.type === 'select') {
+        const opts = selOrder(key, p);
+        h += `<div class="opts" style="margin-top:.5rem">${opts.map((k, pos) => {
+            let cls = v === k ? 'sel' : '';
+            if (mode === 'review') { if (k === p.ans) cls += ' right'; else if (v === k) cls += ' wrong'; }
+            return `<label class="opt ${cls}" data-skey="${key}" data-k="${k}"><input type="radio"><span class="onr">${pos + 1}</span><span>${p.options[k]}</span></label>`;
+        }).join('')}</div>`;
+    } else if (p.type === 'order') {
+        const ord = v || initOrder(key, p);
+        h += `<ol class="ord">${ord.map((k, i) => {
+            const fb = mode === 'review' ? (k === i ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ (Platz ${k + 1})</span>`) : '';
+            return `<li><span class="n">${i + 1}.</span><span class="t">${p.items[k]}${fb}</span>${mode === 'exam' ? `<button data-up="${key}" data-i="${i}" aria-label="nach oben">▲</button><button data-down="${key}" data-i="${i}" aria-label="nach unten">▼</button>` : ''}</li>`;
+        }).join('')}</ol>`;
+    } else if (p.type === 'match') {
+        const optOrder = p.keepOrder ? p.options.map((_, i) => i) : shuffle(rngFor('m' + key), p.options.map((_, i) => i));
+        h += p.rows.map((row, i) => {
+            const val = v && v[i] !== undefined ? v[i] : -1;
+            const fb = mode === 'review' ? (val === p.ans[i] ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${p.options[p.ans[i]]}</span>`) : '';
+            return `<div class="mrow"><span class="ml">${row}</span><select class="sel" data-mkey="${key}" data-i="${i}" ${ro}><option value="-1">– bitte wählen –</option>${optOrder.map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${p.options[k]}</option>`).join('')}</select>${fb}</div>`;
+        }).join('');
+    } else if (p.type === 'text') {
+        if (mode === 'exam') h += `<textarea class="inp" data-tkey="${key}" placeholder="Deine Antwort in kurzen Sätzen …" style="margin-top:.5rem">${esc(v || '')}</textarea>`;
+        else h += `<div class="yours">${esc(v || '(keine Antwort)')}</div><div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
+    }
+    if (mode === 'review' && p.e) h += `<p class="expl">💡 ${p.e}</p>`;
+    return h + '</div>';
+}
+function selOrder(key, p) { return p.options.map((_, i) => i).length > 2 ? shuffle(rngFor('s' + key), p.options.map((_, i) => i)) : p.options.map((_, i) => i); }
+function initOrder(key, p) { let o; let tries = 0; do { o = shuffle(rngFor('o' + key + tries), p.items.map((_, i) => i)); tries++; } while (o.every((k, i) => k === i) && tries < 10); return o; }
+function renderB() {
+    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}"><div class="qhead"><span class="qnr">Aufgabe ${t.id} – ${t.title}</span><span class="badge">10 Punkte</span></div><div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
+}
+$('listB').addEventListener('input', e => {
+    if (state.phase !== 'exam') return;
+    const el = e.target;
+    if (el.dataset.key) { const k = el.dataset.key; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = el.value; save(); updStat(); }
+    if (el.dataset.tkey) { state.ansB[el.dataset.tkey] = el.value; save(); updStat(); }
+});
+$('listB').addEventListener('change', e => {
+    if (state.phase !== 'exam') return;
+    const el = e.target;
+    if (el.dataset.mkey) { const k = el.dataset.mkey; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = Number(el.value); save(); updStat(); }
+});
+$('listB').addEventListener('click', e => {
+    if (state.phase !== 'exam') return;
+    const l = e.target.closest('[data-skey]');
+    if (l) { e.preventDefault(); const k = l.dataset.skey; state.ansB[k] = Number(l.dataset.k); save(); l.parentElement.querySelectorAll('.opt').forEach(x => x.classList.toggle('sel', x === l)); updStat(); return; }
+    const up = e.target.closest('[data-up]'), dn = e.target.closest('[data-down]');
+    const b = up || dn;
+    if (b) {
+        const key = b.dataset.up || b.dataset.down, i = Number(b.dataset.i);
+        const t = B.find(t => key.startsWith(t.id)), p = t.parts.find(p => pKey(t, p) === key);
+        const ord = (state.ansB[key] || initOrder(key, p)).slice();
+        const j = up ? i - 1 : i + 1;
+        if (j < 0 || j >= ord.length) return;
+        [ord[i], ord[j]] = [ord[j], ord[i]];
+        state.ansB[key] = ord; save();
+        const scrollY = window.scrollY;
+        b.closest('.part').outerHTML = partHtml(t, p, 'exam');
+        window.scrollTo(0, scrollY); updStat();
+    }
+});
+
+function updStat() {
+    const a = Object.keys(state.ansA).length;
+    let bDone = 0, bAll = 0;
+    B.forEach(t => t.parts.forEach(p => { bAll++; const v = state.ansB[pKey(t, p)]; if (v !== undefined && v !== '' && !(Array.isArray(v) && v.every(x => x === '' || x === -1 || x === undefined))) bDone++; }));
+    $('stat').textContent = `A: ${a}/23 beantwortet · ${state.abw.length}/3 abgewählt · B: ${bDone}/${bAll} Teilaufgaben`;
+}
+
+/* ============================================================
+   Timer
+   ============================================================ */
+let tick = null, warned = {};
+function remaining() { return state.start + DURATION - Date.now(); }
+function runTimer() {
+    clearInterval(tick);
+    const upd = () => {
+        const ms = remaining();
+        if (ms <= 0) { $('timer').textContent = '00:00'; clearInterval(tick); state.timeUp = true; finishExam(true); return; }
+        const sec = Math.ceil(ms / 1000), mm = Math.floor(sec / 60), ss = sec % 60;
+        $('timer').textContent = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+        $('timer').className = 'timer' + (mm < 5 ? ' red' : mm < 15 ? ' yellow' : '');
+        [30, 10, 5].forEach(w => { if (mm === w - 1 && ss > 50 && !warned[w]) { warned[w] = 1; toast(`Noch ${w} Minuten!`); } });
+    };
+    upd(); tick = setInterval(upd, 1000);
+}
+let toastT = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add('hidden'), 3500); }
+
+/* ============================================================
+   Abgabe, Bewertung
+   ============================================================ */
+function modal(html) { $('modalCard').innerHTML = html; $('modal').classList.remove('hidden'); }
+function closeModal() { $('modal').classList.add('hidden'); }
+$('submitBtn').onclick = () => {
+    const open = 23 - Object.keys(state.ansA).length;
+    let msg = `<h2>Prüfung abgeben?</h2><p>Restzeit: ${$('timer').textContent} min.</p>`;
+    if (state.abw.length < 3) msg += `<div class="info warn">Du hast erst ${state.abw.length} von 3 Aufgaben abgewählt. Dann werden die letzten abwählbaren Aufgaben nicht gewertet.</div>`;
+    if (open > 0) msg += `<p>In Teil A sind ${open} Aufgaben ohne Kreuz.</p>`;
+    msg += `<div class="row" style="margin-top:1rem"><button class="btn red" id="mYes">Ja, abgeben</button><button class="btn grey" id="mNo">Weiterarbeiten</button></div>`;
+    modal(msg);
+    $('mYes').onclick = () => { closeModal(); finishExam(false); };
+    $('mNo').onclick = closeModal;
+};
+function finishExam(timeUp) {
+    clearInterval(tick); closeOv();
+    state.phase = 'self'; state.endTime = Date.now(); save();
+    renderSelf(); show('scrSelf');
+    if (timeUp) modal(`<h2>⏰ Die Zeit ist um!</h2><p>Deine Prüfung wurde automatisch abgegeben. Jetzt bewertest du deine Textantworten selbst.</p><div class="row" style="margin-top:1rem"><button class="btn" id="mOk">OK</button></div>`), $('mOk').onclick = closeModal;
+}
+function effectiveAbw() { // Regel: fehlende Abwahl → letzte abwählbare Aufgaben
+    const abw = state.abw.slice();
+    for (let n = 23; n >= 1 && abw.length < 3; n--) { const a = A[n - 1]; if (!a.lock && !abw.includes(n)) abw.push(n); }
+    return abw;
+}
+function numOk(f, val) { const x = parseNum(val); return !isNaN(x) && Math.abs(x - f.ans) <= f.tol + 1e-9; }
+function selfPts(key, p) { const s = state.self[key] || []; return p.crit.reduce((sum, c, i) => sum + (s[i] ? c.p : 0), 0); }
+function partScore(t, p) {
+    const key = pKey(t, p), v = state.ansB[key];
+    if (p.type === 'num') { const per = p.pts / p.fields.length; return p.fields.reduce((s, f, i) => s + (v && numOk(f, v[i]) ? per : 0), 0); }
+    if (p.type === 'select') return v === p.ans ? p.pts : 0;
+    if (p.type === 'order') { if (!v) return 0; const ord = v; const c = ord.filter((k, i) => k === i).length; return Math.round(p.pts * c / ord.length * 2) / 2; }
+    if (p.type === 'match') { const per = p.pts / p.rows.length; return p.rows.reduce((s, _, i) => s + (v && v[i] === p.ans[i] ? per : 0), 0); }
+    if (p.type === 'text') return selfPts(key, p);
+    return 0;
+}
+function renderSelf() {
+    let h = '';
+    B.forEach(t => t.parts.filter(p => p.type === 'text').forEach(p => {
+        const key = pKey(t, p), s = state.self[key] || [];
+        h += `<div class="qa"><div class="qhead"><span class="qnr">${t.id} ${p.id}) – ${t.title}</span><span class="badge">${p.pts} Punkte</span></div>
+        <div class="qtext">${p.q}</div>
+        <b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>
+        <div class="muster"><b>Musterlösung:</b> ${p.muster}</div>
+        <p style="margin-top:.6rem"><b>Hake ab, was in deiner Antwort steht:</b></p>
+        ${p.crit.map((c, i) => `<label class="crit"><input type="checkbox" data-self="${key}" data-i="${i}" ${s[i] ? 'checked' : ''} ${state.ansB[key] ? '' : 'disabled'}><span>${c.t} <span class="stat" style="display:inline">(${c.p} P.)</span></span></label>`).join('')}
+        </div>`;
+    }));
+    $('selfList').innerHTML = h;
+}
+$('selfList').addEventListener('change', e => { const c = e.target; if (c.dataset.self) { const k = c.dataset.self; state.self[k] = state.self[k] || []; state.self[k][Number(c.dataset.i)] = c.checked; save(); } });
+$('toResult').onclick = () => { state.phase = 'result'; save(); renderResult(); show('scrResult'); };
+
+const DEZ = { 100: '1,0', 99: '1,1', 98: '1,1', 97: '1,2', 96: '1,2', 95: '1,3', 94: '1,3', 93: '1,4', 92: '1,4', 91: '1,5', 90: '1,6', 89: '1,7', 88: '1,8', 87: '1,9', 86: '2,0', 85: '2,0', 84: '2,1', 83: '2,2', 82: '2,3', 81: '2,4', 80: '2,5', 79: '2,5', 78: '2,6', 77: '2,7', 76: '2,8', 75: '2,8', 74: '2,9', 73: '3,0', 72: '3,0', 71: '3,1', 70: '3,2', 69: '3,3', 68: '3,3', 67: '3,4', 66: '3,5', 65: '3,5', 64: '3,6', 63: '3,6', 62: '3,7', 61: '3,8', 60: '3,8', 59: '3,9', 58: '3,9', 57: '4,0', 56: '4,0', 55: '4,1', 54: '4,2', 53: '4,2', 52: '4,3', 51: '4,3', 50: '4,4', 49: '4,5', 48: '4,5', 47: '4,6', 46: '4,6', 45: '4,7', 44: '4,7', 43: '4,8', 42: '4,8', 41: '4,9', 40: '4,9', 39: '5,0', 38: '5,0', 37: '5,1', 36: '5,1', 35: '5,2', 34: '5,2', 33: '5,3', 32: '5,3', 31: '5,4', 30: '5,4' };
+function dezNote(p) { if (p >= 30) return DEZ[p]; if (p >= 25) return '5,5'; if (p >= 20) return '5,6'; if (p >= 15) return '5,7'; if (p >= 10) return '5,8'; if (p >= 5) return '5,9'; return '6,0'; }
+function note(p) { if (p >= 92) return [1, 'sehr gut']; if (p >= 81) return [2, 'gut']; if (p >= 67) return [3, 'befriedigend']; if (p >= 50) return [4, 'ausreichend']; if (p >= 30) return [5, 'mangelhaft']; return [6, 'ungenügend']; }
+
+function computeScore() {
+    const abw = effectiveAbw();
+    const lf = {}; const addLf = (k, got, max) => { lf[k] = lf[k] || [0, 0]; lf[k][0] += got; lf[k][1] += max; };
+    let aPts = 0;
+    A.forEach(a => { if (abw.includes(a.nr)) return; const ok = state.ansA[a.nr] === a.correct; if (ok) aPts++; addLf(a.lf, ok ? 1 : 0, 1); });
+    let bPts = 0;
+    B.forEach(t => t.parts.forEach(p => { const s = partScore(t, p); bPts += s; addLf(p.lf, s, p.pts); }));
+    const sA = aPts * 2.5, sB = bPts / 1.6, total = sA + sB;
+    return { abw, aPts, bPts, sA, sB, total, rounded: Math.round(total), lf };
+}
+function renderResult() {
+    const r = computeScore(); const [n, w] = note(r.rounded);
+    const autoAbw = r.abw.filter(x => !state.abw.includes(x));
+    const usedMin = Math.max(0, Math.round(((state.endTime || Date.now()) - state.start) / 60000));
+    $('resCard').innerHTML = `
+      <div class="grade"><div class="big g${n}">${n}</div><div class="word g${n}">${w}</div><p class="sub">${r.rounded} von 100 Punkten · Dezimalnote ${dezNote(r.rounded)}</p></div>
+      <table class="tbl">
+        <tr><th>Teil</th><th>erreicht</th><th>umgerechnet</th></tr>
+        <tr><td>Teil A (gebunden)</td><td>${r.aPts} von 20 Punkten</td><td>${fmt(r.sA, 1)} von 50</td></tr>
+        <tr><td>Teil B (ungebunden)</td><td>${fmt(r.bPts, 1)} von 80 Punkten</td><td>${fmt(r.sB, 1)} von 50</td></tr>
+        <tr><td><b>Gesamt</b></td><td></td><td><b>${fmt(r.total, 1)} von 100</b></td></tr>
+      </table>
+      ${autoAbw.length ? `<div class="info warn">Du hast nicht 3 Aufgaben abgewählt. Deshalb wurden die Aufgaben ${autoAbw.sort((a, b) => a - b).join(', ')} nicht gewertet.</div>` : ''}
+      <p class="stat" style="display:block">Bearbeitungszeit: ${Math.min(90, usedMin)} von 90 Minuten${state.timeUp ? ' (Zeit abgelaufen)' : ''}.</p>
+      <p class="stat" style="display:block">Notenschlüssel der IHK: 100–92 = 1 · unter 92–81 = 2 · unter 81–67 = 3 · unter 67–50 = 4 · unter 50–30 = 5 · unter 30 = 6. Teil B enthält deine Selbstbewertung.</p>`;
+    const keys = ['LF1', 'LF2', 'LF3', 'LF4', 'LF5', 'LF6', 'TM', 'TK'].filter(k => r.lf[k]);
+    $('lfCard').innerHTML = `<h2>Wo stehst du?</h2><p>So viel Prozent der Punkte hast du in den einzelnen Bereichen erreicht. Unter 50 % solltest du das Thema wiederholen.</p><div style="margin-top:.8rem">` +
+        keys.map(k => { const [g, m] = r.lf[k]; const pc = Math.round(g / m * 100); return `<div class="lfbar"><span>${LFNAMES[k]}</span><div class="track"><div class="fill" style="width:${pc}%;${pc < 50 ? 'background:linear-gradient(90deg,#ef4444,#f97316)' : ''}"></div></div><b>${pc} %</b></div>`; }).join('') + '</div>';
+    $('review').innerHTML = '';
+}
+function renderReview(part) {
+    const abw = effectiveAbw();
+    if (part === 'A') {
+        $('review').innerHTML = A.map(a => {
+            const your = state.ansA[a.nr], struck = abw.includes(a.nr);
+            return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span><span class="badge">${struck ? 'nicht gewertet' : (your === a.correct ? '✔ richtig' : '✘ falsch')}</span></div>
+            <div class="qtext">${a.q}</div><div class="opts">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
+            <p class="expl">💡 ${a.e}</p></div>`;
+        }).join('');
+    } else {
+        $('review').innerHTML = B.map(t => { const sum = t.parts.reduce((s, p) => s + partScore(t, p), 0);
+            return `<div class="qa"><div class="qhead"><span class="qnr">Aufgabe ${t.id} – ${t.title}</span><span class="badge">${fmt(sum, 1)} von 10 Punkten</span></div><div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'review')).join('')}</div>`; }).join('');
+    }
+    $('review').scrollIntoView({ behavior: 'smooth' });
+}
+$('showRevA').onclick = () => renderReview('A');
+$('showRevB').onclick = () => renderReview('B');
+$('newBtn').onclick = () => {
+    modal(`<h2>Neue Prüfung starten?</h2><p>Dein Ergebnis wird gelöscht. Die Rechenaufgaben bekommen neue Zahlen.</p><div class="row" style="margin-top:1rem"><button class="btn" id="mYes">Ja, neu starten</button><button class="btn grey" id="mNo">Abbrechen</button></div>`);
+    $('mYes').onclick = () => { closeModal(); startNew(); };
+    $('mNo').onclick = closeModal;
+};
+
+/* ============================================================
+   Start
+   ============================================================ */
+function startExam() { buildA(); buildB(); renderA(); renderB(); setPart('A'); show('scrExam'); warned = {}; runTimer(); }
+function startNew() { state = freshState(); save(); startExam(); }
+$('startBtn').onclick = () => {
+    const s = load();
+    if (s && s.phase === 'exam' && s.start + DURATION > Date.now()) {
+        modal(`<h2>Laufende Prüfung</h2><p>Du hast schon eine Prüfung angefangen. Neu starten löscht deine Antworten.</p><div class="row" style="margin-top:1rem"><button class="btn red" id="mYes">Neu starten</button><button class="btn grey" id="mNo">Abbrechen</button></div>`);
+        $('mYes').onclick = () => { closeModal(); startNew(); }; $('mNo').onclick = closeModal; return;
+    }
+    startNew();
+};
+$('resumeBtn').onclick = () => { state = load(); startExam(); };
+
+(function init() {
+    const s = load();
+    if (!s) return;
+    state = s;
+    if (s.phase === 'exam') {
+        if (s.start + DURATION > Date.now()) { $('resumeBtn').style.display = ''; $('resumeBtn').textContent = 'Weiter zur laufenden Prüfung (' + Math.ceil((s.start + DURATION - Date.now()) / 60000) + ' min übrig)'; }
+        else { buildA(); buildB(); state.timeUp = true; state.endTime = s.start + DURATION; state.phase = 'self'; save(); renderSelf(); show('scrSelf'); }
+    } else if (s.phase === 'self') { buildA(); buildB(); renderSelf(); show('scrSelf'); }
+    else if (s.phase === 'result') { buildA(); buildB(); renderResult(); show('scrResult'); }
+})();
+
+/* Testzugang für automatische Prüfung */
+window.__ap1 = {
+    get state() { return state; }, get A() { return A; }, get B() { return B; },
+    computeScore, effectiveAbw, numOk,
+    solveAll() {
+        A.forEach(a => state.ansA[a.nr] = a.correct);
+        B.forEach(t => t.parts.forEach(p => {
+            const k = pKey(t, p);
+            if (p.type === 'num') state.ansB[k] = p.fields.map(f => p.fields.length && f.show.replace('+', ''));
+            if (p.type === 'select') state.ansB[k] = p.ans;
+            if (p.type === 'order') state.ansB[k] = p.items.map((_, i) => i);
+            if (p.type === 'match') state.ansB[k] = p.ans.slice();
+            if (p.type === 'text') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
+        }));
+        save();
+    }
+};
+</script>
+</body>
+</html>
