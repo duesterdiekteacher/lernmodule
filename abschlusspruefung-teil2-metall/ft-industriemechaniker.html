@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prüfungssimulation</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 1.2rem 1rem 4rem; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header.top { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.45rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.12rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card { background: #1e293b; border: 2px solid #334155; border-radius: 16px; padding: 1.4rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.2rem; }
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+.btn { display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600; padding: 0.75rem 1.3rem; border-radius: 10px; color: white; background: linear-gradient(90deg, #0ea5e9, #22c55e); text-decoration: none; }
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.red { background: linear-gradient(90deg, #ef4444, #f97316); }
+.btn.small { padding: 0.4rem 0.85rem; font-size: 0.92rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.info { background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+.warn { border-left-color: #f59e0b; }
+table.tbl { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: 0.95rem; }
+table.tbl th, table.tbl td { border: 1px solid #334155; padding: 0.35rem 0.55rem; text-align: left; }
+table.tbl th { background: #0f172a; color: #38bdf8; }
+
+/* Kopfleiste */
+.bar { position: sticky; top: 0; z-index: 50; background: rgba(15,23,42,0.97); border-bottom: 2px solid #334155; }
+.bar-in { max-width: 980px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.timer { font-family: Consolas, "Courier New", monospace; font-size: 1.5rem; font-weight: 700; color: #4ade80; background: #020617; border: 2px solid #334155; border-radius: 10px; padding: 0.1rem 0.7rem; min-width: 7.2rem; text-align: center; }
+.timer.yellow { color: #fbbf24; border-color: #f59e0b; }
+.timer.red { color: #f87171; border-color: #ef4444; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.6; } }
+.tabs { display: flex; gap: 0.4rem; }
+.tab { background: #1e293b; border: 2px solid #334155; color: #cbd5e1; border-radius: 10px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+.tab.on { border-color: #38bdf8; color: #38bdf8; }
+.btn-draw { background: linear-gradient(90deg, #f59e0b, #f97316); color: #111; border: none; border-radius: 10px; padding: 0.45rem 0.9rem; font: inherit; font-weight: 700; cursor: pointer; }
+.stat { color: #94a3b8; font-size: 0.88rem; }
+
+/* Markierungsbogen */
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 0.35rem; margin-top: 0.6rem; }
+.cell { background: #0f172a; border: 2px solid #334155; border-radius: 8px; text-align: center; font-size: 0.85rem; padding: 0.15rem 0; cursor: pointer; color: #cbd5e1; }
+.cell.ans { border-color: #22c55e; color: #4ade80; }
+.cell.abw { border-color: #64748b; color: #64748b; text-decoration: line-through; }
+.cell .lk { font-size: 0.65rem; display: block; line-height: 1; }
+
+/* Aufgaben */
+.qa { background: #1e293b; border: 2px solid #334155; border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; scroll-margin-top: 80px; }
+.qa.struck { opacity: 0.55; border-style: dashed; }
+.qhead { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.qnr { color: #38bdf8; font-weight: 700; }
+.badge { font-size: 0.8rem; border-radius: 999px; padding: 0.1rem 0.6rem; background: #0f172a; border: 1px solid #334155; color: #94a3b8; }
+.badge.lock { border-color: #f59e0b; color: #fbbf24; }
+.abw-btn { background: #0f172a; border: 2px solid #64748b; color: #cbd5e1; border-radius: 8px; padding: 0.15rem 0.6rem; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.abw-btn.on { background: #64748b; color: #fff; }
+.qtext { margin-bottom: 0.6rem; }
+.qtext b { color: #fbbf24; }
+.opts { display: flex; flex-direction: column; gap: 0.4rem; }
+.opt { display: flex; gap: 0.6rem; align-items: flex-start; background: #0f172a; border: 2px solid #334155; border-radius: 10px; padding: 0.5rem 0.7rem; cursor: pointer; }
+.opt input { display: none; }
+.opt .onr { flex: 0 0 1.7rem; height: 1.7rem; border: 2px solid #64748b; border-radius: 6px; text-align: center; line-height: 1.45rem; font-weight: 700; color: #94a3b8; }
+.opt.sel { border-color: #38bdf8; }
+.opt.sel .onr { background: #38bdf8; border-color: #38bdf8; color: #0f172a; }
+.opt.right { border-color: #22c55e; }
+.opt.wrong { border-color: #ef4444; }
+.part { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 0.8rem 0.9rem; margin-top: 0.7rem; }
+.part .pl { color: #fbbf24; font-weight: 700; margin-right: 0.3rem; }
+.part .pp { float: right; color: #94a3b8; font-size: 0.85rem; }
+.inp, select.sel { background: #020617; color: #f8fafc; border: 2px solid #334155; border-radius: 8px; padding: 0.35rem 0.5rem; font: inherit; }
+.inp { width: 8.5rem; }
+.numrow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.45rem; }
+.numrow label { min-width: 13rem; color: #cbd5e1; }
+textarea.inp { width: 100%; min-height: 6.5rem; resize: vertical; line-height: 1.45; }
+.ord { list-style: none; margin-top: 0.5rem; }
+.ord li { display: flex; align-items: center; gap: 0.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.35rem 0.5rem; margin-bottom: 0.3rem; }
+.ord li .n { color: #38bdf8; font-weight: 700; width: 1.5rem; }
+.ord li .t { flex: 1; }
+.ord button { background: #334155; color: #fff; border: none; border-radius: 6px; width: 2rem; height: 2rem; cursor: pointer; font-size: 1rem; }
+.mrow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+.mrow .ml { flex: 1 1 14rem; }
+.ok { color: #4ade80; }
+.bad { color: #f87171; }
+.muster { background: #052e16; border: 1px solid #166534; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; color: #dcfce7; }
+.yours { background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.4rem; white-space: pre-wrap; color: #e2e8f0; min-height: 2.2rem; }
+.crit { display: flex; gap: 0.5rem; align-items: flex-start; margin-top: 0.35rem; cursor: pointer; }
+.crit input { width: 1.2rem; height: 1.2rem; margin-top: 0.25rem; }
+.expl { color: #cbd5e1; font-size: 0.95rem; margin-top: 0.45rem; }
+
+/* Ergebnis */
+.grade { text-align: center; padding: 1rem 0; }
+.grade .big { font-size: 4rem; font-weight: 800; line-height: 1; }
+.grade .word { font-size: 1.3rem; font-weight: 700; margin-top: 0.3rem; }
+.g1,.g2 { color: #4ade80; } .g3 { color: #a3e635; } .g4 { color: #fbbf24; } .g5,.g6 { color: #f87171; }
+.lfbar { display: grid; grid-template-columns: 14rem 1fr 3.2rem; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; font-size: 0.95rem; }
+.lfbar .track { background: #0f172a; border: 1px solid #334155; height: 14px; border-radius: 999px; overflow: hidden; }
+.lfbar .fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #22c55e); }
+
+/* Zeichnungs-Overlay */
+.ov { position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,0.97); display: flex; flex-direction: column; }
+.ov-head { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; padding: 0.5rem 0.8rem; background: #0f172a; border-bottom: 2px solid #334155; }
+.ov-head .tab { font-size: 0.9rem; }
+.ov-head .sp { flex: 1; }
+.ov-body { flex: 1; overflow: auto; padding: 0.8rem; }
+.paper { background: #fff; color: #000; border-radius: 6px; margin: 0 auto; padding: 0.6rem; }
+.paper svg { display: block; width: 100%; height: auto; }
+.paper.text { max-width: 820px; padding: 1.2rem 1.4rem; font-size: 1rem; line-height: 1.55; }
+.paper.text h3 { color: #000; font-size: 1.15rem; margin: 0.6rem 0 0.3rem; }
+.paper table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.paper th, .paper td { border: 1px solid #000; padding: 0.3rem 0.45rem; text-align: left; vertical-align: top; }
+.paper th { background: #e5e7eb; }
+.zoomctl button { background: #334155; color: #fff; border: none; border-radius: 8px; padding: 0.3rem 0.7rem; font: inherit; font-weight: 700; cursor: pointer; }
+.zoomctl span { color: #cbd5e1; font-size: 0.9rem; min-width: 3.2rem; display: inline-block; text-align: center; }
+
+.modal { position: fixed; inset: 0; z-index: 200; background: rgba(2,6,23,0.8); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.modal .card { max-width: 520px; width: 100%; }
+.toast { position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%); z-index: 150; background: #f59e0b; color: #111; font-weight: 700; padding: 0.6rem 1.1rem; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,.5); }
+
+@media (max-width: 600px) {
+    h1 { font-size: 1.55rem; }
+    .timer { font-size: 1.2rem; min-width: 6rem; }
+    .numrow label { min-width: 100%; }
+    .lfbar { grid-template-columns: 1fr 3rem; }
+    .lfbar .track { grid-column: 1 / 3; grid-row: 2; }
+    .bar-in { padding: 0.4rem 0.6rem; }
+    .stat { display: none; }
+}
+
+</style>
+</head>
+<body>
+<!-- Erzeugt aus _werkzeuge/pruefung (build.py). Nicht direkt bearbeiten. -->
+<div class="bar hidden" id="bar">
+    <div class="bar-in">
+        <div class="row" style="gap:.5rem">
+            <div class="timer" id="timer" title="Restzeit">00:00</div>
+            <span class="stat" id="stat"></span>
+        </div>
+        <div class="tabs" id="partTabs">
+            <button class="tab on" data-part="A">Teil A</button>
+            <button class="tab" data-part="B">Teil B</button>
+        </div>
+        <button class="btn-draw" id="drawBtn">📐 Zeichnung</button>
+    </div>
+</div>
+
+<div class="wrap">
+<section id="scrStart">
+    <a class="back-link" id="backLink" href="./">← Zurück</a>
+    <header class="top">
+        <div class="logo" id="tLogo">📝</div>
+        <h1 id="tTitle"></h1>
+        <p class="sub" id="tSub"></p>
+    </header>
+    <div class="card">
+        <div id="tIntro"></div>
+        <p class="stat" style="display:block;margin-top:.6rem">Die Aufgaben sind selbst erstellt. Sie sind keine Originalaufgaben der PAL, folgen aber deren Aufbau.</p>
+        <div class="row" style="margin-top:1rem">
+            <button class="btn" id="startBtn">▶ Prüfung starten</button>
+            <button class="btn grey" id="resumeBtn" style="display:none">Weiter</button>
+        </div>
+    </div>
+</section>
+
+<section id="scrExam" class="hidden">
+    <div id="partA">
+        <div class="card">
+            <h2>Teil A – Gebundene Aufgaben</h2>
+            <p>Kreuze pro Aufgabe eine Antwort an. <span id="tA"></span><span id="abwCount">0</span> von <span id="tAmax"></span> abgewählt).</p>
+            <div class="sheet" id="sheet"></div>
+            <p class="stat" style="display:block;margin-top:.4rem">Grün = beantwortet · durchgestrichen = abgewählt · 🔒 = nicht abwählbar. Klick springt zur Aufgabe.</p>
+        </div>
+        <div id="listA"></div>
+        <div class="row"><button class="btn" id="toB">Weiter zu Teil B →</button></div>
+    </div>
+    <div id="partB" class="hidden">
+        <div class="card">
+            <h2>Teil B – Ungebundene Aufgaben</h2>
+            <div id="bIntro"></div>
+            <p id="bAbwInfo" class="hidden"><b>Wähle 1 Aufgabe ab</b> (<span id="abwBCount">0</span> von 1 abgewählt). Sonst wird die letzte Aufgabe nicht gewertet.</p>
+        </div>
+        <div id="listB"></div>
+        <div class="row"><button class="btn grey" id="toA">← Zurück zu Teil A</button></div>
+    </div>
+    <div class="card" style="margin-top:1.5rem">
+        <h3>Fertig?</h3>
+        <p>Wenn du abgibst, kannst du nichts mehr ändern.</p>
+        <div class="row" style="margin-top:.6rem"><button class="btn red" id="submitBtn">Prüfung abgeben</button></div>
+    </div>
+</section>
+
+<section id="scrSelf" class="hidden">
+    <header class="top">
+        <div class="logo">✍️</div>
+        <h1>Selbstbewertung</h1>
+        <p class="sub">Vergleiche deine Antworten mit der Musterlösung. Hake nur ab, was du wirklich geschrieben hast. Sei ehrlich zu dir.</p>
+    </header>
+    <div id="selfList"></div>
+    <div class="row"><button class="btn" id="toResult">Ergebnis anzeigen →</button></div>
+</section>
+
+<section id="scrResult" class="hidden">
+    <header class="top"><div class="logo">🏁</div><h1>Dein Ergebnis</h1></header>
+    <div class="card" id="resCard"></div>
+    <div class="card" id="lfCard"></div>
+    <div class="card">
+        <h2>Lösungen ansehen</h2>
+        <p>Hier siehst du jede Aufgabe mit der richtigen Lösung und einer Erklärung.</p>
+        <div class="row" style="margin-top:.6rem">
+            <button class="btn grey small" id="showRevA">Teil A</button>
+            <button class="btn grey small" id="showRevB">Teil B</button>
+            <button class="btn-draw" id="drawBtn2">📐 Zeichnung</button>
+        </div>
+    </div>
+    <div id="review"></div>
+    <div class="card">
+        <div class="row">
+            <button class="btn" id="newBtn">🔄 Neue Prüfung (neue Zahlen)</button>
+            <a class="btn grey" id="backLink2" href="./">Zur Übersicht</a>
+        </div>
+    </div>
+</section>
+</div>
+
+<div class="ov hidden" id="ov">
+    <div class="ov-head">
+        <div class="tabs" id="ovTabs" style="flex-wrap:wrap"></div>
+        <span class="sp"></span>
+        <div class="zoomctl row" style="gap:.3rem">
+            <button id="zOut" aria-label="Verkleinern">−</button><span id="zVal">100 %</span><button id="zIn" aria-label="Vergrößern">+</button>
+        </div>
+        <button class="btn-draw" id="ovClose">✕ Schließen</button>
+    </div>
+    <div class="ov-body" id="ovBody"></div>
+</div>
+<div class="modal hidden" id="modal"><div class="card" id="modalCard"></div></div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   Hilfsfunktionen für alle Prüfungssimulationen
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const fmt = (x, d) => (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace('.', ',');
+const fmtT = x => Math.round(x).toLocaleString('de-DE');
+const parseNum = s => { if (s === undefined || s === null) return NaN; s = String(s).trim().replace(/\s/g, '').replace('−', '-'); s = s.replace(',', '.'); if (s === '') return NaN; return Number(s); };
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
+function shuffle(r, arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function uniqOpts(list) { const seen = new Set(); const out = []; list.forEach(t => { if (!seen.has(t)) { seen.add(t); out.push(t); } }); return out; }
+
+/* ---------- SVG ---------- */
+const SVGSTYLE = `<style>
+.v{stroke:#000;stroke-width:1.7;fill:none}.vf{stroke:#000;stroke-width:1.7;fill:#fff}.t{stroke:#000;stroke-width:.7;fill:none}
+.h{stroke:#000;stroke-width:.9;stroke-dasharray:5 3;fill:none}.c{stroke:#000;stroke-width:.6;stroke-dasharray:16 3 2 3;fill:none}
+.p{stroke:#444;stroke-width:.9;stroke-dasharray:12 3 2 3 2 3;fill:none}.d{stroke:#000;stroke-width:.6;fill:none}
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}.fill{fill:#000;stroke:none}.grey{fill:#e5e7eb;stroke:#000;stroke-width:1.2}
+.sv{stroke:#000;stroke-width:1.7}.thin{stroke:#000;stroke-width:.7}
+</style>`;
+function defs(id) {
+    return `<defs><marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="3" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,3 L0,6 z" fill="#000"/></marker>
+<pattern id="${id}h1" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#000" stroke-width=".7"/></pattern>
+<pattern id="${id}h2" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#000" stroke-width=".7"/></pattern>
+<pattern id="${id}h3" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-width=".6"/></pattern></defs>`;
+}
+const Ln = (x1, y1, x2, y2, c = 'v') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"/>`;
+const Rc = (x, y, w, h, c = 'v') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${c}"/>`;
+const Ci = (x, y, r, c = 'v') => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"/>`;
+const Tx = (x, y, s, size = 13, anchor = 'middle', extra = '') => `<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" ${extra}>${s}</text>`;
+const Poly = (pts, c = 'v') => `<polygon points="${pts.map(p => p.join(',')).join(' ')}" class="${c}"/>`;
+const PolyL = (pts, c = 'v') => `<polyline points="${pts.map(p => p.join(',')).join(' ')}" class="${c}"/>`;
+const Hatch = (pts, m, n = 1) => `<polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="url(#${m}h${n})" stroke="#000" stroke-width="1.7"/>`;
+const HatchR = (x, y, w, h, m, n = 1) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${m}h${n})" stroke="#000" stroke-width="1.7"/>`;
+function dimH(m, x1, x2, y, yref, label, yref2) {
+    const dir = y < yref ? -1 : 1; const yr2 = yref2 === undefined ? yref : yref2;
+    return Ln(x1, yref + dir * 3, x1, y + dir * 6, 'd') + Ln(x2, yr2 + dir * 3, x2, y + dir * 6, 'd') +
+        `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` +
+        Tx((x1 + x2) / 2, y - 4, label, 13);
+}
+function dimV(m, y1, y2, x, xref, label, xref2) {
+    const dir = x < xref ? -1 : 1; const xr2 = xref2 === undefined ? xref : xref2;
+    return Ln(xref + dir * 3, y1, x + dir * 6, y1, 'd') + Ln(xr2 + dir * 3, y2, x + dir * 6, y2, 'd') +
+        `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` +
+        `<text x="${x - 5}" y="${(y1 + y2) / 2}" font-size="13" text-anchor="middle" transform="rotate(-90 ${x - 5} ${(y1 + y2) / 2})">${label}</text>`;
+}
+function cross(x, y, r) { return Ln(x - r, y, x + r, y, 'c') + Ln(x, y - r, x, y + r, 'c'); }
+function threadTop(x, y, rCore, rMaj) {
+    const p = a => [x + rMaj * Math.cos(a), y - rMaj * Math.sin(a)];
+    const [sx, sy] = p(0), [ex, ey] = p(1.5 * Math.PI);
+    return Ci(x, y, rCore) + `<path d="M${sx},${sy} A${rMaj},${rMaj} 0 1 0 ${ex},${ey}" class="t" transform="rotate(10 ${x} ${y})"/>`;
+}
+function projSymbol(x, y) {
+    return `<g transform="translate(${x},${y})">${Ln(0, 6, 22, 0, 't')}${Ln(0, 14, 22, 20, 't')}${Ln(0, 6, 0, 14, 't')}${Ln(22, 0, 22, 20, 't')}${Ci(42, 10, 10, 't')}${Ci(42, 10, 4, 't')}${Ln(-4, 10, 56, 10, 'c')}</g>`;
+}
+function tolFrame(x, y, sym, val, datum) { // sym: 'flat' | 'runout' | 'par' | 'perp'
+    let s = Rc(x, y, 28, 20, 't') + Rc(x + 28, y, 46, 20, 't');
+    if (sym === 'flat') s += `<polygon points="${x + 5},${y + 14} ${x + 11},${y + 6} ${x + 23},${y + 6} ${x + 17},${y + 14}" class="t"/>`;
+    if (sym === 'runout') s += Ln(x + 9, y + 16, x + 19, y + 4, 't') + `<path d="M${x + 15},${y + 4} L${x + 19},${y + 4} L${x + 18},${y + 8}" class="t"/>`;
+    if (sym === 'par') s += Ln(x + 9, y + 15, x + 15, y + 5, 't') + Ln(x + 14, y + 15, x + 20, y + 5, 't');
+    if (sym === 'perp') s += Ln(x + 14, y + 4, x + 14, y + 15, 't') + Ln(x + 7, y + 15, x + 21, y + 15, 't');
+    s += Tx(x + 51, y + 15, val, 13);
+    if (datum) s += Rc(x + 74, y, 28, 20, 't') + Tx(x + 88, y + 15, datum, 13);
+    return s;
+}
+function datumBox(x, y, letter, tx, ty) { // Bezugsbuchstabe mit Dreieck an (tx,ty)
+    return Ln(x + 10, y + 20, tx, ty - 6, 't') + `<polygon points="${tx - 6},${ty} ${tx + 6},${ty} ${tx},${ty - 7}" class="fill"/>` + Rc(x, y, 20, 20, 't') + Tx(x + 10, y + 15, letter, 13);
+}
+function titleBlock(x, y, w, f) { // f: {name, werkstoff, nr, tol, mass, extra}
+    const c1 = x + w * 0.42, c2 = x + w * 0.70;
+    let s = Rc(x, y, w, 66, 't') + Ln(x, y + 33, x + w, y + 33, 't') + Ln(c1, y, c1, y + 66, 't') + Ln(c2, y, c2, y + 66, 't');
+    s += Tx(x + 6, y + 12, 'Benennung', 9, 'start') + Tx(x + 6, y + 28, f.name, 15, 'start', 'font-weight="bold"');
+    s += Tx(c1 + 6, y + 12, 'Werkstoff', 9, 'start') + Tx(c1 + 6, y + 28, f.werkstoff, 13, 'start');
+    s += Tx(c2 + 6, y + 12, 'Zeichnungs-Nr.', 9, 'start') + Tx(c2 + 6, y + 28, f.nr, 13, 'start');
+    s += Tx(x + 6, y + 45, 'Allgemeintoleranz', 9, 'start') + Tx(x + 6, y + 61, f.tol, 12, 'start');
+    s += Tx(c1 + 6, y + 45, 'Maßstab', 9, 'start') + Tx(c1 + 6, y + 61, f.mass || 'nicht maßstäblich', 12, 'start');
+    s += projSymbol(c2 + 20, y + 40);
+    return s;
+}
+function balloon(tx, ty, bx, by, n) {
+    const dx = bx - tx, dy = by - ty, L = Math.hypot(dx, dy) || 1;
+    return Ln(tx, ty, bx - dx / L * 13, by - dy / L * 13, 't') + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+}
+function tableSvg(x, y, cols, rows, rh = 22) { // cols: x-Positionen inkl. Ende
+    let s = `<rect x="${cols[0]}" y="${y}" width="${cols[cols.length - 1] - cols[0]}" height="${rh}" class="grey"/>`;
+    rows.forEach((r, i) => { const yy = y + i * rh; s += Ln(cols[0], yy, cols[cols.length - 1], yy, 't'); r.forEach((c, j) => { s += Tx(cols[j] + 5, yy + rh - 6, c, 12, 'start', i === 0 ? 'font-weight="bold"' : ''); }); });
+    s += Ln(cols[0], y + rows.length * rh, cols[cols.length - 1], y + rows.length * rh, 't');
+    cols.forEach(cx => { s += Ln(cx, y, cx, y + rows.length * rh, 't'); });
+    return s;
+}
+function stuecklisteHtml(title, rows) {
+    return `<div class="paper text" style="max-width:940px"><h3>${title}</h3><table><tr><th>Pos.</th><th>Menge</th><th>Benennung / Norm</th><th>Werkstoff</th><th>Bemerkung</th></tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+}
+
+</script>
+<script>
+/* ============================================================
+   Projekt Industriemechaniker: Hubstation einer Montagelinie
+   Gemeinsamer Zeichnungssatz für AFA und Fertigungstechnik
+   ============================================================ */
+const IM_SITUATION = `<h3>Situation</h3>
+<p>In einer Montagelinie hebt eine <b>Hubstation</b> Werkstückträger auf die nächste Ebene. Ein <b>Hydraulikzylinder</b> (1A1) hebt den Hubtisch. Auf dem Hubtisch treibt ein Getriebemotor über einen Riementrieb eine <b>Antriebswelle</b> (Pos. 1) an. Die Welle bewegt die Rollen der Rollenbahn.</p>
+<p>Die Welle ist in einem Lagergehäuse mit zwei Rillenkugellagern gelagert. An einem Lager ist ein Schaden aufgetreten: Die Lagerstelle wird heiß und macht Geräusche.</p>
+<h3>Deine Aufträge</h3>
+<ul style="margin-left:1.2rem"><li>die Funktion der Lagereinheit, der Hydraulik und der Steuerung analysieren,</li><li>den Lagerschaden beurteilen und die Lagereinheit instand setzen,</li><li>eine neue Antriebswelle (Pos. 1) fertigen und prüfen,</li><li>die Anlage wieder in Betrieb nehmen.</li></ul>
+<h3>Technische Daten</h3>
+<table><tr><th>Bauteil</th><th>Daten</th></tr>
+<tr><td>Hydraulikzylinder 1A1</td><td>Kolben-Ø D = 63 mm, Stangen-Ø d = 36 mm, Hub 400 mm</td></tr>
+<tr><td>Hydraulikpumpe 0P1</td><td>Konstantpumpe, Förderstrom Q = 12 l/min</td></tr>
+<tr><td>Druckbegrenzungsventil 0V1</td><td>eingestellt auf 120 bar</td></tr>
+<tr><td>Antriebsmotor Rollenbahn</td><td>Drehstrom 400 V, 0,75 kW, n = 1400 1/min</td></tr>
+<tr><td>Riementrieb</td><td>Motor-Riemenscheibe d₁ = 80 mm, Riemenscheibe an Pos. 1 d₂ = 200 mm</td></tr></table>
+<p>Die Zeichnungen sind vereinfacht und nicht maßstäblich. Es gelten nur die eingetragenen Maße.</p>`;
+
+const IM_STUECKLISTE = [
+    ['1', '1', 'Antriebswelle', '42CrMo4+QT', 'Zeichnung HS-02-001'],
+    ['2', '1', 'Lagergehäuse', 'EN-GJL-250', 'Lagerbohrungen Ø52 H7'],
+    ['3', '2', 'Rillenkugellager DIN 625 – 6205', 'Wälzlagerstahl', 'd = 25, D = 52, B = 15'],
+    ['4', '2', 'Sicherungsring DIN 471 – 25 × 1,2', 'Federstahl', 'für Wellen'],
+    ['5', '2', 'Radial-Wellendichtring DIN 3760 – A 25 × 40 × 7', 'NBR', ''],
+    ['6', '2', 'Lagerdeckel', 'S235JR', 'links mit Zentrierbund, rechts mit Spalt'],
+    ['7', '2', 'Passfeder DIN 6885 – A 6 × 6 × 28', 'E295', ''],
+    ['8', '8', 'Zylinderschraube ISO 4762 – M6 × 20 – 8.8', 'Stahl', 'Lagerdeckel']
+];
+
+function svgImLagerung() {
+    const m = 'arIL', k = 2.6, ox = 80, cy = 250;
+    const X = x => ox + x * k, Yu = r => cy - r * k, Yl = r => cy + r * k;
+    const polyR = (pts, Y, cls, hatch) => hatch ? Hatch(pts.map(([x, r]) => [X(x), Y(r)]), m, hatch) : Poly(pts.map(([x, r]) => [X(x), Y(r)]), cls);
+    let s = `<svg viewBox="0 0 760 560" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 752, 552, 't');
+    s += Tx(380, 30, 'Gesamtzeichnung Lagereinheit Antriebswelle (Schnitt, vereinfacht)', 16, 'middle', 'font-weight="bold"');
+    // Gehäuse (Pos 2) – oben und unten, unten mit Fuß
+    const geh = [[45, 26], [45, 45], [175, 45], [175, 26], [152, 26], [152, 22], [65, 22], [65, 26]];
+    s += polyR(geh, Yu, '', 1);
+    s += polyR(geh, Yl, '', 1);
+    s += HatchR(X(60), Yl(45), 100 * k, 12 * k, m, 1);
+    // Deckel (Pos 6)
+    const dl = [[35, 14], [35, 45], [45, 45], [45, 26], [50, 26], [50, 23], [45, 23], [45, 20], [37, 20], [37, 14]];
+    const dr = [[185, 14], [185, 45], [175, 45], [175, 26], [172, 26], [172, 23], [175, 23], [175, 20], [183, 20], [183, 14]];
+    s += polyR(dl, Yu, '', 2) + polyR(dl, Yl, '', 2) + polyR(dr, Yu, '', 2) + polyR(dr, Yl, '', 2);
+    // Welle (Pos 1) – nicht geschnitten
+    const w = [[0, 10], [34, 10], [34, 12.5], [65, 12.5], [65, 16], [155, 16], [155, 12.5], [186, 12.5], [186, 10], [220, 10]];
+    s += `<path d="M${X(0)},${Yu(10)} ${w.map(([x, r]) => `L${X(x)},${Yu(r)}`).join(' ')} L${X(220)},${Yl(10)} ${w.slice().reverse().map(([x, r]) => `L${X(x)},${Yl(r)}`).join(' ')} Z" class="vf"/>`;
+    [34, 65, 155, 186].forEach(x => { s += Ln(X(x), Yu(x === 65 || x === 155 ? 16 : 12.5), X(x), Yl(x === 65 || x === 155 ? 16 : 12.5), 't'); });
+    // Lager (Pos 3)
+    [50, 155].forEach(x0 => {
+        [Yu, Yl].forEach(Y => {
+            s += HatchR(X(x0), Math.min(Y(26), Y(22.5)), 15 * k, 3.5 * k, m, 3);
+            s += HatchR(X(x0), Math.min(Y(16), Y(12.5)), 15 * k, 3.5 * k, m, 3);
+            s += Ci(X(x0 + 7.5), Y(19.25), 3.2 * k, 'vf');
+        });
+    });
+    // Sicherungsringe (Pos 4)
+    [48.7, 170].forEach(x0 => { [Yu, Yl].forEach(Y => { s += Rc(X(x0), Math.min(Y(15), Y(11.95)), 1.3 * k, 3.05 * k, 'fill'); }); });
+    // RWDR (Pos 5)
+    [37, 176].forEach(x0 => { [Yu, Yl].forEach(Y => { s += Rc(X(x0), Math.min(Y(20), Y(12.5)), 7 * k, 7.5 * k, 'vf') + Ln(X(x0), Y(12.5), X(x0 + 7), Y(20), 't') + Ln(X(x0 + 7), Y(12.5), X(x0), Y(20), 't'); }); });
+    // Passfedern (Pos 7) – nicht geschnitten
+    [3, 189].forEach(x0 => { s += `<rect x="${X(x0)}" y="${Yu(13)}" width="${28 * k}" height="${6 * k}" rx="${3 * k}" class="vf"/>`; });
+    // Schrauben (Pos 8)
+    [[29, 35, 55], [185, 191, 165]].forEach(([h1, h2, e]) => {
+        [Yu, Yl].forEach(Y => {
+            s += Rc(X(h1), Math.min(Y(31), Y(41)), 6 * k, 10 * k, 'vf');
+            const xa = Math.min(X(h2), X(e)), xb = Math.max(X(h2), X(e));
+            s += Rc(xa, Math.min(Y(33), Y(39)), xb - xa, 6 * k, 'vf');
+        });
+    });
+    s += Ln(X(-6), cy, X(226), cy, 'c');
+    // Positionsnummern
+    s += balloon(X(110), Yu(12), X(110), 70, 1);
+    s += balloon(X(120), Yu(38), X(160), 70, 2);
+    s += balloon(X(57.5), Yu(24), X(70), 70, 3);
+    s += balloon(X(162.5), Yl(24), X(150), 470, 3);
+    s += balloon(X(49.3), Yl(13.5), X(40), 470, 4);
+    s += balloon(X(40.5), Yu(17), X(28), 70, 5);
+    s += balloon(X(40), Yl(38), X(68), 470, 6);
+    s += balloon(X(180), Yu(40), X(205), 70, 6);
+    s += balloon(X(17), Yu(11.5), X(5), 70, 7);
+    s += balloon(X(32), Yl(36), X(14), 470, 8);
+    s += Tx(X(-4), cy - 20, 'Antrieb', 11, 'end', 'fill="#555"') + Tx(X(-4), cy - 7, '(Riementrieb)', 11, 'end', 'fill="#555"');
+    s += Tx(X(224), cy - 20, 'zur', 11, 'start', 'fill="#555"') + Tx(X(224), cy - 7, 'Rollenbahn', 11, 'start', 'fill="#555"');
+    return s + '</svg>';
+}
+
+function svgImWelle() {
+    const m = 'arIW', k = 2.7, ox = 70, cy = 200;
+    const X = x => ox + x * k, Yu = r => cy - r * k, Yl = r => cy + r * k;
+    let s = `<svg viewBox="0 0 760 720" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 752, 712, 't');
+    s += Tx(380, 30, 'Antriebswelle – Pos. 1', 17, 'middle', 'font-weight="bold"');
+    const seg = [[0, 34, 10], [34, 65, 12.5], [65, 155, 16], [155, 186, 12.5], [186, 220, 10]];
+    seg.forEach(([a, b, r]) => { s += Rc(X(a), Yu(r), (b - a) * k, 2 * r * k, 'vf'); });
+    // Fasen andeuten
+    s += Ln(X(1), Yu(10), X(1), Yl(10), 't') + Ln(X(219), Yu(10), X(219), Yl(10), 't');
+    // Einstiche Sicherungsringe
+    [48.7, 170].forEach(x0 => { s += Rc(X(x0), Yu(12.5), 1.3 * k, 0.55 * k, 'fill') + Rc(X(x0), Yl(11.95), 1.3 * k, 0.55 * k, 'fill') + Ln(X(x0), Yu(11.95), X(x0), Yl(11.95), 't') + Ln(X(x0 + 1.3), Yu(11.95), X(x0 + 1.3), Yl(11.95), 't'); });
+    // Passfedernuten (Draufsicht auf die Nut)
+    [3, 189].forEach(x0 => { s += `<rect x="${X(x0)}" y="${cy - 3 * k}" width="${28 * k}" height="${6 * k}" rx="${3 * k}" class="v"/>`; });
+    s += Ln(X(-5), cy, X(225), cy, 'c');
+    // Bezüge A und B
+    s += datumBox(X(46), Yl(12.5) + 30, 'A', X(50), Yl(12.5) + 1);
+    s += datumBox(X(166), Yl(12.5) + 30, 'B', X(170), Yl(12.5) + 1);
+    // Rundlauf auf Ø20 links und rechts
+    s += tolFrame(X(0) - 10, Yu(10) - 62, 'runout', '0,02', 'A-B') + `<line x1="${X(14)}" y1="${Yu(10) - 42}" x2="${X(14)}" y2="${Yu(10)}" class="d" marker-end="url(#${m})"/>`;
+    // Durchmesser
+    const dd = (x, r, lab) => `<line x1="${X(x)}" y1="${Yu(r)}" x2="${X(x)}" y2="${Yl(r)}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + `<text x="${X(x) - 5}" y="${cy}" font-size="13" text-anchor="middle" transform="rotate(-90 ${X(x) - 5} ${cy})">${lab}</text>`;
+    const ddE = (x, r, lab) => `<line x1="${X(x)}" y1="${Yu(r)}" x2="${X(x)}" y2="${Yl(r)}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + Tx(X(x), Yu(r) - 8, lab, 13);
+    s += ddE(26, 10, 'Ø20 k6') + dd(57, 12.5, 'Ø25 k5') + dd(110, 16, 'Ø32') + dd(163, 12.5, 'Ø25 k5') + ddE(194, 10, 'Ø20 k6');
+    // Längen (Kette)
+    const yL = Yl(16) + 70;
+    let chain = '';
+    [[0, 34, '34'], [34, 65, '31'], [65, 155, '90'], [155, 186, '31'], [186, 220, '34']].forEach(([a, b, l]) => { chain += dimH(m, X(a), X(b), yL, Yl(a === 65 || a === 155 ? 16 : (a === 0 || a === 186 ? 10 : 12.5)), l, Yl(b === 65 || b === 155 ? 16 : (b === 34 || b === 220 ? 10 : 12.5))); });
+    s += chain;
+    s += dimH(m, X(0), X(220), yL + 32, Yl(10), '220');
+    // Einstich-Lage
+    s += dimH(m, X(34), X(48.7), Yu(16) - 30, Yu(12.5), '14,7');
+    s += dimH(m, X(170), X(186), Yu(16) - 30, Yu(12.5), '14,7', Yu(12.5));
+    // Passfedernut-Länge
+    s += dimH(m, X(3), X(31), Yl(10) + 44, cy + 3 * k, '28');
+    // Schnitt A-A rechts unten
+    const sx = 600, sy = 470, R = 10 * 5.2;
+    s += Tx(sx, sy - R - 30, 'Schnitt C–C (vergrößert)', 13, 'middle', 'font-weight="bold"');
+    const hw = 3 * 5.2, depth = 3.5 * 5.2, ang = Math.asin(hw / R), yTop = sy - Math.sqrt(R * R - hw * hw);
+    s += `<path d="M${sx - hw},${yTop} A${R},${R} 0 1 0 ${sx + hw},${yTop} L${sx + hw},${sy - R + depth} L${sx - hw},${sy - R + depth} Z" fill="url(#${m}h1)" stroke="#000" stroke-width="1.7"/>`;
+    s += cross(sx, sy, R + 12);
+    s += dimV(m, sy - R + depth, sy + R, sx + R + 40, sx + hw, '16,5', sx);
+    s += dimH(m, sx - hw, sx + hw, sy - R - 12, sy - R + depth, '6 P9');
+    s += Ln(X(8), Yu(10) - 18, X(8), Yu(10) - 6, 'v') + Ln(X(8), Yl(10) + 6, X(8), Yl(10) + 18, 'v') + Tx(X(8) - 6, Yu(10) - 10, 'C', 13, 'end', 'font-weight="bold"') + Tx(X(8) - 6, Yl(10) + 20, 'C', 13, 'end', 'font-weight="bold"');
+    // Bohrungsangaben / Hinweise
+    const ny = 420;
+    const notes = ['Zentrierbohrungen beidseitig ISO 6411 – A 2/4,25', 'Freistiche an den Wellenabsätzen DIN 509 – F 0,6 × 0,3', 'Einstiche für Sicherungsring DIN 471: Ø23,9 × 1,3 breit', 'Lagersitze Ø25 k5: Ra 0,4 · Ø20 k6: Ra 0,8 · übrige Flächen Ra 3,2', 'Alle Kanten ohne Maßangabe: Fase 1 × 45°', 'Vergütet auf Rm = 900 … 1100 N/mm²', 'Rohteil: Rundstahl Ø36 × 225'];
+    notes.forEach((t, i) => { s += Tx(70, ny + i * 20, '• ' + t, 13, 'start'); });
+    s += titleBlock(70, 630, 620, { name: 'Antriebswelle', werkstoff: '42CrMo4+QT', nr: 'HS-02-001', tol: 'ISO 2768-mK · Tolerierung ISO 8015' });
+    return s + '</svg>';
+}
+
+function svgImHydraulik() {
+    const m = 'arIH';
+    let s = `<svg viewBox="0 0 640 760" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 632, 752, 't');
+    s += Tx(320, 30, 'Hydraulikschaltplan Hubzylinder', 17, 'middle', 'font-weight="bold"');
+    // Zylinder 1A1
+    s += Rc(170, 60, 240, 56) + Rc(195, 62, 9, 52, 'fill') + Rc(204, 84, 260, 10, 'vf');
+    s += Tx(150, 95, '1A1', 15, 'end', 'font-weight="bold"');
+    const xA = 185, xB = 395;
+    // Leitung A: Zylinder → 1V3 → 1V2 → Ventil A
+    s += Ln(xA, 116, xA, 160) + Ln(xA, 230, xA, 270) + Ln(xA, 340, xA, 380) + Ln(xA, 380, 275, 380) + Ln(275, 380, 275, 440);
+    // 1V3 Drosselrückschlagventil (frei zum Zylinder)
+    s += Rc(150, 160, 70, 70, 'h');
+    s += Ln(xA, 160, xA, 172) + Ln(xA, 218, xA, 230) + Ln(165, 172, 205, 172) + Ln(165, 218, 205, 218);
+    s += Ln(165, 172, 165, 187) + Ln(165, 203, 165, 218) + `<path d="M159,187 Q165,195 159,203 M171,187 Q165,195 171,203" class="v"/>` + `<line x1="152" y1="210" x2="178" y2="180" class="t" marker-end="url(#${m})"/>`;
+    s += Ln(205, 172, 205, 187) + Ln(205, 209, 205, 218) + Ci(205, 194, 6) + PolyL([[196, 197], [205, 209], [214, 197]]);
+    s += Tx(130, 200, '1V3', 15, 'end', 'font-weight="bold"');
+    // 1V2 entsperrbares Rückschlagventil
+    s += Rc(150, 270, 70, 70, 'h');
+    s += Ln(xA, 270, xA, 293) + Ln(xA, 317, xA, 340) + Ci(xA, 300, 7) + PolyL([[xA - 10, 304], [xA, 317], [xA + 10, 304]]);
+    s += Tx(130, 310, '1V2', 15, 'end', 'font-weight="bold"');
+    // Steuerleitung von B zu 1V2
+    s += `<polyline points="220,318 300,318 ${xB},318" class="h"/>` + `<line x1="220" y1="318" x2="${xA + 9}" y2="309" class="h"/>`;
+    s += Tx(232, 312, 'X', 11);
+    // Leitung B
+    s += Ln(xB, 116, xB, 400) + Ln(xB, 400, 305, 400) + Ln(305, 400, 305, 440);
+    s += Ci(xB, 318, 3, 'fill');
+    // 1V1 4/3-Wegeventil, Mittelstellung Umlauf (P→T, A und B gesperrt)
+    const vy = 440, vh = 56;
+    s += Rc(200, vy, 60, vh) + Rc(260, vy, 60, vh) + Rc(320, vy, 60, vh);
+    // Mitte (gezeichnete Stellung): P→T, A und B gesperrt
+    s += `<path d="M275,${vy + vh} L275,${vy + vh - 14} L305,${vy + vh - 14} L305,${vy + vh}" class="t"/>`;
+    s += Ln(275, vy, 275, vy + 12, 't') + Ln(269, vy + 12, 281, vy + 12, 't') + Ln(305, vy, 305, vy + 12, 't') + Ln(299, vy + 12, 311, vy + 12, 't');
+    // links: P→A, B→T (parallel)
+    s += `<line x1="215" y1="${vy + vh}" x2="215" y2="${vy}" class="t" marker-end="url(#${m})"/><line x1="245" y1="${vy}" x2="245" y2="${vy + vh}" class="t" marker-end="url(#${m})"/>`;
+    // rechts: P→B, A→T (gekreuzt)
+    s += `<line x1="335" y1="${vy + vh}" x2="365" y2="${vy}" class="t" marker-end="url(#${m})"/><line x1="335" y1="${vy}" x2="365" y2="${vy + vh}" class="t" marker-end="url(#${m})"/>`;
+    // Federn + Magnete
+    s += PolyL([[200, 468], [194, 462], [188, 474], [182, 462], [176, 474], [170, 468]], 't') + Rc(152, 456, 18, 24) + Ln(152, 480, 170, 456, 't');
+    s += PolyL([[380, 468], [386, 462], [392, 474], [398, 462], [404, 474], [410, 468]], 't') + Rc(410, 456, 18, 24) + Ln(410, 480, 428, 456, 't');
+    s += Tx(161, 448, 'Y1', 12) + Tx(419, 448, 'Y2', 12);
+    s += Tx(130, 472, '1V1', 15, 'end', 'font-weight="bold"');
+    s += Tx(268, vy - 5, 'A', 12) + Tx(312, vy - 5, 'B', 12) + Tx(268, vy + vh + 14, 'P', 12) + Tx(312, vy + vh + 14, 'T', 12);
+    // P-Leitung zur Pumpe, T-Leitung über Filter zum Tank
+    s += Ln(275, vy + vh, 275, 650) + Ln(305, vy + vh, 305, 560) + Ln(305, 600, 305, 620);
+    // 0Z1 Rücklauffilter
+    s += Poly([[305, 560], [325, 580], [305, 600], [285, 580]]) + Ln(287, 580, 323, 580, 'h');
+    s += Tx(335, 585, '0Z1', 14, 'start', 'font-weight="bold"');
+    s += PolyL([[293, 616], [293, 626], [317, 626], [317, 616]]);
+    // Pumpe 0P1 + Motor 0M1
+    s += Ci(275, 670, 20) + Poly([[275, 650], [267, 664], [283, 664]], 'fill') + Ln(275, 690, 275, 715) + PolyL([[263, 711], [263, 721], [287, 721], [287, 711]]);
+    s += Ln(255, 668, 215, 668) + Ln(255, 673, 215, 673) + Ci(195, 670, 20) + Tx(195, 676, 'M', 16, 'middle', 'font-weight="bold"');
+    s += Tx(195, 712, '0M1', 14, 'middle', 'font-weight="bold"') + Tx(305, 676, '0P1', 14, 'start', 'font-weight="bold"');
+    // 0V1 Druckbegrenzungsventil (Grundstellung geschlossen)
+    s += Ln(275, 640, 420, 640) + Ci(275, 640, 3, 'fill') + Ln(420, 640, 420, 625) + Rc(400, 575, 40, 50);
+    s += `<line x1="410" y1="620" x2="410" y2="582" class="t" marker-end="url(#${m})"/>` + Ln(420, 575, 420, 552) + PolyL([[408, 540], [408, 552], [432, 552], [432, 540]]);
+    s += PolyL([[440, 600], [446, 594], [452, 606], [458, 594], [464, 606], [470, 600]], 't') + `<line x1="444" y1="616" x2="472" y2="584" class="t" marker-end="url(#${m})"/>`;
+    s += `<polyline points="380,640 380,600 400,600" class="h"/>`;
+    s += Tx(482, 605, '0V1', 14, 'start', 'font-weight="bold"');
+    // 0Z2 Manometer
+    s += Ln(275, 530, 230, 530) + Ln(230, 530, 230, 545) + Ci(230, 560, 15) + `<line x1="220" y1="570" x2="240" y2="550" class="t" marker-end="url(#${m})"/>`;
+    s += Tx(205, 565, '0Z2', 14, 'end', 'font-weight="bold"');
+    return s + '</svg>';
+}
+
+function svgImStromlauf() {
+    const m = 'arIS';
+    let s = `<svg viewBox="0 0 760 650" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 752, 642, 't');
+    s += Tx(380, 30, 'Stromlaufplan Steuerstromkreis (Auszug)', 17, 'middle', 'font-weight="bold"');
+    const top = 70, bot = 500;
+    s += Ln(40, top, 720, top) + Ln(40, bot, 720, bot) + Tx(30, top + 5, 'L1', 13, 'end') + Tx(30, bot + 5, 'N', 13, 'end');
+    // Bauelemente
+    const opener = (x, y, lab, extra = '') => Ln(x, y, x, y + 14) + Ln(x, y + 46, x, y + 60) + Ln(x, y + 14, x + 12, y + 14, 't') + Ln(x + 12, y + 14, x, y + 46) + Tx(x - 26, y + 34, lab, 12, 'end') + extra;
+    const closer = (x, y, lab, extra = '') => Ln(x, y, x, y + 14) + Ln(x, y + 46, x, y + 60) + Ln(x - 12, y + 18, x, y + 46) + Tx(x - 28, y + 34, lab, 12, 'end') + extra;
+    const push = (x, y) => Ln(x - 6, y + 30, x - 22, y + 30, 'h') + Ln(x - 22, y + 24, x - 22, y + 36, 'v');
+    const coil = (x, y, lab) => Rc(x - 14, y, 28, 22) + Tx(x + 20, y + 16, lab, 12, 'start');
+    const lamp = (x, y, lab) => Ci(x, y + 11, 11) + Ln(x - 8, y + 3, x + 8, y + 19, 't') + Ln(x + 8, y + 3, x - 8, y + 19, 't') + Tx(x + 18, y + 16, lab, 12, 'start');
+    const valveCoil = (x, y, lab) => Rc(x - 14, y, 28, 22) + Ln(x - 14, y + 22, x + 14, y, 't') + Tx(x + 20, y + 16, lab, 12, 'start');
+    const pathNo = (x, n) => Tx(x, bot + 22, n, 12, 'middle', 'fill="#555"');
+    // Strompfad 1: F2 – S0 – S1 – S2 ∥ Q1 – Q1-Spule
+    let x = 110;
+    s += opener(x, top, 'F2') + Tx(x + 16, top + 34, '95/96', 9, 'start');
+    s += opener(x, top + 60, 'S0', '') + `<path d="M${x - 30},${top + 82} q8,-10 16,0" class="v"/>` + Ln(x - 22, top + 82, x - 22, top + 90, 'h') + Ln(x - 22, top + 90, x - 6, top + 90, 'h');
+    s += opener(x, top + 120, 'S1') + push(x, top + 120);
+    s += closer(x, top + 180, 'S2') + push(x, top + 180);
+    // Selbsthaltung Q1 13/14 parallel zu S2 (Pfad 2)
+    s += Ln(x, top + 180, 190, top + 180) + Ln(190, top + 180, 190, top + 180) + closer(190, top + 180, 'Q1') + Tx(206, top + 214, '13/14', 9, 'start') + Ln(190, top + 240, x, top + 240);
+    s += Ln(x, top + 240, x, top + 330) + coil(x, top + 330, 'Q1') + Ln(x, top + 352, x, bot);
+    s += pathNo(x, '1') + pathNo(190, '2');
+    // Strompfad 3: Q1 23/24 – H1
+    x = 300;
+    s += closer(x, top, 'Q1') + Tx(x + 6, top + 34, '23/24', 9, 'start') + Ln(x, top + 60, x, top + 330) + lamp(x, top + 330, 'H1') + Ln(x, top + 352, x, bot) + pathNo(x, '3');
+    // Strompfad 4: Q1 33/34 – S3 (Heben) – B1 (oben, Öffner) – Y1
+    x = 440;
+    s += closer(x, top, 'Q1') + Tx(x + 6, top + 34, '33/34', 9, 'start') + Ln(x, top + 60, x, 190);
+    s += Ln(x, 190, 520, 190);
+    s += closer(x, 190, 'S3') + push(x, 190);
+    s += opener(x, 250, 'B1') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, 'Y1') + Ln(x, top + 352, x, bot) + pathNo(x, '4');
+    // Strompfad 5: S4 (Senken) – B2 (unten, Öffner) – Y2
+    x = 600;
+    s += Ln(520, 190, x, 190) + closer(x, 190, 'S4') + push(x, 190) + opener(x, 250, 'B2') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, 'Y2') + Ln(x, top + 352, x, bot) + pathNo(x, '5');
+    s += Ci(440, 190, 3, 'fill');
+    // Legende
+    const lg = ['F2: Motorschutzrelais Pumpenmotor', 'S0: Not-Halt · S1: Aus · S2: Ein (Pumpe)', 'Q1: Schütz Pumpenmotor 0M1 · H1: Meldeleuchte', 'S3: Taster Heben · S4: Taster Senken', 'B1: Endschalter oben · B2: Endschalter unten', 'Y1, Y2: Magnetspulen von 1V1'];
+    lg.forEach((t, i) => { s += Tx(i < 3 ? 50 : 400, 560 + (i % 3) * 20, t, 12.5, 'start'); });
+    s += Rc(40, 540, 680, 74, 't');
+    return s + '</svg>';
+}
+
+const IM_DOCS = [
+    { id: 'sit', label: 'Situation', svg: false, html: () => `<div class="paper text">${IM_SITUATION}</div>` },
+    { id: 'lag', label: 'Lagereinheit', svg: true, html: svgImLagerung },
+    { id: 'wel', label: 'Welle (Pos. 1)', svg: true, html: svgImWelle },
+    { id: 'hyd', label: 'Hydraulikplan', svg: true, html: svgImHydraulik },
+    { id: 'elt', label: 'Stromlaufplan', svg: true, html: svgImStromlauf },
+    { id: 'stl', label: 'Stückliste', svg: false, html: () => stuecklisteHtml('Stückliste Lagereinheit Antriebswelle', IM_STUECKLISTE) }
+];
+
+/* ============================================================
+   AP Teil 2 – Industriemechaniker – Fertigungstechnik
+   ============================================================ */
+function introAfaFt(name, min) {
+    return `<h2>So läuft die Prüfung</h2>
+    <ul class="steps">
+      <li>Prüfungsbereich <b>${name}</b>. Du hast <b>${min} Minuten</b>. Die Uhr läuft oben rückwärts.</li>
+      <li><b>Teil A:</b> 28 Aufgaben zum Ankreuzen. Pro Aufgabe ist genau eine Antwort richtig.</li>
+      <li>In Teil A musst du <b>3 Aufgaben abwählen</b>. Die 8 Aufgaben mit 🔒 (Mathematik und Technische Kommunikation) kannst du nicht abwählen.</li>
+      <li>Wählst du nicht ab, werden die <b>letzten 3 abwählbaren Aufgaben</b> nicht gewertet.</li>
+      <li><b>Teil B:</b> 8 Aufgaben mit je 10 Punkten. Keine Abwahl.</li>
+      <li>Alle Aufgaben beziehen sich auf die Unterlagen hinter dem Knopf <b>📐 Zeichnung</b>.</li>
+    </ul>
+    <div class="info warn"><b>Hilfsmittel:</b> Tabellenbuch Metall, Taschenrechner, Papier für Nebenrechnungen.</div>
+    <table class="tbl"><tr><th>Teil</th><th>Aufgaben</th><th>Punkte</th><th>Anteil</th></tr>
+    <tr><td>A – gebunden</td><td>28, davon 3 abwählen</td><td>25 × 1 Punkt</td><td>50 %</td></tr>
+    <tr><td>B – ungebunden</td><td>8, keine Abwahl</td><td>8 × 10 Punkte</td><td>50 %</td></tr></table>`;
+}
+const EXAM = {
+    id: 'ft-im', key: 'ap2-ft-im-1', summary: true,
+    title: 'Fertigungstechnik', subtitle: 'Abschlussprüfung Teil 2 · Industriemechaniker/-in · Projekt Hubstation',
+    logo: '⚙️', back: './', backLabel: '← Zurück zur Übersicht Teil 2',
+    duration: 105, aAbw: 3, aWeight: 0.5, bAbw: 0, bWeight: 0.5,
+    intro: introAfaFt('Fertigungstechnik', 105),
+    bIntro: '<p>Arbeite mit den Unterlagen (📐 Zeichnung) und deinem Tabellenbuch. Gib Zahlen mit Komma oder Punkt ein.</p>',
+    docs: IM_DOCS,
+    cats: { ZER: 'Drehen, Fräsen, Bohren', CNC: 'CNC-Technik', SCH: 'Schleifen', WST: 'Werkstoffe und Wärmebehandlung', MON: 'Fügen und Montage', QS: 'Prüftechnik und Qualität', TM: 'Technische Mathematik', TK: 'Technische Kommunikation' },
+    aDef: [
+ { cat: 'TK', lock: true, q: 'Auf der Wellenzeichnung steht <b>Freistich DIN 509 – F 0,6 × 0,3</b>. Was bedeutet das?',
+   o: ['Freistich der Form F mit Radius 0,6 mm und Einstichtiefe 0,3 mm', 'Fase mit 0,6 mm Länge und 0,3 mm Tiefe', 'Freistich mit 0,6 mm Breite und 0,3 mm Radius, nur für Gewinde', 'Einstich für einen Sicherungsring', 'Zentrierbohrung mit 0,6 mm Durchmesser'],
+   e: 'Freistiche nach DIN 509 werden mit Form, Radius r und Tiefe t angegeben. Form F ist für Teile, bei denen Plan- und Zylinderfläche bearbeitet werden.' },
+ { cat: 'ZER', q: 'Die Welle hat beidseitig Zentrierbohrungen. Wie spannst du sie für das Drehen der Absätze, damit alles genau rundläuft?',
+   o: ['Zwischen Spitzen mit Mitnehmer', 'Nur im Dreibackenfutter, ohne Gegenspitze', 'Im Maschinenschraubstock', 'Mit Magnetspannplatte', 'In einer Spannzange auf dem Ø32'],
+   e: 'Zwischen Spitzen werden alle Durchmesser auf dieselbe Achse bezogen. Das ist wichtig für den Rundlauf.' },
+ { cat: 'ZER', q: 'Welcher Schneidstoff eignet sich am besten zum Schruppen der vergüteten Welle aus 42CrMo4?',
+   o: ['Beschichtetes Hartmetall der Anwendungsgruppe P', 'Werkzeugstahl (unlegiert)', 'Polykristalliner Diamant (PKD)', 'HSS ohne Beschichtung bei hoher Schnittgeschwindigkeit', 'Hartmetall der Gruppe N für Aluminium'],
+   e: 'Die Gruppe P steht für Stahl. Beschichtetes Hartmetall hält hohe Temperaturen aus. PKD ist für NE-Metalle, nicht für Stahl.' },
+ { cat: 'TM', lock: true, gen: true },
+ { cat: 'TK', lock: true, q: 'Für die Lagersitze ist <b>Ra 0,4</b> angegeben. Was bedeutet das?',
+   o: ['Der arithmetische Mittenrauwert darf höchstens 0,4 µm betragen.', 'Die Rautiefe muss mindestens 0,4 mm sein.', 'Die Rundheit darf 0,4 µm abweichen.', 'Der Durchmesser darf um 0,4 µm abweichen.', 'Die Oberfläche muss 0,4 mm tief gehärtet sein.'],
+   e: 'Ra ist der Mittelwert der Abweichungen des Profils von der Mittellinie. Die Angabe ist ein Höchstwert in µm.' },
+ { cat: 'ZER', q: 'Wie wirkt sich ein <b>größerer Spanwinkel</b> beim Drehen aus?',
+   o: ['Die Schnittkraft sinkt, aber die Schneide wird schwächer.', 'Die Schneide wird stabiler und die Schnittkraft steigt.', 'Die Oberfläche wird immer rauer.', 'Der Span wird dicker.', 'Der Spanwinkel hat keinen Einfluss.'],
+   e: 'Ein großer, positiver Spanwinkel lässt den Span leichter ablaufen. Der Keil wird aber schlanker und bricht leichter aus.' },
+ { cat: 'ZER', q: 'Wie erreichst du beim Schlichtdrehen eine glattere Oberfläche?',
+   o: ['Kleineren Vorschub und größeren Eckenradius wählen', 'Größeren Vorschub und kleineren Eckenradius wählen', 'Nur die Schnitttiefe vergrößern', 'Die Schnittgeschwindigkeit stark senken', 'Ohne Kühlschmierstoff arbeiten'],
+   e: 'Die theoretische Rautiefe ist etwa R<sub>th</sub> = f² / (8 · r). Kleiner Vorschub und großer Radius ergeben eine kleine Rautiefe.' },
+ { cat: 'CNC', q: 'Was bewirkt der Befehl <b>G00</b>?',
+   o: ['Verfahren im Eilgang', 'Linearinterpolation im Vorschub', 'Kreis im Uhrzeigersinn', 'Programmende', 'Spindel aus'],
+   e: 'G00 fährt mit größter Geschwindigkeit, nicht zum Zerspanen. G01 ist die Gerade im Vorschub.' },
+ { cat: 'CNC', q: 'Was bewirkt der Befehl <b>G02</b>?',
+   o: ['Kreisinterpolation im Uhrzeigersinn', 'Kreisinterpolation gegen den Uhrzeigersinn', 'Eilgang', 'Absolutmaßangabe', 'Werkzeugwechsel'],
+   e: 'G02 = Kreis im Uhrzeigersinn, G03 = gegen den Uhrzeigersinn (Blick entgegen der Achse).' },
+ { cat: 'CNC', q: 'Was bewirkt <b>G42</b>?',
+   o: ['Schneidenradiuskorrektur rechts von der Kontur (in Bearbeitungsrichtung gesehen)', 'Schneidenradiuskorrektur links von der Kontur', 'Aufheben der Schneidenradiuskorrektur', 'Kettenmaßangabe', 'Konstante Schnittgeschwindigkeit'],
+   e: 'G41 = links, G42 = rechts der Kontur, G40 hebt die Korrektur auf.' },
+ { cat: 'CNC', q: 'Was bedeutet <b>G90</b>?',
+   o: ['Absolutmaßangabe: Alle Koordinaten beziehen sich auf den Werkstücknullpunkt.', 'Kettenmaß: Jede Koordinate bezieht sich auf den letzten Punkt.', 'Drehung um 90°', 'Eilgang mit 90 % Geschwindigkeit', 'Programmende mit Rücksprung'],
+   e: 'G90 = absolut, G91 = inkremental (Kettenmaß).' },
+ { cat: 'TM', lock: true, gen: true },
+ { cat: 'SCH', q: 'Die Lagersitze Ø25 k5 mit Ra 0,4 werden nach dem Drehen fertig bearbeitet. Welches Verfahren ist üblich?',
+   o: ['Außenrundschleifen', 'Bohren', 'Räumen', 'Hobeln', 'Gewindewalzen'],
+   e: 'IT5 und Ra 0,4 erreicht man sicher durch Rundschleifen.' },
+ { cat: 'TK', lock: true, q: 'Was bedeutet die Angabe <b>ISO 6411 – A 2/4,25</b> auf der Wellenzeichnung?',
+   o: ['Zentrierbohrung Form A mit 2 mm Zentrierdurchmesser und 4,25 mm Senkdurchmesser', 'Gewinde M2 mit 4,25 mm Tiefe', 'Fase 2 × 45° auf 4,25 mm Länge', 'Freistich 2 mm breit, 4,25 mm tief', 'Passfedernut 2 mm breit, 4,25 mm lang'],
+   e: 'ISO 6411 ist die Norm für die vereinfachte Angabe von Zentrierbohrungen.' },
+ { cat: 'SCH', q: 'Eine Schleifscheibe ist mit <b>A 60 K 5 V</b> bezeichnet. Was bedeutet die <b>60</b>?',
+   o: ['Die Körnung', 'Den Härtegrad', 'Die Bindung', 'Die zulässige Umfangsgeschwindigkeit in m/s', 'Den Außendurchmesser in mm'],
+   e: 'A = Schleifmittel (Normalkorund), 60 = Körnung, K = Härte, 5 = Gefüge, V = keramische Bindung.' },
+ { cat: 'SCH', q: 'Eine neue Schleifscheibe wird aufgespannt. Was ist vorgeschrieben?',
+   o: ['Klangprobe vor dem Aufspannen und Probelauf mit Arbeitshöchstgeschwindigkeit, Gefahrbereich frei', 'Die Scheibe mit dem Hammer festklopfen', 'Den Probelauf mit halber Drehzahl und offenem Schutz durchführen', 'Die Schutzhaube abnehmen, damit die Scheibe besser kühlt', 'Die zulässige Umfangsgeschwindigkeit um 20 % überschreiten'],
+   e: 'Eine gerissene Scheibe klingt dumpf. Der Probelauf (mindestens 1 Minute) zeigt, ob die Scheibe hält, bevor jemand davorsteht.' },
+ { cat: 'WST', q: 'Wie läuft das <b>Vergüten</b> ab?',
+   o: ['Härten (Erwärmen und Abschrecken) und danach Anlassen bei hoher Temperatur, etwa 540 bis 680 °C', 'Nur langsames Abkühlen im Ofen', 'Härten und Anlassen bei etwa 180 °C', 'Aufkohlen und Härten der Randschicht', 'Erwärmen auf 300 °C und Abkühlen an Luft'],
+   e: 'Vergüten = Härten + Anlassen bei hoher Temperatur. Das ergibt hohe Festigkeit bei guter Zähigkeit.' },
+ { cat: 'SCH', q: 'Warum schleift man die Lagersitze erst <b>nach</b> einer Wärmebehandlung fertig?',
+   o: ['Die Wärmebehandlung verursacht Verzug und Zunder. Das Endmaß wird erst danach erreicht.', 'Weil weicher Stahl nicht geschliffen werden kann.', 'Weil das Schleifen die Härte erhöht.', 'Weil man so Schleifscheiben spart.', 'Weil es die Norm DIN 509 vorschreibt.'],
+   e: 'Durch Erwärmen und Abschrecken verzieht sich das Teil. Deshalb lässt man vorher ein Schleifaufmaß stehen.' },
+ { cat: 'MON', q: 'Wie ziehst du die Schrauben der Lagerdeckel an?',
+   o: ['Über Kreuz in mehreren Stufen mit dem Drehmomentschlüssel auf das vorgeschriebene Anzugsmoment', 'Der Reihe nach im Kreis, jede Schraube gleich voll', 'So fest wie möglich mit Verlängerungsrohr', 'Nur handfest, damit der Deckel nicht reißt', 'Mit dem Schlagschrauber ohne Drehmomentbegrenzung'],
+   e: 'Über Kreuz und in Stufen anziehen verhindert, dass der Deckel schief sitzt. Das Anzugsmoment sorgt für die richtige Vorspannkraft.' },
+ { cat: 'TM', lock: true, q: 'Wie groß ist die Masse des Rohteils (Rundstahl Ø36 × 225)? Dichte ρ = 7,85 kg/dm³.',
+   o: ['1,80 kg', '7,19 kg', '0,18 kg', '18,0 kg', '2,29 kg'],
+   e: 'V = π/4 · (0,36 dm)² · 2,25 dm ≈ 0,229 dm³. m = 0,229 dm³ · 7,85 kg/dm³ ≈ 1,80 kg.' },
+ { cat: 'MON', q: 'Der Riemen zur Antriebswelle wird gespannt. Wie prüfst du die richtige Riemenspannung?',
+   o: ['Mit Prüfkraft und Eindrücktiefe oder mit einem Frequenz-Messgerät nach Herstellerangabe', 'So stark spannen, dass der Riemen nicht mehr nachgibt', 'Nach Gefühl, je fester desto besser', 'Am Motorgeräusch', 'Mit dem Messschieber an der Riemendicke'],
+   e: 'Zu stramm überlastet die Lager, zu locker rutscht der Riemen. Hersteller geben Prüfwerte an.' },
+ { cat: 'TK', lock: true, q: 'Wie tief ist die Passfedernut in der Welle (Wellennuttiefe t₁)? Nutze den Schnitt C–C.',
+   o: ['3,5 mm', '16,5 mm', '6 mm', '2,5 mm', '10 mm'],
+   e: 'Gemessen ist der Rest von 16,5 mm. t₁ = 20 mm − 16,5 mm = 3,5 mm.' },
+ { cat: 'MON', q: 'Wie baust du den Radial-Wellendichtring richtig ein?',
+   o: ['Dichtlippe zum Schmierstoffraum, Lippe einfetten, über Kanten und Nuten mit einer Montagehülse schieben', 'Dichtlippe nach außen, trocken montieren', 'Mit dem Hammer direkt auf die Dichtlippe schlagen', 'Die Feder der Dichtlippe vorher entfernen', 'Mit Kleber auf der Welle festkleben'],
+   e: 'Die Lippe zeigt zum Medium, das abgedichtet wird. Fett verhindert Trockenlauf. Die Hülse schützt die Lippe vor scharfen Kanten.' },
+ { cat: 'QS', q: 'Mit welchem Messgerät prüfst du den Lagersitz Ø25 k5 (Toleranz 9 µm) in der Werkstatt am besten?',
+   o: ['Feinzeiger-Messschraube mit 0,001 mm Ablesung', 'Messschieber mit 0,05 mm Ablesung', 'Bügelmessschraube mit 0,01 mm Ablesung', 'Stahlmaßstab', 'Radiuslehre'],
+   e: 'Faustregel: Die Ablesung sollte höchstens ein Zehntel der Toleranz sein. Bei 9 µm braucht man etwa 1 µm.' },
+ { cat: 'QS', q: 'Wie prüfst du den Mittenrauwert Ra 0,4 am Lagersitz?',
+   o: ['Mit einem Tastschnittgerät (Rauheitsmessgerät)', 'Mit dem Messschieber', 'Mit einem Haarlineal', 'Mit einer Grenzrachenlehre', 'Mit der Messuhr in Prismen'],
+   e: 'Das Tastschnittgerät fährt mit einer feinen Diamantspitze über die Fläche und berechnet Ra.' },
+ { cat: 'ZER', q: 'Die Passfedernut Form A (beide Enden rund) wird gefertigt. Womit?',
+   o: ['Mit einem Langloch- oder Schaftfräser auf der Fräsmaschine', 'Mit einem Scheibenfräser', 'Mit einer Säge', 'Durch Räumen', 'Mit einem Gewindebohrer'],
+   e: 'Ein Schaftfräser erzeugt die runden Enden der Form A. Ein Scheibenfräser würde auslaufende Enden erzeugen.' },
+ { cat: 'TM', lock: true, gen: true },
+ { cat: 'ZER', q: 'Welche Sicherheitsregel gilt an der Drehmaschine?',
+   o: ['Den Spannschlüssel nie im Futter stecken lassen.', 'Späne bei laufender Maschine mit der Hand entfernen.', 'Beim Feilen am drehenden Werkstück Handschuhe tragen.', 'Den Schutz vor dem Futter abbauen, wenn er stört.', 'Werkstücke während des Laufs nachmessen.'],
+   e: 'Ein stecken gelassener Schlüssel wird beim Anlaufen herausgeschleudert. Messen und Späne entfernen nur bei Stillstand.' }
+    ],
+    genA(i, r) {
+        if (i === 4) {
+            const vc = pick(r, [180, 200, 220, 240, 250]);
+            const n = vc * 1000 / (Math.PI * 36);
+            const o = uniqOpts([n, vc * 1000 / 36, vc * 1000 / (Math.PI * 18), vc * 100 / (Math.PI * 36), vc * 1000 / (Math.PI * 32)].map(x => fmtT(x) + ' 1/min'));
+            return { q: `Die Welle wird aus dem Rohteil Ø36 mm geschruppt. Die Schnittgeschwindigkeit ist <b>v<sub>c</sub> = ${vc} m/min</b>. Welche Drehzahl stellst du ein?`, o,
+                     e: `n = v<sub>c</sub> · 1000 / (π · d) = ${vc} · 1000 / (π · 36) ≈ ${fmtT(n)} 1/min.` };
+        }
+        if (i === 12) {
+            const n = pick(r, [800, 1000, 1250]), f = pick(r, [0.2, 0.25, 0.3]);
+            const th = 92 / (n * f);
+            const o = uniqOpts([th * 60, th, 92 * n * f / 1000, 90 / (n * f) * 60 * 10, 92 / n * 60].map(x => fmt(x, 1) + ' s'));
+            return { q: `Der Absatz Ø32 wird in einem Schnitt längsgedreht. Weg mit An- und Überlauf: <b>L = 92 mm</b>. Drehzahl <b>n = ${n} 1/min</b>, Vorschub <b>f = ${fmt(f, 2)} mm</b>. Wie groß ist die Hauptnutzungszeit?`, o,
+                     e: `t<sub>h</sub> = L · i / (n · f) = 92 / (${n} · ${fmt(f, 2)}) min ≈ ${fmt(th, 3)} min ≈ ${fmt(th * 60, 1)} s.` };
+        }
+        if (i === 27) {
+            const kc = pick(r, [2000, 2100, 2200, 2400]), ap = 2, f = 0.3;
+            const Fc = ap * f * kc;
+            const o = uniqOpts([Fc, Fc * 10, Fc / 10, ap * kc, f * kc].map(x => fmtT(x) + ' N'));
+            return { q: `Beim Schruppen ist a<sub>p</sub> = 2 mm und f = 0,3 mm. Die spezifische Schnittkraft beträgt <b>k<sub>c</sub> = ${fmtT(kc)} N/mm²</b>. Wie groß ist die Schnittkraft F<sub>c</sub>?`, o,
+                     e: `A = a<sub>p</sub> · f = 2 mm · 0,3 mm = 0,6 mm². F<sub>c</sub> = A · k<sub>c</sub> = 0,6 · ${fmtT(kc)} ≈ ${fmtT(Fc)} N.` };
+        }
+    },
+    buildB(rngFor) {
+        const r2 = rngFor('B2'), r3 = rngFor('B3');
+        const vc = pick(r2, [180, 200, 220, 250]), f = pick(r2, [0.1, 0.12, 0.15]), fs = pick(r2, [0.08, 0.1, 0.12]);
+        const n = vc * 1000 / (Math.PI * 25.3), th = 34 / (n * f) * 60, rth = fs * fs / (8 * 0.8) * 1000;
+        return [
+        { id: 'B1', title: 'Arbeitsplan für die Antriebswelle', intro: 'Die Welle (Pos. 1) wird aus vergütetem Rundstahl 42CrMo4+QT gefertigt. Sieh dir die Einzelteilzeichnung an.',
+          parts: [
+            { id: 'a', type: 'order', pts: 6, cat: 'ZER', q: 'Bringe die Arbeitsschritte in die richtige Reihenfolge.',
+              items: ['Rohteil Ø36 × 225 sägen', 'Beidseitig plandrehen auf 220 mm und zentrieren', 'Zwischen Spitzen schruppen, Aufmaß stehen lassen', 'Schlichten mit Einstichen, Freistichen und Fasen', 'Passfedernuten fräsen', 'Lagersitze und Wellenenden rundschleifen'],
+              e: 'Erst Rohteil und Zentrierbohrungen, dann Drehen (grob, dann fein), dann Fräsen der Nuten. Geschliffen wird zum Schluss, damit die Passflächen nicht mehr beschädigt werden.' },
+            { id: 'b', type: 'text', pts: 4, cat: 'ZER', q: 'Begründe: Warum wird zwischen Spitzen gedreht und geschliffen? Warum wird zuletzt geschliffen?',
+              crit: [{ t: 'Zwischen Spitzen: alle Durchmesser auf derselben Achse → guter Rundlauf (A-B).', p: 1 }, { t: 'Umspannen ist ohne Genauigkeitsverlust möglich (Drehen → Schleifen).', p: 1 },
+                     { t: 'Schleifen zuletzt: nur dort Endmaß, Toleranz IT5 und Ra 0,4.', p: 1 }, { t: 'Spätere Arbeitsgänge (Fräsen, Spannen) könnten die Passflächen sonst beschädigen.', p: 1 }],
+              muster: 'Die Zentrierbohrungen bilden eine feste Achse. Beim Drehen und beim Schleifen beziehen sich alle Durchmesser darauf. So stimmt der Rundlauf, auch nach dem Umspannen. Geschliffen wird zum Schluss, weil erst dann die engen Toleranzen und die feine Oberfläche entstehen. Frühere Schritte würden die fertigen Flächen sonst wieder beschädigen.' }
+          ] },
+        { id: 'B2', title: 'Schnittdaten beim Drehen', intro: `Der Lagersitz wird vor dem Schleifen auf <b>Ø25,3 mm</b> geschlichtet. Schnittgeschwindigkeit <b>v<sub>c</sub> = ${vc} m/min</b>, Vorschub <b>f = ${fmt(f, 2)} mm</b>, Weg mit Anlauf <b>L = 34 mm</b>, ein Schnitt.`,
+          parts: [
+            { id: 'a', type: 'num', pts: 6, cat: 'TM', q: 'Berechne Drehzahl (auf ganze Zahl gerundet) und Hauptnutzungszeit (eine Nachkommastelle).',
+              fields: [{ label: 'Drehzahl n', unit: '1/min', ans: n, tol: n * 0.015, show: String(Math.round(n)) }, { label: 'Hauptnutzungszeit t<sub>h</sub>', unit: 's', ans: th, tol: th * 0.03, show: fmt(th, 1) }],
+              e: `n = ${vc} · 1000 / (π · 25,3) ≈ ${fmtT(n)} 1/min. t<sub>h</sub> = L / (n · f) = 34 / (${fmtT(n)} · ${fmt(f, 2)}) min ≈ ${fmt(th / 60, 4)} min ≈ ${fmt(th, 1)} s.` },
+            { id: 'b', type: 'num', pts: 2, cat: 'TM', q: `Berechne die theoretische Rautiefe mit R<sub>th</sub> = f² / (8 · r) für den Vorschub <b>f = ${fmt(fs, 2)} mm</b> und den Eckenradius <b>r = 0,8 mm</b>. Gib das Ergebnis in µm an (zwei Nachkommastellen).`,
+              fields: [{ label: 'R<sub>th</sub>', unit: 'µm', ans: rth, tol: 0.02, show: fmt(rth, 2) }],
+              e: `R<sub>th</sub> = ${fmt(fs, 2)}² / (8 · 0,8) mm = ${fmt(rth / 1000, 5)} mm ≈ ${fmt(rth, 2)} µm.` },
+            { id: 'c', type: 'select', pts: 2, cat: 'ZER', q: 'Welche Wendeschneidplatte wählst du zum Schlichten bis an den Wellenabsatz?',
+              options: ['Rhombische Platte mit spitzem Eckenwinkel (z. B. 35°) und Spanformer für Schlichten', 'Runde Platte für Schruppen', 'Quadratische Platte mit 90° Eckenwinkel und großem Radius 2,4 mm', 'Abstechplatte'], ans: 0,
+              e: 'Eine schlanke Platte kommt bis an den Absatz und eignet sich für kleine Schnitttiefen.' }
+          ] },
+        { id: 'B3', title: 'CNC-Programm für die Außenkontur', intro: 'Die rechte Wellenseite wird auf einer CNC-Drehmaschine geschlichtet. Werkstücknullpunkt: Mitte der rechten Planfläche. X wird als <b>Durchmesser</b> programmiert. Es gilt G90. Fase am Ende: 1 × 45°. Freistiche und Einstiche bleiben unberücksichtigt.',
+          parts: [
+            { id: 'a', type: 'num', pts: 5, cat: 'CNC', q: 'Ergänze die Koordinaten der Kontur von rechts nach links.',
+              fields: [{ label: 'Fasenanfang: X', unit: '', ans: 18, tol: 0.001, show: '18' }, { label: 'Fasenende: Z', unit: '', ans: -1, tol: 0.001, show: '−1' },
+                       { label: 'Ende Ø20 (Absatz): Z', unit: '', ans: -34, tol: 0.001, show: '−34' }, { label: 'Ende Ø25 (Absatz): Z', unit: '', ans: -65, tol: 0.001, show: '−65' },
+                       { label: 'Absatz Ø32: X', unit: '', ans: 32, tol: 0.001, show: '32' }],
+              e: 'Fase 1 × 45° am Ø20: Start bei X18 Z0, Ende bei X20 Z−1. Ø20 ist 34 mm lang → Z−34. Ø25 ist 31 mm lang → Z−65. Dann Plan auf X32.' },
+            { id: 'b', type: 'select', pts: 2, cat: 'CNC', q: 'Mit welchem Befehl fährst du die Kontur im Vorschub als Gerade ab?',
+              options: ['G01', 'G00', 'G02', 'G96'], ans: 0, e: 'G01 = Gerade im Vorschub.' },
+            { id: 'c', type: 'select', pts: 3, cat: 'CNC', q: 'Warum muss beim Drehen der Fase die Schneidenradiuskorrektur eingeschaltet sein?',
+              options: ['Ohne Korrektur rechnet die Steuerung mit dem theoretischen Schneidenpunkt. An Fasen und Radien entstehen dann Maßfehler.', 'Ohne Korrektur dreht die Spindel falsch herum.', 'Die Korrektur verlängert die Standzeit der Platte.', 'Die Korrektur ist nur beim Gewindedrehen nötig.'], ans: 0,
+              e: 'Der Schneidenradius ist rund. Bei schrägen und runden Konturen läge die echte Schneide sonst neben der programmierten Kontur.' }
+          ] },
+        { id: 'B4', title: 'Rundschleifen der Lagersitze', intro: 'Die Lagersitze Ø25 k5 werden mit der Scheibe <b>A 60 K 5 V</b> geschliffen.',
+          parts: [
+            { id: 'a', type: 'select', pts: 2, cat: 'SCH', q: 'Welches Schleifverfahren setzt du ein?',
+              options: ['Außen-Längs-Rundschleifen zwischen Spitzen', 'Flachschleifen auf der Magnetspannplatte', 'Innenrundschleifen', 'Profilschleifen mit Diamantrolle'], ans: 0,
+              e: 'Zylindrische Wellenabschnitte schleift man außen rund, die Welle läuft zwischen Spitzen.' },
+            { id: 'b', type: 'match', pts: 4, cat: 'SCH', q: 'Was bedeuten die Teile der Bezeichnung A 60 K 5 V?',
+              rows: ['A', '60', 'K', 'V'], options: ['Schleifmittel (Normalkorund)', 'Körnung', 'Härtegrad', 'Bindung (keramisch)'], ans: [0, 1, 2, 3],
+              e: 'A = Korund, 60 = Körnung, K = Härte, 5 = Gefüge, V = keramische Bindung.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'SCH', q: 'Nenne vier Sicherheitsmaßnahmen beim Rundschleifen.',
+              crit: [{ t: 'Schutzbrille tragen.', p: 1 }, { t: 'Schutzhaube muss montiert und richtig eingestellt sein.', p: 1 },
+                     { t: 'Zulässige Umfangsgeschwindigkeit der Scheibe nicht überschreiten, neue Scheibe mit Klangprobe und Probelauf.', p: 1 }, { t: 'Werkstück sicher spannen, nicht in die laufende Scheibe greifen / keine weite Kleidung.', p: 1 }],
+              muster: 'Schutzbrille tragen. Die Schutzhaube muss dran sein. Die Scheibe darf nur bis zur angegebenen Umfangsgeschwindigkeit laufen. Neue Scheiben vorher mit Klangprobe und Probelauf prüfen. Das Werkstück sicher spannen. Nicht in die laufende Scheibe greifen, enge Kleidung tragen.' }
+          ] },
+        { id: 'B5', title: 'Wärmebehandlung', intro: 'Als Ersatz soll eine Welle aus unvergütetem 42CrMo4 gefertigt und selbst vergütet werden.',
+          parts: [
+            { id: 'a', type: 'order', pts: 4, cat: 'WST', q: 'Bringe die Schritte des Vergütens in die richtige Reihenfolge.',
+              items: ['Erwärmen auf Härtetemperatur (etwa 830–860 °C)', 'Halten, bis das Teil durchgewärmt ist', 'Abschrecken in Öl', 'Anlassen bei etwa 540–680 °C und abkühlen'],
+              e: 'Härten (erwärmen, halten, abschrecken), dann Anlassen bei hoher Temperatur.' },
+            { id: 'b', type: 'select', pts: 2, cat: 'WST', q: 'In welchem Mittel schreckt man 42CrMo4 üblicherweise ab?',
+              options: ['Öl', 'Eiswasser mit Salz', 'Ruhende Luft im Ofen', 'Sand'], ans: 0,
+              e: 'Legierte Stähle wie 42CrMo4 härten schon bei milderem Abschrecken. Öl verringert die Rissgefahr.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'WST', q: 'Erkläre, was beim Härten im Gefüge passiert und warum man danach anlässt.',
+              crit: [{ t: 'Beim Erwärmen entsteht Austenit, der Kohlenstoff wird gelöst.', p: 1 }, { t: 'Beim schnellen Abkühlen kann der Kohlenstoff nicht herauswandern.', p: 1 },
+                     { t: 'Es entsteht Martensit: sehr hart, aber spröde.', p: 1 }, { t: 'Anlassen baut Spannungen ab und macht den Stahl zäher.', p: 1 }],
+              muster: 'Über der Härtetemperatur wandelt sich das Gefüge in Austenit um. Der Kohlenstoff ist darin gelöst. Beim Abschrecken hat er keine Zeit, wieder auszuscheiden. Es entsteht Martensit. Der ist sehr hart, aber spröde und hat Spannungen. Beim Anlassen werden die Spannungen abgebaut, und der Stahl wird zäher.' }
+          ] },
+        { id: 'B6', title: 'Montage der Lagereinheit', intro: 'Die Lagereinheit wird mit der neuen Welle und neuen Lagern montiert.',
+          parts: [
+            { id: 'a', type: 'order', pts: 6, cat: 'MON', q: 'Bringe die Montageschritte in die richtige Reihenfolge.',
+              items: ['Lager erwärmen und bis zum Wellenabsatz aufschieben', 'Sicherungsringe (Pos. 4) einsetzen', 'Welle mit den Lagern in das Gehäuse schieben', 'Lagerdeckel mit eingepressten Wellendichtringen aufsetzen, Schrauben über Kreuz anziehen', 'Leichtgängigkeit durch Drehen von Hand prüfen', 'Passfeder einsetzen und Riemenscheibe montieren'],
+              e: 'Lager auf die Welle, axial sichern, in das Gehäuse, Deckel montieren. Dann prüfen und die Antriebsteile anbauen.' },
+            { id: 'b', type: 'num', pts: 4, cat: 'TM', q: 'Das Lager (Bohrung 25 mm) wird erwärmt. Längenausdehnungskoeffizient α = 0,000012 1/K. Runde auf drei Nachkommastellen bzw. ganze Kelvin.',
+              fields: [{ label: 'Aufweitung Δd bei ΔT = 80 K', unit: 'mm', ans: 0.024, tol: 0.0005, show: '0,024' }, { label: 'nötige ΔT für Δd = 0,030 mm', unit: 'K', ans: 100, tol: 1, show: '100' }],
+              e: 'Δd = α · d · ΔT = 0,000012 · 25 · 80 = 0,024 mm. ΔT = Δd / (α · d) = 0,03 / (0,000012 · 25) = 100 K.' }
+          ] },
+        { id: 'B7', title: 'Schweißen am Hubtisch', intro: 'Am Rahmen des Hubtisches (S235JR) wird eine Halterung angeschweißt.',
+          parts: [
+            { id: 'a', type: 'match', pts: 4, cat: 'MON', q: 'Was bedeuten die Abkürzungen der Schweißverfahren?',
+              rows: ['MAG', 'MIG', 'WIG', 'E'], options: ['Metall-Aktivgasschweißen', 'Metall-Inertgasschweißen', 'Wolfram-Inertgasschweißen', 'Lichtbogenhandschweißen (Stabelektrode)'], ans: [0, 1, 2, 3],
+              e: 'Aktivgas (z. B. CO₂-Gemisch) reagiert mit, Inertgas (Argon) nicht. Bei WIG schmilzt die Wolframelektrode nicht ab.' },
+            { id: 'b', type: 'select', pts: 2, cat: 'MON', q: 'Welches Schutzgas nimmst du für MAG an unlegiertem Baustahl?',
+              options: ['Mischgas aus Argon und CO₂', 'Reines Argon', 'Reiner Sauerstoff', 'Stickstoff'], ans: 0,
+              e: 'Für Baustahl nimmt man Mischgas (z. B. Ar + 18 % CO₂). Reines Argon wäre MIG, z. B. für Aluminium.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'MON', q: 'Nenne vier Gefahren beim Schweißen und je eine Schutzmaßnahme (je Paar 1 Punkt).',
+              crit: [{ t: 'UV-Strahlung → Schweißschirm/Automatikhelm, Schutzkleidung, Abschirmung.', p: 1 }, { t: 'Schweißrauch → Absaugung, Lüftung.', p: 1 },
+                     { t: 'Brand/Spritzer → brennbare Stoffe entfernen, Feuerlöscher, Brandwache.', p: 1 }, { t: 'Elektrischer Strom → intakte Kabel, trockene Handschuhe, Werkstückklemme nah an der Naht.', p: 1 }],
+              muster: 'UV-Licht schädigt Augen und Haut: Schweißhelm und Schutzkleidung tragen. Rauch ist giftig: absaugen. Funken können Brände auslösen: brennbares Material weg, Feuerlöscher bereit. Strom: nur intakte Leitungen, trockene Handschuhe. Heiße Teile: Zange und Lederhandschuhe benutzen.' }
+          ] },
+        { id: 'B8', title: 'Prüfplanung für die Welle', intro: 'Für die neue Welle wird ein Prüfplan erstellt.',
+          parts: [
+            { id: 'a', type: 'match', pts: 5, cat: 'QS', q: 'Ordne jedem Merkmal das passende Prüfmittel zu.',
+              rows: ['Lagersitz Ø25 k5', 'Gesamtlänge 220', 'Nutbreite 6 P9', 'Rundlauf 0,02 A-B', 'Ra 0,4'],
+              options: ['Feinzeiger-Messschraube', 'Messschieber', 'Grenzlehre (Nutlehre)', 'Messuhr, Welle in Prismen', 'Tastschnittgerät'], ans: [0, 1, 2, 3, 4],
+              e: 'Je enger die Toleranz, desto feiner muss das Prüfmittel anzeigen. Für Formen und Lagen braucht man besondere Messaufbauten.' },
+            { id: 'b', type: 'num', pts: 2, cat: 'QS', q: 'Wie groß ist die Maßtoleranz von Ø25 k5? (Tabellenbuch)',
+              fields: [{ label: 'Toleranz T', unit: 'µm', ans: 9, tol: 0.01, show: '9' }],
+              e: 'k5 für über 18 bis 30 mm: +11 / +2 µm → T = 9 µm (IT5).' },
+            { id: 'c', type: 'text', pts: 3, cat: 'QS', q: 'Die Welle kommt warm von der Schleifmaschine. Warum misst du sie nicht sofort? Begründe.',
+              crit: [{ t: 'Bezugstemperatur für Maße ist 20 °C.', p: 1 }, { t: 'Stahl dehnt sich bei Wärme aus (etwa 0,012 mm je m und K).', p: 1 }, { t: 'Bei 9 µm Toleranz führen schon wenige Kelvin zu Fehlmessungen → erst abkühlen lassen.', p: 1 }],
+              muster: 'Alle Maße gelten bei 20 °C. Warmer Stahl ist größer. Bei 25 mm und 10 K wächst der Durchmesser um etwa 3 µm. Das ist ein Drittel der Toleranz. Deshalb lässt man die Welle abkühlen und misst dann.' }
+          ] }
+        ];
+    }
+};
+
+</script>
+<script>
+/* ============================================================
+   Prüfungs-Engine (gemeinsam für alle Prüfungssimulationen)
+   Erwartet ein globales Objekt EXAM (siehe daten/*.js)
+   ============================================================ */
+const KEY = EXAM.key;
+const DURATION = EXAM.duration * 60 * 1000;
+const NA = EXAM.aDef.length;
+let state = null;
+function rngFor(key) { return mulberry(hashStr(state.seed + ':' + key)); }
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.seed) return s; } catch (e) {} return null; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function freshState() { return { seed: String(Date.now()) + Math.floor(Math.random() * 1e6), phase: 'exam', start: Date.now(), ansA: {}, abw: [], abwB: [], ansB: {}, self: {}, timeUp: false }; }
+
+/* ---------- Teil A ---------- */
+let A = [];
+function buildA() {
+    A = EXAM.aDef.map((d, idx) => {
+        const nr = idx + 1;
+        const base = d.gen ? EXAM.genA(nr, rngFor('A' + nr)) : { q: d.q, o: d.o, e: d.e };
+        const order = shuffle(rngFor('Aorder' + nr), base.o.map((_, k) => k));
+        return { nr, cat: d.cat, lock: !!d.lock, q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
+    });
+}
+/* ---------- Teil B ---------- */
+let B = [];
+function buildB() { B = EXAM.buildB(rngFor); }
+
+/* ---------- Overlay Unterlagen ---------- */
+const DOCS = EXAM.docs || [];
+let ovTab = DOCS.length ? (DOCS[1] || DOCS[0]).id : null, zoom = 1;
+const zoomByTab = {};
+function renderOv() {
+    $('ovTabs').innerHTML = DOCS.map(t => `<button class="tab ${t.id === ovTab ? 'on' : ''}" data-ov="${t.id}">${t.label}</button>`).join('');
+    const t = DOCS.find(x => x.id === ovTab);
+    $('ovBody').innerHTML = t.svg ? `<div class="paper" data-zoom>${t.html()}</div>` : t.html();
+    zoom = zoomByTab[ovTab] || 1; applyZoom();
+    document.querySelector('.zoomctl').style.visibility = t.svg ? 'visible' : 'hidden';
+}
+function applyZoom() {
+    const p = $('ovBody').querySelector('[data-zoom]');
+    if (p) { p.style.width = (zoom * 100) + '%'; p.style.maxWidth = (zoom * 1000) + 'px'; }
+    $('zVal').textContent = Math.round(zoom * 100) + ' %';
+}
+function openOv() { renderOv(); $('ov').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+function closeOv() { $('ov').classList.add('hidden'); document.body.style.overflow = ''; }
+function toggleOv() { if ($('ov').classList.contains('hidden')) openOv(); else closeOv(); }
+
+/* ---------- Ansicht ---------- */
+function show(id) { ['scrStart', 'scrExam', 'scrSelf', 'scrResult'].forEach(s => $(s).classList.toggle('hidden', s !== id)); $('bar').classList.toggle('hidden', id !== 'scrExam'); window.scrollTo(0, 0); }
+function setPart(p) {
+    $('partA').classList.toggle('hidden', p !== 'A'); $('partB').classList.toggle('hidden', p !== 'B');
+    document.querySelectorAll('#partTabs .tab').forEach(b => b.classList.toggle('on', b.dataset.part === p));
+    window.scrollTo(0, 0);
+}
+function lockLabel(cat) { return cat === 'TM' ? 'Mathematik' : cat === 'TK' ? 'Techn. Kommunikation' : (EXAM.cats[cat] || ''); }
+function renderA() {
+    $('listA').innerHTML = A.map(a => `
+    <div class="qa" id="qa-${a.nr}">
+      <div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span>
+        ${a.lock ? `<span class="badge lock">🔒 nicht abwählbar · ${lockLabel(a.cat)}</span>` : `<button class="abw-btn" data-abw="${a.nr}">Abwählen</button>`}
+      </div>
+      <div class="qtext">${a.q}</div>
+      <div class="opts">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
+    </div>`).join('');
+    refreshA();
+}
+function refreshA() {
+    A.forEach(a => {
+        document.querySelectorAll(`[data-q="${a.nr}"]`).forEach(l => l.classList.toggle('sel', state.ansA[a.nr] === Number(l.dataset.k)));
+        const struck = state.abw.includes(a.nr);
+        $('qa-' + a.nr).classList.toggle('struck', struck);
+        const b = document.querySelector(`[data-abw="${a.nr}"]`);
+        if (b) { b.classList.toggle('on', struck); b.textContent = struck ? 'Abgewählt ✓ (rückgängig)' : 'Abwählen'; }
+    });
+    $('abwCount').textContent = state.abw.length;
+    $('sheet').innerHTML = A.map(a => `<div class="cell ${state.abw.includes(a.nr) ? 'abw' : (state.ansA[a.nr] !== undefined ? 'ans' : '')}" data-go="${a.nr}">${a.nr}${a.lock ? '<span class="lk">🔒</span>' : ''}</div>`).join('');
+    updStat();
+}
+function pKey(t, p) { return t.id + p.id; }
+function selOrder(key, p) { return shuffle(rngFor('s' + key), p.options.map((_, i) => i)); }
+function initOrder(key, p) { let o, tries = 0; do { o = shuffle(rngFor('o' + key + tries), p.items.map((_, i) => i)); tries++; } while (o.every((k, i) => k === i) && tries < 10); return o; }
+function numOk(f, val) {
+    const ok = x => !isNaN(x) && Math.abs(x - f.ans) <= f.tol + 1e-9;
+    if (ok(parseNum(val))) return true;
+    const t = String(val || '').trim().replace(/\s/g, '');
+    return /^-?\d{1,3}(\.\d{3})+$/.test(t) && ok(Number(t.replace(/\./g, ''))); // Tausenderpunkt, z. B. 1.768
+}
+function selfPts(key, p) { const s = state.self[key] || []; return p.crit.reduce((sum, c, i) => sum + (s[i] ? c.p : 0), 0); }
+function partHtml(t, p, mode) {
+    const key = pKey(t, p), v = state.ansB[key];
+    const ro = mode !== 'exam' ? 'disabled' : '';
+    let h = `<div class="part"><span class="pp">${p.pts} P.</span><span class="pl">${p.id})</span>${p.q}`;
+    if (p.type === 'num') {
+        h += p.fields.map((f, i) => {
+            const val = v && v[i] !== undefined ? v[i] : '';
+            let fb = '';
+            if (mode === 'review') fb = numOk(f, val) ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${f.show} ${f.unit}</span>`;
+            return `<div class="numrow"><label>${f.label}</label><input class="inp" inputmode="decimal" data-key="${key}" data-i="${i}" value="${esc(val)}" ${ro}> <span>${f.unit}</span>${fb}</div>`;
+        }).join('');
+    } else if (p.type === 'select') {
+        h += `<div class="opts" style="margin-top:.5rem">${selOrder(key, p).map((k, pos) => {
+            let cls = v === k ? 'sel' : '';
+            if (mode === 'review') { if (k === p.ans) cls += ' right'; else if (v === k) cls += ' wrong'; }
+            return `<label class="opt ${cls}" data-skey="${key}" data-k="${k}"><input type="radio"><span class="onr">${pos + 1}</span><span>${p.options[k]}</span></label>`;
+        }).join('')}</div>`;
+    } else if (p.type === 'order') {
+        const ord = v || initOrder(key, p);
+        h += `<ol class="ord">${ord.map((k, i) => {
+            const fb = mode === 'review' ? (k === i ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ (Platz ${k + 1})</span>`) : '';
+            return `<li><span class="n">${i + 1}.</span><span class="t">${p.items[k]}${fb}</span>${mode === 'exam' ? `<button data-up="${key}" data-i="${i}" aria-label="nach oben">▲</button><button data-down="${key}" data-i="${i}" aria-label="nach unten">▼</button>` : ''}</li>`;
+        }).join('')}</ol>`;
+    } else if (p.type === 'match') {
+        const optOrder = p.keepOrder ? p.options.map((_, i) => i) : shuffle(rngFor('m' + key), p.options.map((_, i) => i));
+        h += p.rows.map((row, i) => {
+            const val = v && v[i] !== undefined ? v[i] : -1;
+            const fb = mode === 'review' ? (val === p.ans[i] ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${p.options[p.ans[i]]}</span>`) : '';
+            return `<div class="mrow"><span class="ml">${row}</span><select class="sel" data-mkey="${key}" data-i="${i}" ${ro}><option value="-1">– bitte wählen –</option>${optOrder.map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${p.options[k]}</option>`).join('')}</select>${fb}</div>`;
+        }).join('');
+    } else if (p.type === 'text') {
+        if (mode === 'exam') h += `<textarea class="inp" data-tkey="${key}" placeholder="Deine Antwort in kurzen Sätzen …" style="margin-top:.5rem">${esc(v || '')}</textarea>`;
+        else h += `<div class="yours">${esc(v || '(keine Antwort)')}</div><div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
+    }
+    if (mode === 'review' && p.e) h += `<p class="expl">💡 ${p.e}</p>`;
+    return h + '</div>';
+}
+function bHead(t) {
+    const abwOk = EXAM.bAbw > 0;
+    return `<div class="qhead"><span class="qnr">Aufgabe ${t.id} – ${t.title}</span>${abwOk ? `<button class="abw-btn" data-abwb="${t.id}">Abwählen</button>` : `<span class="badge">${tPts(t)} Punkte</span>`}</div>`;
+}
+function tPts(t) { return t.parts.reduce((s, p) => s + p.pts, 0); }
+function renderB() {
+    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}">${bHead(t)}<div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
+    refreshB();
+}
+function refreshB() {
+    if (!EXAM.bAbw) return;
+    B.forEach(t => {
+        const struck = state.abwB.includes(t.id);
+        $('qb-' + t.id).classList.toggle('struck', struck);
+        const b = document.querySelector(`[data-abwb="${t.id}"]`);
+        if (b) { b.classList.toggle('on', struck); b.textContent = struck ? 'Abgewählt ✓ (rückgängig)' : 'Abwählen'; }
+    });
+    $('abwBCount').textContent = state.abwB.length;
+    updStat();
+}
+function updStat() {
+    const a = Object.keys(state.ansA).length;
+    let bDone = 0, bAll = 0;
+    B.forEach(t => t.parts.forEach(p => { bAll++; const v = state.ansB[pKey(t, p)]; if (v !== undefined && v !== '' && !(Array.isArray(v) && v.every(x => x === '' || x === -1 || x === undefined))) bDone++; }));
+    $('stat').textContent = `A: ${a}/${NA} · ${state.abw.length}/${EXAM.aAbw} abgewählt · B: ${bDone}/${bAll} Teilaufgaben`;
+}
+
+/* ---------- Timer ---------- */
+let tick = null, warned = {};
+function remaining() { return state.start + DURATION - Date.now(); }
+function runTimer() {
+    clearInterval(tick);
+    const upd = () => {
+        const ms = remaining();
+        if (ms <= 0) { $('timer').textContent = '00:00'; clearInterval(tick); state.timeUp = true; finishExam(true); return; }
+        const sec = Math.ceil(ms / 1000), mm = Math.floor(sec / 60), ss = sec % 60;
+        $('timer').textContent = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+        $('timer').className = 'timer' + (mm < 5 ? ' red' : mm < 15 ? ' yellow' : '');
+        [30, 10, 5].forEach(w => { if (mm === w - 1 && ss > 50 && !warned[w]) { warned[w] = 1; toast(`Noch ${w} Minuten!`); } });
+    };
+    upd(); tick = setInterval(upd, 1000);
+}
+let toastT = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add('hidden'), 3500); }
+function modal(html) { $('modalCard').innerHTML = html; $('modal').classList.remove('hidden'); }
+function closeModal() { $('modal').classList.add('hidden'); }
+
+/* ---------- Bewertung ---------- */
+function effectiveAbw() {
+    const abw = state.abw.slice();
+    for (let n = NA; n >= 1 && abw.length < EXAM.aAbw; n--) { const a = A[n - 1]; if (!a.lock && !abw.includes(n)) abw.push(n); }
+    return abw;
+}
+function effectiveAbwB() {
+    const abw = (state.abwB || []).slice();
+    for (let i = B.length - 1; i >= 0 && abw.length < (EXAM.bAbw || 0); i--) { if (!abw.includes(B[i].id)) abw.push(B[i].id); }
+    return abw;
+}
+function partScore(t, p) {
+    const key = pKey(t, p), v = state.ansB[key];
+    if (p.type === 'num') { const per = p.pts / p.fields.length; return p.fields.reduce((s, f, i) => s + (v && numOk(f, v[i]) ? per : 0), 0); }
+    if (p.type === 'select') return v === p.ans ? p.pts : 0;
+    if (p.type === 'order') { if (!v) return 0; const c = v.filter((k, i) => k === i).length; return Math.round(p.pts * c / v.length * 2) / 2; }
+    if (p.type === 'match') { const per = p.pts / p.rows.length; return p.rows.reduce((s, _, i) => s + (v && v[i] === p.ans[i] ? per : 0), 0); }
+    if (p.type === 'text') return selfPts(key, p);
+    return 0;
+}
+const DEZ = { 100: '1,0', 99: '1,1', 98: '1,1', 97: '1,2', 96: '1,2', 95: '1,3', 94: '1,3', 93: '1,4', 92: '1,4', 91: '1,5', 90: '1,6', 89: '1,7', 88: '1,8', 87: '1,9', 86: '2,0', 85: '2,0', 84: '2,1', 83: '2,2', 82: '2,3', 81: '2,4', 80: '2,5', 79: '2,5', 78: '2,6', 77: '2,7', 76: '2,8', 75: '2,8', 74: '2,9', 73: '3,0', 72: '3,0', 71: '3,1', 70: '3,2', 69: '3,3', 68: '3,3', 67: '3,4', 66: '3,5', 65: '3,5', 64: '3,6', 63: '3,6', 62: '3,7', 61: '3,8', 60: '3,8', 59: '3,9', 58: '3,9', 57: '4,0', 56: '4,0', 55: '4,1', 54: '4,2', 53: '4,2', 52: '4,3', 51: '4,3', 50: '4,4', 49: '4,5', 48: '4,5', 47: '4,6', 46: '4,6', 45: '4,7', 44: '4,7', 43: '4,8', 42: '4,8', 41: '4,9', 40: '4,9', 39: '5,0', 38: '5,0', 37: '5,1', 36: '5,1', 35: '5,2', 34: '5,2', 33: '5,3', 32: '5,3', 31: '5,4', 30: '5,4' };
+function dezNote(p) { if (p >= 30) return DEZ[p]; if (p >= 25) return '5,5'; if (p >= 20) return '5,6'; if (p >= 15) return '5,7'; if (p >= 10) return '5,8'; if (p >= 5) return '5,9'; return '6,0'; }
+function note(p) { if (p >= 92) return [1, 'sehr gut']; if (p >= 81) return [2, 'gut']; if (p >= 67) return [3, 'befriedigend']; if (p >= 50) return [4, 'ausreichend']; if (p >= 30) return [5, 'mangelhaft']; return [6, 'ungenügend']; }
+function computeScore() {
+    const abw = effectiveAbw(), abwB = effectiveAbwB();
+    const cat = {}; const add = (k, g, m) => { cat[k] = cat[k] || [0, 0]; cat[k][0] += g; cat[k][1] += m; };
+    let aPts = 0; const aMax = NA - EXAM.aAbw;
+    A.forEach(a => { if (abw.includes(a.nr)) return; const ok = state.ansA[a.nr] === a.correct; if (ok) aPts++; add(a.cat, ok ? 1 : 0, 1); });
+    let bPts = 0, bMax = 0;
+    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.forEach(p => { const s = partScore(t, p); bPts += s; bMax += p.pts; add(p.cat, s, p.pts); }); });
+    const sA = aPts / aMax * EXAM.aWeight * 100, sB = bPts / bMax * EXAM.bWeight * 100, total = sA + sB;
+    return { abw, abwB, aPts, aMax, bPts, bMax, sA, sB, total, rounded: Math.round(total), cat };
+}
+
+function finishExam(timeUp) {
+    clearInterval(tick); closeOv();
+    state.phase = 'self'; state.endTime = state.endTime || Math.min(Date.now(), state.start + DURATION); save();
+    renderSelf(); show('scrSelf');
+    if (timeUp) { modal(`<h2>⏰ Die Zeit ist um!</h2><p>Deine Prüfung wurde automatisch abgegeben. Jetzt bewertest du deine Textantworten selbst.</p><div class="row" style="margin-top:1rem"><button class="btn" id="mOk">OK</button></div>`); $('mOk').onclick = closeModal; }
+}
+function renderSelf() {
+    const abwB = effectiveAbwB();
+    let h = '';
+    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.filter(p => p.type === 'text').forEach(p => {
+        const key = pKey(t, p), s = state.self[key] || [];
+        h += `<div class="qa"><div class="qhead"><span class="qnr">${t.id} ${p.id}) – ${t.title}</span><span class="badge">${p.pts} Punkte</span></div>
+        <div class="qtext">${p.q}</div>
+        <b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>
+        <div class="muster"><b>Musterlösung:</b> ${p.muster}</div>
+        <p style="margin-top:.6rem"><b>Hake ab, was in deiner Antwort steht:</b></p>
+        ${p.crit.map((c, i) => `<label class="crit"><input type="checkbox" data-self="${key}" data-i="${i}" ${s[i] ? 'checked' : ''} ${state.ansB[key] ? '' : 'disabled'}><span>${c.t} <span class="stat" style="display:inline">(${c.p} P.)</span></span></label>`).join('')}
+        </div>`;
+    }); });
+    $('selfList').innerHTML = h || '<div class="card"><p>Keine Textantworten zu bewerten.</p></div>';
+}
+function saveSummary(r) {
+    try {
+        const all = JSON.parse(localStorage.getItem('ap2-ergebnisse') || '{}');
+        all[EXAM.id] = { punkte: Math.round(r.total * 10) / 10, datum: Date.now() };
+        localStorage.setItem('ap2-ergebnisse', JSON.stringify(all));
+    } catch (e) {}
+}
+function renderResult() {
+    const r = computeScore(); const [n, w] = note(r.rounded);
+    if (EXAM.summary) saveSummary(r);
+    const autoAbw = r.abw.filter(x => !state.abw.includes(x));
+    const autoAbwB = r.abwB.filter(x => !(state.abwB || []).includes(x));
+    const usedMin = Math.max(0, Math.round(((state.endTime || Date.now()) - state.start) / 60000));
+    $('resCard').innerHTML = `
+      <div class="grade"><div class="big g${n}">${n}</div><div class="word g${n}">${w}</div><p class="sub">${r.rounded} von 100 Punkten · Dezimalnote ${dezNote(r.rounded)}</p></div>
+      <table class="tbl">
+        <tr><th>Teil</th><th>erreicht</th><th>umgerechnet</th></tr>
+        <tr><td>Teil A (gebunden)</td><td>${r.aPts} von ${r.aMax} Punkten</td><td>${fmt(r.sA, 1)} von ${EXAM.aWeight * 100}</td></tr>
+        <tr><td>Teil B (ungebunden)</td><td>${fmt(r.bPts, 1)} von ${r.bMax} Punkten</td><td>${fmt(r.sB, 1)} von ${EXAM.bWeight * 100}</td></tr>
+        <tr><td><b>Gesamt</b></td><td></td><td><b>${fmt(r.total, 1)} von 100</b></td></tr>
+      </table>
+      ${autoAbw.length ? `<div class="info warn">Du hast in Teil A nicht ${EXAM.aAbw} Aufgaben abgewählt. Deshalb wurden die Aufgaben ${autoAbw.sort((a, b) => a - b).join(', ')} nicht gewertet.</div>` : ''}
+      ${autoAbwB.length ? `<div class="info warn">Du hast in Teil B keine Aufgabe abgewählt. Deshalb wurde Aufgabe ${autoAbwB.join(', ')} nicht gewertet.</div>` : ''}
+      <p class="stat" style="display:block">Bearbeitungszeit: ${Math.min(EXAM.duration, usedMin)} von ${EXAM.duration} Minuten${state.timeUp ? ' (Zeit abgelaufen)' : ''}.</p>
+      <p class="stat" style="display:block">Notenschlüssel der IHK: 100–92 = 1 · unter 92–81 = 2 · unter 81–67 = 3 · unter 67–50 = 4 · unter 50–30 = 5 · unter 30 = 6. Teil B enthält deine Selbstbewertung.</p>
+      ${EXAM.summary ? `<p style="margin-top:.6rem"><a class="btn grey small" href="${EXAM.back}">Zur Gesamtübersicht Teil 2</a></p>` : ''}`;
+    const keys = Object.keys(EXAM.cats).filter(k => r.cat[k]);
+    $('lfCard').innerHTML = `<h2>Wo stehst du?</h2><p>So viel Prozent der Punkte hast du in den einzelnen Bereichen erreicht. Unter 50 % solltest du das Thema wiederholen.</p><div style="margin-top:.8rem">` +
+        keys.map(k => { const [g, m] = r.cat[k]; const pc = Math.round(g / m * 100); return `<div class="lfbar"><span>${EXAM.cats[k]}</span><div class="track"><div class="fill" style="width:${pc}%;${pc < 50 ? 'background:linear-gradient(90deg,#ef4444,#f97316)' : ''}"></div></div><b>${pc} %</b></div>`; }).join('') + '</div>';
+    $('review').innerHTML = '';
+}
+function renderReview(part) {
+    const abw = effectiveAbw(), abwB = effectiveAbwB();
+    if (part === 'A') {
+        $('review').innerHTML = A.map(a => {
+            const your = state.ansA[a.nr], struck = abw.includes(a.nr);
+            return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span><span class="badge">${struck ? 'nicht gewertet' : (your === a.correct ? '✔ richtig' : '✘ falsch')}</span></div>
+            <div class="qtext">${a.q}</div><div class="opts">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
+            <p class="expl">💡 ${a.e}</p></div>`;
+        }).join('');
+    } else {
+        $('review').innerHTML = B.map(t => { const struck = abwB.includes(t.id); const sum = t.parts.reduce((s, p) => s + partScore(t, p), 0);
+            return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${t.id} – ${t.title}</span><span class="badge">${struck ? 'nicht gewertet' : fmt(sum, 1) + ' von ' + tPts(t) + ' Punkten'}</span></div><div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'review')).join('')}</div>`; }).join('');
+    }
+    $('review').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ---------- Start ---------- */
+function startExam() { buildA(); buildB(); renderA(); renderB(); setPart('A'); show('scrExam'); warned = {}; runTimer(); }
+function startNew() { state = freshState(); save(); startExam(); }
+
+function initApp() {
+    // Seitentexte
+    document.title = EXAM.title;
+    $('tTitle').textContent = EXAM.title;
+    $('tSub').textContent = EXAM.subtitle;
+    $('tLogo').textContent = EXAM.logo || '📝';
+    $('backLink').href = EXAM.back; $('backLink').textContent = EXAM.backLabel;
+    $('backLink2').href = EXAM.back;
+    $('tIntro').innerHTML = EXAM.intro;
+    $('tA').textContent = `Wähle ${EXAM.aAbw} Aufgaben ab (`; $('tAmax').textContent = EXAM.aAbw;
+    if (EXAM.bAbw) $('bAbwInfo').classList.remove('hidden');
+    if (!DOCS.length) { $('drawBtn').classList.add('hidden'); $('drawBtn2').classList.add('hidden'); }
+    else { $('drawBtn').textContent = EXAM.docBtn || '📐 Zeichnung'; $('drawBtn2').textContent = EXAM.docBtn || '📐 Zeichnung'; }
+    $('bIntro').innerHTML = EXAM.bIntro;
+
+    // Ereignisse
+    $('ovTabs').addEventListener('click', e => { const b = e.target.closest('[data-ov]'); if (b) { ovTab = b.dataset.ov; renderOv(); } });
+    $('zIn').onclick = () => { zoom = Math.min(3, zoom + 0.25); zoomByTab[ovTab] = zoom; applyZoom(); };
+    $('zOut').onclick = () => { zoom = Math.max(0.5, zoom - 0.25); zoomByTab[ovTab] = zoom; applyZoom(); };
+    $('ovClose').onclick = closeOv; $('drawBtn').onclick = toggleOv; $('drawBtn2').onclick = toggleOv;
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ov').classList.contains('hidden')) closeOv(); });
+    $('partTabs').addEventListener('click', e => { const b = e.target.closest('[data-part]'); if (b) setPart(b.dataset.part); });
+    $('toB').onclick = () => setPart('B'); $('toA').onclick = () => setPart('A');
+    $('listA').addEventListener('click', e => {
+        const l = e.target.closest('.opt');
+        if (l) { e.preventDefault(); if (state.phase !== 'exam') return; const q = Number(l.dataset.q), k = Number(l.dataset.k); if (state.ansA[q] === k) delete state.ansA[q]; else state.ansA[q] = k; save(); refreshA(); return; }
+        const b = e.target.closest('[data-abw]');
+        if (b) { const n = Number(b.dataset.abw); const i = state.abw.indexOf(n); if (i >= 0) state.abw.splice(i, 1); else { if (state.abw.length >= EXAM.aAbw) { toast(`Du hast schon ${EXAM.aAbw} Aufgaben abgewählt.`); return; } state.abw.push(n); } save(); refreshA(); }
+    });
+    $('sheet').addEventListener('click', e => { const c = e.target.closest('[data-go]'); if (c) $('qa-' + c.dataset.go).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    $('listB').addEventListener('input', e => {
+        if (state.phase !== 'exam') return; const el = e.target;
+        if (el.dataset.key) { const k = el.dataset.key; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = el.value; save(); updStat(); }
+        if (el.dataset.tkey) { state.ansB[el.dataset.tkey] = el.value; save(); updStat(); }
+    });
+    $('listB').addEventListener('change', e => {
+        if (state.phase !== 'exam') return; const el = e.target;
+        if (el.dataset.mkey) { const k = el.dataset.mkey; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = Number(el.value); save(); updStat(); }
+    });
+    $('listB').addEventListener('click', e => {
+        if (state.phase !== 'exam') return;
+        const ab = e.target.closest('[data-abwb]');
+        if (ab) { const id = ab.dataset.abwb; state.abwB = state.abwB || []; const i = state.abwB.indexOf(id); if (i >= 0) state.abwB.splice(i, 1); else { if (state.abwB.length >= EXAM.bAbw) { toast(`Du kannst nur ${EXAM.bAbw} Aufgabe abwählen.`); return; } state.abwB.push(id); } save(); refreshB(); return; }
+        const l = e.target.closest('[data-skey]');
+        if (l) { e.preventDefault(); state.ansB[l.dataset.skey] = Number(l.dataset.k); save(); l.parentElement.querySelectorAll('.opt').forEach(x => x.classList.toggle('sel', x === l)); updStat(); return; }
+        const up = e.target.closest('[data-up]'), dn = e.target.closest('[data-down]'); const b = up || dn;
+        if (b) {
+            const key = b.dataset.up || b.dataset.down, i = Number(b.dataset.i);
+            const t = B.find(t => key.startsWith(t.id) && t.parts.some(p => pKey(t, p) === key)), p = t.parts.find(p => pKey(t, p) === key);
+            const ord = (state.ansB[key] || initOrder(key, p)).slice(); const j = up ? i - 1 : i + 1;
+            if (j < 0 || j >= ord.length) return;
+            [ord[i], ord[j]] = [ord[j], ord[i]]; state.ansB[key] = ord; save();
+            const y = window.scrollY; b.closest('.part').outerHTML = partHtml(t, p, 'exam'); window.scrollTo(0, y); updStat();
+        }
+    });
+    $('submitBtn').onclick = () => {
+        const open = NA - Object.keys(state.ansA).length;
+        let msg = `<h2>Prüfung abgeben?</h2><p>Restzeit: ${$('timer').textContent} min.</p>`;
+        if (state.abw.length < EXAM.aAbw) msg += `<div class="info warn">Du hast in Teil A erst ${state.abw.length} von ${EXAM.aAbw} Aufgaben abgewählt. Dann werden die letzten abwählbaren Aufgaben nicht gewertet.</div>`;
+        if (EXAM.bAbw && (state.abwB || []).length < EXAM.bAbw) msg += `<div class="info warn">Du hast in Teil B keine Aufgabe abgewählt. Dann wird die letzte Aufgabe (${B[B.length - 1].id}) nicht gewertet.</div>`;
+        if (open > 0) msg += `<p>In Teil A sind ${open} Aufgaben ohne Kreuz.</p>`;
+        msg += `<div class="row" style="margin-top:1rem"><button class="btn red" id="mYes">Ja, abgeben</button><button class="btn grey" id="mNo">Weiterarbeiten</button></div>`;
+        modal(msg); $('mYes').onclick = () => { closeModal(); finishExam(false); }; $('mNo').onclick = closeModal;
+    };
+    $('selfList').addEventListener('change', e => { const c = e.target; if (c.dataset.self) { const k = c.dataset.self; state.self[k] = state.self[k] || []; state.self[k][Number(c.dataset.i)] = c.checked; save(); } });
+    $('toResult').onclick = () => { state.phase = 'result'; save(); renderResult(); show('scrResult'); };
+    $('showRevA').onclick = () => renderReview('A'); $('showRevB').onclick = () => renderReview('B');
+    $('newBtn').onclick = () => {
+        modal(`<h2>Neue Prüfung starten?</h2><p>Dein Ergebnis wird gelöscht. Die Rechenaufgaben bekommen neue Zahlen.</p><div class="row" style="margin-top:1rem"><button class="btn" id="mYes">Ja, neu starten</button><button class="btn grey" id="mNo">Abbrechen</button></div>`);
+        $('mYes').onclick = () => { closeModal(); startNew(); }; $('mNo').onclick = closeModal;
+    };
+    $('startBtn').onclick = () => {
+        const s = load();
+        if (s && s.phase === 'exam' && s.start + DURATION > Date.now()) {
+            modal(`<h2>Laufende Prüfung</h2><p>Du hast schon eine Prüfung angefangen. Neu starten löscht deine Antworten.</p><div class="row" style="margin-top:1rem"><button class="btn red" id="mYes">Neu starten</button><button class="btn grey" id="mNo">Abbrechen</button></div>`);
+            $('mYes').onclick = () => { closeModal(); startNew(); }; $('mNo').onclick = closeModal; return;
+        }
+        startNew();
+    };
+    $('resumeBtn').onclick = () => { state = load(); startExam(); };
+
+    const s = load();
+    if (!s) return;
+    state = s; state.abwB = state.abwB || [];
+    if (s.phase === 'exam') {
+        if (s.start + DURATION > Date.now()) { $('resumeBtn').style.display = ''; $('resumeBtn').textContent = 'Weiter zur laufenden Prüfung (' + Math.ceil((s.start + DURATION - Date.now()) / 60000) + ' min übrig)'; }
+        else { buildA(); buildB(); state.timeUp = true; state.endTime = s.start + DURATION; state.phase = 'self'; save(); renderSelf(); show('scrSelf'); }
+    } else if (s.phase === 'self') { buildA(); buildB(); renderSelf(); show('scrSelf'); }
+    else if (s.phase === 'result') { buildA(); buildB(); renderResult(); show('scrResult'); }
+}
+
+/* Testzugang für automatische Prüfung */
+window.__pruefung = {
+    get state() { return state; }, get A() { return A; }, get B() { return B; },
+    computeScore, effectiveAbw, effectiveAbwB, numOk, docs: DOCS,
+    solveAll() {
+        A.forEach(a => state.ansA[a.nr] = a.correct);
+        B.forEach(t => t.parts.forEach(p => {
+            const k = pKey(t, p);
+            if (p.type === 'num') state.ansB[k] = p.fields.map(f => String(f.show).replace('+', '').replace('±', '').replace('−', '-').trim());
+            if (p.type === 'select') state.ansB[k] = p.ans;
+            if (p.type === 'order') state.ansB[k] = p.items.map((_, i) => i);
+            if (p.type === 'match') state.ansB[k] = p.ans.slice();
+            if (p.type === 'text') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
+        }));
+        save();
+    }
+};
+initApp();
+
+</script>
+</body>
+</html>

@@ -36,3 +36,13 @@
 - Metall-Modul mit Dichte (`dichte-metall`): Stoffe aus dem Metall-Tabellenbuch, z. B. Stahl 7,85; Kupfer 8,96; Gusseisen 7,25; Titan 4,5; Messing (CuZn) als Bereich 8,4 … 8,7.
 - Lösungswerte aus Tabellen (ISO 2768, ISO 286) nur als einzelne Übungsfälle in `tasks.js`, nie ganze Tabellen. Vor dem Hochladen gegen unabhängige Nachrechnung prüfen.
 - Vor jedem Hochladen im Browser testen: alle Generatoren mehrfach erzeugen, jedes Modul automatisch lösen, Handybreite 375 px.
+
+## Prüfungssimulationen (Bereich Metall)
+- `abschlusspruefung-teil1-metall/index.html`: AP Teil 1 (90 min), eine handgeschriebene Datei, Testzugang `window.__ap1`.
+- `abschlusspruefung-teil2-metall/`: AP Teil 2, Übersichtsseite `index.html` (Berufswahl IM/WM, Gesamtbild) und je eine Datei pro Prüfungsbereich: `afa-industriemechaniker.html`, `ft-industriemechaniker.html`, `afa-werkzeugmechaniker.html`, `ft-werkzeugmechaniker.html`, `wiso.html` (für beide Berufe).
+- Erzeugt aus `_werkzeuge/pruefung/`: `build.py`, `template.html`, `uebersicht.html`, `style.css`, `lib.js` (Hilfsfunktionen, SVG-Zeichenfunktionen), `app.js` (Prüfungs-Engine) und `daten/` (Projekt mit Zeichnungen: `projekt-im.js`, `projekt-wm.js`; Prüfungen: `afa-im.js`, `ft-im.js`, `afa-wm.js`, `ft-wm.js`, `wiso.js`). Bauen: `python3 _werkzeuge/pruefung/build.py`. Die HTML-Dateien nicht direkt bearbeiten.
+- Aufbau wie PAL: AFA und FT je 105 min, Teil A 28 gebundene Aufgaben (3 abwählen, 8 gesperrt: 4 TM + 4 TK), Teil B 8 × 10 Punkte, je 50 %. WiSo 60 min, Teil A 18 (3 abwählen) 40 %, Teil B 6 (1 abwählen) 60 %. Ohne Abwahl werden die letzten abwählbaren Aufgaben nicht gewertet.
+- Teil-A-Aufgaben: erste Option ist richtig (wird gemischt), 5 Optionen. Teil B: Typen `num`, `select`, `order`, `match`, `text` (Selbstbewertung mit Kriterien). Punkte eines `num`-Teils werden gleich auf die Felder verteilt.
+- Note nach IHK-Schlüssel, Dezimalnote nach Tabelle der IHK München. Ergebnisse je Bereich in `localStorage` unter `ap2-ergebnisse`.
+- Testzugang `window.__pruefung` (`solveAll()`, `computeScore()`).
+- Alle Aufgaben und Zeichnungen sind selbst erstellt, keine PAL-Originale.

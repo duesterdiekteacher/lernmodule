@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prüfungssimulation Abschlussprüfung Teil 2 – Metall</title>
+<style>
+{{STYLE}}
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.exam { background: #0f172a; border: 2px solid #334155; border-radius: 14px; padding: 1.2rem; display: flex; flex-direction: column; gap: .4rem; text-decoration: none; color: inherit; }
+.exam:hover { border-color: #38bdf8; }
+.exam .ic { font-size: 2rem; }
+.exam .nm { color: #38bdf8; font-weight: 700; font-size: 1.15rem; }
+.exam .meta { color: #cbd5e1; font-size: .95rem; flex-grow: 1; }
+.exam .res { color: #94a3b8; font-size: .9rem; }
+.exam .res b { color: #4ade80; }
+.beruf { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.beruf .tab { font-size: 1rem; padding: .5rem 1rem; }
+</style>
+</head>
+<body>
+<!-- Erzeugt aus _werkzeuge/pruefung (build.py). Nicht direkt bearbeiten. -->
+<div class="wrap">
+    <a class="back-link" href="../metall/">← Zurück zur Übersicht Metall</a>
+    <header class="top">
+        <div class="logo">🎓</div>
+        <h1>Prüfungssimulation Abschlussprüfung Teil 2</h1>
+        <p class="sub">Schriftliche Prüfung · Industriemechaniker/-in und Werkzeugmechaniker/-in</p>
+    </header>
+
+    <div class="card">
+        <h2>Dein Beruf</h2>
+        <div class="beruf" id="beruf">
+            <button class="tab on" data-b="im">🔧 Industriemechaniker/-in</button>
+            <button class="tab" data-b="wm">🛠️ Werkzeugmechaniker/-in</button>
+        </div>
+        <p id="projekt"></p>
+        <div class="grid3" id="cards" style="margin-top:1rem"></div>
+    </div>
+
+    <div class="card" id="gesamt"></div>
+
+    <div class="card">
+        <h2>So ist die schriftliche Prüfung aufgebaut</h2>
+        <table class="tbl">
+            <tr><th>Prüfungsbereich</th><th>Zeit</th><th>Aufgaben</th><th>Anteil an Teil 2</th></tr>
+            <tr><td>Auftrags- und Funktionsanalyse</td><td>105 min</td><td>A: 28 (3 abwählen) · B: 8 × 10 Punkte</td><td>20 %</td></tr>
+            <tr><td>Fertigungstechnik</td><td>105 min</td><td>A: 28 (3 abwählen) · B: 8 × 10 Punkte</td><td>20 %</td></tr>
+            <tr><td>Wirtschafts- und Sozialkunde</td><td>60 min</td><td>A: 18 (3 abwählen) · B: 6 (1 abwählen)</td><td>10 %</td></tr>
+            <tr><td>Arbeitsauftrag (praktisch)</td><td colspan="2">nicht Teil dieser Simulation</td><td>50 %</td></tr>
+        </table>
+        <ul class="steps">
+            <li>Auftrags- und Funktionsanalyse und Fertigungstechnik beziehen sich auf denselben Zeichnungssatz.</li>
+            <li>Mit dem Knopf 📐 Zeichnung öffnest du jederzeit alle Unterlagen.</li>
+            <li>Die Note folgt dem Notenschlüssel der IHK: ab 92 Punkten 1, ab 81 Punkten 2, ab 67 Punkten 3, ab 50 Punkten 4, ab 30 Punkten 5.</li>
+        </ul>
+        <p class="stat" style="display:block;margin-top:.6rem">Alle Aufgaben und Zeichnungen sind selbst erstellt. Es sind keine Originalaufgaben der PAL. Deine Ergebnisse bleiben nur auf diesem Gerät gespeichert.</p>
+    </div>
+</div>
+<script>
+{{LIB}}
+const BERUFE = {
+    im: { projekt: '<b>Projekt Hubstation:</b> Lagereinheit mit Antriebswelle, Hydraulikzylinder und Steuerung.', afa: 'afa-industriemechaniker.html', ft: 'ft-industriemechaniker.html', afaId: 'afa-im', ftId: 'ft-im' },
+    wm: { projekt: '<b>Projekt Folgeschneidwerkzeug:</b> Werkzeug für ein Halteblech mit Schneidplatte, Stempeln und Streifenbild.', afa: 'afa-werkzeugmechaniker.html', ft: 'ft-werkzeugmechaniker.html', afaId: 'afa-wm', ftId: 'ft-wm' }
+};
+const DEZ = { 100: '1,0', 99: '1,1', 98: '1,1', 97: '1,2', 96: '1,2', 95: '1,3', 94: '1,3', 93: '1,4', 92: '1,4', 91: '1,5', 90: '1,6', 89: '1,7', 88: '1,8', 87: '1,9', 86: '2,0', 85: '2,0', 84: '2,1', 83: '2,2', 82: '2,3', 81: '2,4', 80: '2,5', 79: '2,5', 78: '2,6', 77: '2,7', 76: '2,8', 75: '2,8', 74: '2,9', 73: '3,0', 72: '3,0', 71: '3,1', 70: '3,2', 69: '3,3', 68: '3,3', 67: '3,4', 66: '3,5', 65: '3,5', 64: '3,6', 63: '3,6', 62: '3,7', 61: '3,8', 60: '3,8', 59: '3,9', 58: '3,9', 57: '4,0', 56: '4,0', 55: '4,1', 54: '4,2', 53: '4,2', 52: '4,3', 51: '4,3', 50: '4,4', 49: '4,5', 48: '4,5', 47: '4,6', 46: '4,6', 45: '4,7', 44: '4,7', 43: '4,8', 42: '4,8', 41: '4,9', 40: '4,9', 39: '5,0', 38: '5,0', 37: '5,1', 36: '5,1', 35: '5,2', 34: '5,2', 33: '5,3', 32: '5,3', 31: '5,4', 30: '5,4' };
+function dezNote(p) { if (p >= 30) return DEZ[p]; if (p >= 25) return '5,5'; if (p >= 20) return '5,6'; if (p >= 15) return '5,7'; if (p >= 10) return '5,8'; if (p >= 5) return '5,9'; return '6,0'; }
+function note(p) { if (p >= 92) return [1, 'sehr gut']; if (p >= 81) return [2, 'gut']; if (p >= 67) return [3, 'befriedigend']; if (p >= 50) return [4, 'ausreichend']; if (p >= 30) return [5, 'mangelhaft']; return [6, 'ungenügend']; }
+let res = {};
+try { res = JSON.parse(localStorage.getItem('ap2-ergebnisse') || '{}'); } catch (e) {}
+let beruf = 'im';
+try { beruf = localStorage.getItem('ap2-beruf') || 'im'; } catch (e) {}
+function resLine(id) {
+    const r = res[id]; if (!r) return 'Noch nicht geschrieben';
+    const p = Math.round(r.punkte), [n] = note(p);
+    return `Letztes Ergebnis: <b>${fmt(r.punkte, 1)} Punkte · Note ${n}</b> (${new Date(r.datum).toLocaleDateString('de-DE')})`;
+}
+function render() {
+    const b = BERUFE[beruf];
+    document.querySelectorAll('#beruf .tab').forEach(t => t.classList.toggle('on', t.dataset.b === beruf));
+    $('projekt').innerHTML = b.projekt;
+    $('cards').innerHTML = `
+      <a class="exam" href="${b.afa}"><div class="ic">🔍</div><div class="nm">Auftrags- und Funktionsanalyse</div><div class="meta">105 Minuten · Funktion, Steuerung, Instandhaltung, Werkstoffe, Qualität</div><div class="res">${resLine(b.afaId)}</div></a>
+      <a class="exam" href="${b.ft}"><div class="ic">⚙️</div><div class="nm">Fertigungstechnik</div><div class="meta">105 Minuten · Fertigungsverfahren, CNC, Wärmebehandlung, Montage, Prüfen</div><div class="res">${resLine(b.ftId)}</div></a>
+      <a class="exam" href="wiso.html"><div class="ic">⚖️</div><div class="nm">Wirtschafts- und Sozialkunde</div><div class="meta">60 Minuten · Ausbildung, Arbeitsrecht, Mitbestimmung, Sozialversicherung, Betrieb, Umwelt</div><div class="res">${resLine('wiso')}</div></a>`;
+    const a = res[b.afaId], f = res[b.ftId], w = res.wiso;
+    let h = '<h2>Dein Gesamtbild (schriftlicher Teil)</h2>';
+    if (a && f && w) {
+        const g = (a.punkte * 20 + f.punkte * 20 + w.punkte * 10) / 50, gp = Math.round(g), [n, wort] = note(gp);
+        const low = [a, f, w].some(x => Math.round(x.punkte) < 30);
+        h += `<div class="grade"><div class="big g${n}">${n}</div><div class="word g${n}">${wort}</div><p class="sub">${fmt(g, 1)} Punkte · Dezimalnote ${dezNote(gp)}</p></div>
+        <p>Gewichtet wie im Teil 2: Auftrags- und Funktionsanalyse 20 %, Fertigungstechnik 20 %, Wirtschafts- und Sozialkunde 10 %. Hier auf den schriftlichen Teil hochgerechnet (40 : 40 : 20).</p>
+        ${gp < 50 ? '<div class="info warn">Unter 50 Punkten ist der schriftliche Teil nicht ausreichend. Schau dir die Bereiche mit wenig Punkten an.</div>' : ''}
+        ${low ? '<div class="info warn">Ein Prüfungsbereich liegt unter 30 Punkten (ungenügend). Das würde in der echten Prüfung zum Nichtbestehen führen.</div>' : ''}`;
+    } else {
+        h += '<p>Schreibe alle drei Prüfungsbereiche. Dann siehst du hier dein Gesamtergebnis für den schriftlichen Teil, gewichtet wie in der echten Prüfung.</p>';
+    }
+    $('gesamt').innerHTML = h;
+}
+$('beruf').addEventListener('click', e => { const t = e.target.closest('[data-b]'); if (!t) return; beruf = t.dataset.b; try { localStorage.setItem('ap2-beruf', beruf); } catch (er) {} render(); });
+render();
+</script>
+</body>
+</html>

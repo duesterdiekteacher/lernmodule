@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prüfungssimulation</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #f8fafc;
+    line-height: 1.6;
+    font-size: 17px;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 1.2rem 1rem 4rem; }
+.back-link { display: inline-block; color: #94a3b8; text-decoration: none; font-size: 0.95rem; margin-bottom: 1rem; }
+.back-link:hover { color: #38bdf8; }
+header.top { text-align: center; margin-bottom: 1.5rem; }
+.logo { font-size: 3rem; }
+h1 { color: #38bdf8; font-size: 2rem; line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { color: #38bdf8; font-size: 1.45rem; margin-bottom: 0.75rem; }
+h3 { color: #e2e8f0; font-size: 1.12rem; margin-bottom: 0.4rem; }
+.sub { color: #cbd5e1; font-size: 1.05rem; }
+.card { background: #1e293b; border: 2px solid #334155; border-radius: 16px; padding: 1.4rem; box-shadow: 0 10px 30px rgba(0,0,0,0.35); margin-bottom: 1.2rem; }
+.card p + p { margin-top: 0.5rem; }
+ul.steps { margin: 0.5rem 0 0 1.3rem; }
+ul.steps li { margin-bottom: 0.3rem; }
+.hidden { display: none !important; }
+.btn { display: inline-block; border: none; cursor: pointer; font: inherit; font-weight: 600; padding: 0.75rem 1.3rem; border-radius: 10px; color: white; background: linear-gradient(90deg, #0ea5e9, #22c55e); text-decoration: none; }
+.btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+.btn.grey { background: #334155; }
+.btn.red { background: linear-gradient(90deg, #ef4444, #f97316); }
+.btn.small { padding: 0.4rem 0.85rem; font-size: 0.92rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.info { background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; color: #cbd5e1; }
+.warn { border-left-color: #f59e0b; }
+table.tbl { border-collapse: collapse; width: 100%; margin: 0.6rem 0; font-size: 0.95rem; }
+table.tbl th, table.tbl td { border: 1px solid #334155; padding: 0.35rem 0.55rem; text-align: left; }
+table.tbl th { background: #0f172a; color: #38bdf8; }
+
+/* Kopfleiste */
+.bar { position: sticky; top: 0; z-index: 50; background: rgba(15,23,42,0.97); border-bottom: 2px solid #334155; }
+.bar-in { max-width: 980px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.timer { font-family: Consolas, "Courier New", monospace; font-size: 1.5rem; font-weight: 700; color: #4ade80; background: #020617; border: 2px solid #334155; border-radius: 10px; padding: 0.1rem 0.7rem; min-width: 7.2rem; text-align: center; }
+.timer.yellow { color: #fbbf24; border-color: #f59e0b; }
+.timer.red { color: #f87171; border-color: #ef4444; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.6; } }
+.tabs { display: flex; gap: 0.4rem; }
+.tab { background: #1e293b; border: 2px solid #334155; color: #cbd5e1; border-radius: 10px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+.tab.on { border-color: #38bdf8; color: #38bdf8; }
+.btn-draw { background: linear-gradient(90deg, #f59e0b, #f97316); color: #111; border: none; border-radius: 10px; padding: 0.45rem 0.9rem; font: inherit; font-weight: 700; cursor: pointer; }
+.stat { color: #94a3b8; font-size: 0.88rem; }
+
+/* Markierungsbogen */
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 0.35rem; margin-top: 0.6rem; }
+.cell { background: #0f172a; border: 2px solid #334155; border-radius: 8px; text-align: center; font-size: 0.85rem; padding: 0.15rem 0; cursor: pointer; color: #cbd5e1; }
+.cell.ans { border-color: #22c55e; color: #4ade80; }
+.cell.abw { border-color: #64748b; color: #64748b; text-decoration: line-through; }
+.cell .lk { font-size: 0.65rem; display: block; line-height: 1; }
+
+/* Aufgaben */
+.qa { background: #1e293b; border: 2px solid #334155; border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; scroll-margin-top: 80px; }
+.qa.struck { opacity: 0.55; border-style: dashed; }
+.qhead { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.qnr { color: #38bdf8; font-weight: 700; }
+.badge { font-size: 0.8rem; border-radius: 999px; padding: 0.1rem 0.6rem; background: #0f172a; border: 1px solid #334155; color: #94a3b8; }
+.badge.lock { border-color: #f59e0b; color: #fbbf24; }
+.abw-btn { background: #0f172a; border: 2px solid #64748b; color: #cbd5e1; border-radius: 8px; padding: 0.15rem 0.6rem; font: inherit; font-size: 0.85rem; cursor: pointer; }
+.abw-btn.on { background: #64748b; color: #fff; }
+.qtext { margin-bottom: 0.6rem; }
+.qtext b { color: #fbbf24; }
+.opts { display: flex; flex-direction: column; gap: 0.4rem; }
+.opt { display: flex; gap: 0.6rem; align-items: flex-start; background: #0f172a; border: 2px solid #334155; border-radius: 10px; padding: 0.5rem 0.7rem; cursor: pointer; }
+.opt input { display: none; }
+.opt .onr { flex: 0 0 1.7rem; height: 1.7rem; border: 2px solid #64748b; border-radius: 6px; text-align: center; line-height: 1.45rem; font-weight: 700; color: #94a3b8; }
+.opt.sel { border-color: #38bdf8; }
+.opt.sel .onr { background: #38bdf8; border-color: #38bdf8; color: #0f172a; }
+.opt.right { border-color: #22c55e; }
+.opt.wrong { border-color: #ef4444; }
+.part { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 0.8rem 0.9rem; margin-top: 0.7rem; }
+.part .pl { color: #fbbf24; font-weight: 700; margin-right: 0.3rem; }
+.part .pp { float: right; color: #94a3b8; font-size: 0.85rem; }
+.inp, select.sel { background: #020617; color: #f8fafc; border: 2px solid #334155; border-radius: 8px; padding: 0.35rem 0.5rem; font: inherit; }
+.inp { width: 8.5rem; }
+.numrow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.45rem; }
+.numrow label { min-width: 13rem; color: #cbd5e1; }
+textarea.inp { width: 100%; min-height: 6.5rem; resize: vertical; line-height: 1.45; }
+.ord { list-style: none; margin-top: 0.5rem; }
+.ord li { display: flex; align-items: center; gap: 0.5rem; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.35rem 0.5rem; margin-bottom: 0.3rem; }
+.ord li .n { color: #38bdf8; font-weight: 700; width: 1.5rem; }
+.ord li .t { flex: 1; }
+.ord button { background: #334155; color: #fff; border: none; border-radius: 6px; width: 2rem; height: 2rem; cursor: pointer; font-size: 1rem; }
+.mrow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+.mrow .ml { flex: 1 1 14rem; }
+.ok { color: #4ade80; }
+.bad { color: #f87171; }
+.muster { background: #052e16; border: 1px solid #166534; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.5rem; color: #dcfce7; }
+.yours { background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 0.6rem 0.8rem; margin-top: 0.4rem; white-space: pre-wrap; color: #e2e8f0; min-height: 2.2rem; }
+.crit { display: flex; gap: 0.5rem; align-items: flex-start; margin-top: 0.35rem; cursor: pointer; }
+.crit input { width: 1.2rem; height: 1.2rem; margin-top: 0.25rem; }
+.expl { color: #cbd5e1; font-size: 0.95rem; margin-top: 0.45rem; }
+
+/* Ergebnis */
+.grade { text-align: center; padding: 1rem 0; }
+.grade .big { font-size: 4rem; font-weight: 800; line-height: 1; }
+.grade .word { font-size: 1.3rem; font-weight: 700; margin-top: 0.3rem; }
+.g1,.g2 { color: #4ade80; } .g3 { color: #a3e635; } .g4 { color: #fbbf24; } .g5,.g6 { color: #f87171; }
+.lfbar { display: grid; grid-template-columns: 14rem 1fr 3.2rem; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; font-size: 0.95rem; }
+.lfbar .track { background: #0f172a; border: 1px solid #334155; height: 14px; border-radius: 999px; overflow: hidden; }
+.lfbar .fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #22c55e); }
+
+/* Zeichnungs-Overlay */
+.ov { position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,0.97); display: flex; flex-direction: column; }
+.ov-head { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; padding: 0.5rem 0.8rem; background: #0f172a; border-bottom: 2px solid #334155; }
+.ov-head .tab { font-size: 0.9rem; }
+.ov-head .sp { flex: 1; }
+.ov-body { flex: 1; overflow: auto; padding: 0.8rem; }
+.paper { background: #fff; color: #000; border-radius: 6px; margin: 0 auto; padding: 0.6rem; }
+.paper svg { display: block; width: 100%; height: auto; }
+.paper.text { max-width: 820px; padding: 1.2rem 1.4rem; font-size: 1rem; line-height: 1.55; }
+.paper.text h3 { color: #000; font-size: 1.15rem; margin: 0.6rem 0 0.3rem; }
+.paper table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.paper th, .paper td { border: 1px solid #000; padding: 0.3rem 0.45rem; text-align: left; vertical-align: top; }
+.paper th { background: #e5e7eb; }
+.zoomctl button { background: #334155; color: #fff; border: none; border-radius: 8px; padding: 0.3rem 0.7rem; font: inherit; font-weight: 700; cursor: pointer; }
+.zoomctl span { color: #cbd5e1; font-size: 0.9rem; min-width: 3.2rem; display: inline-block; text-align: center; }
+
+.modal { position: fixed; inset: 0; z-index: 200; background: rgba(2,6,23,0.8); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.modal .card { max-width: 520px; width: 100%; }
+.toast { position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%); z-index: 150; background: #f59e0b; color: #111; font-weight: 700; padding: 0.6rem 1.1rem; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,.5); }
+
+@media (max-width: 600px) {
+    h1 { font-size: 1.55rem; }
+    .timer { font-size: 1.2rem; min-width: 6rem; }
+    .numrow label { min-width: 100%; }
+    .lfbar { grid-template-columns: 1fr 3rem; }
+    .lfbar .track { grid-column: 1 / 3; grid-row: 2; }
+    .bar-in { padding: 0.4rem 0.6rem; }
+    .stat { display: none; }
+}
+
+</style>
+</head>
+<body>
+<!-- Erzeugt aus _werkzeuge/pruefung (build.py). Nicht direkt bearbeiten. -->
+<div class="bar hidden" id="bar">
+    <div class="bar-in">
+        <div class="row" style="gap:.5rem">
+            <div class="timer" id="timer" title="Restzeit">00:00</div>
+            <span class="stat" id="stat"></span>
+        </div>
+        <div class="tabs" id="partTabs">
+            <button class="tab on" data-part="A">Teil A</button>
+            <button class="tab" data-part="B">Teil B</button>
+        </div>
+        <button class="btn-draw" id="drawBtn">📐 Zeichnung</button>
+    </div>
+</div>
+
+<div class="wrap">
+<section id="scrStart">
+    <a class="back-link" id="backLink" href="./">← Zurück</a>
+    <header class="top">
+        <div class="logo" id="tLogo">📝</div>
+        <h1 id="tTitle"></h1>
+        <p class="sub" id="tSub"></p>
+    </header>
+    <div class="card">
+        <div id="tIntro"></div>
+        <p class="stat" style="display:block;margin-top:.6rem">Die Aufgaben sind selbst erstellt. Sie sind keine Originalaufgaben der PAL, folgen aber deren Aufbau.</p>
+        <div class="row" style="margin-top:1rem">
+            <button class="btn" id="startBtn">▶ Prüfung starten</button>
+            <button class="btn grey" id="resumeBtn" style="display:none">Weiter</button>
+        </div>
+    </div>
+</section>
+
+<section id="scrExam" class="hidden">
+    <div id="partA">
+        <div class="card">
+            <h2>Teil A – Gebundene Aufgaben</h2>
+            <p>Kreuze pro Aufgabe eine Antwort an. <span id="tA"></span><span id="abwCount">0</span> von <span id="tAmax"></span> abgewählt).</p>
+            <div class="sheet" id="sheet"></div>
+            <p class="stat" style="display:block;margin-top:.4rem">Grün = beantwortet · durchgestrichen = abgewählt · 🔒 = nicht abwählbar. Klick springt zur Aufgabe.</p>
+        </div>
+        <div id="listA"></div>
+        <div class="row"><button class="btn" id="toB">Weiter zu Teil B →</button></div>
+    </div>
+    <div id="partB" class="hidden">
+        <div class="card">
+            <h2>Teil B – Ungebundene Aufgaben</h2>
+            <div id="bIntro"></div>
+            <p id="bAbwInfo" class="hidden"><b>Wähle 1 Aufgabe ab</b> (<span id="abwBCount">0</span> von 1 abgewählt). Sonst wird die letzte Aufgabe nicht gewertet.</p>
+        </div>
+        <div id="listB"></div>
+        <div class="row"><button class="btn grey" id="toA">← Zurück zu Teil A</button></div>
+    </div>
+    <div class="card" style="margin-top:1.5rem">
+        <h3>Fertig?</h3>
+        <p>Wenn du abgibst, kannst du nichts mehr ändern.</p>
+        <div class="row" style="margin-top:.6rem"><button class="btn red" id="submitBtn">Prüfung abgeben</button></div>
+    </div>
+</section>
+
+<section id="scrSelf" class="hidden">
+    <header class="top">
+        <div class="logo">✍️</div>
+        <h1>Selbstbewertung</h1>
+        <p class="sub">Vergleiche deine Antworten mit der Musterlösung. Hake nur ab, was du wirklich geschrieben hast. Sei ehrlich zu dir.</p>
+    </header>
+    <div id="selfList"></div>
+    <div class="row"><button class="btn" id="toResult">Ergebnis anzeigen →</button></div>
+</section>
+
+<section id="scrResult" class="hidden">
+    <header class="top"><div class="logo">🏁</div><h1>Dein Ergebnis</h1></header>
+    <div class="card" id="resCard"></div>
+    <div class="card" id="lfCard"></div>
+    <div class="card">
+        <h2>Lösungen ansehen</h2>
+        <p>Hier siehst du jede Aufgabe mit der richtigen Lösung und einer Erklärung.</p>
+        <div class="row" style="margin-top:.6rem">
+            <button class="btn grey small" id="showRevA">Teil A</button>
+            <button class="btn grey small" id="showRevB">Teil B</button>
+            <button class="btn-draw" id="drawBtn2">📐 Zeichnung</button>
+        </div>
+    </div>
+    <div id="review"></div>
+    <div class="card">
+        <div class="row">
+            <button class="btn" id="newBtn">🔄 Neue Prüfung (neue Zahlen)</button>
+            <a class="btn grey" id="backLink2" href="./">Zur Übersicht</a>
+        </div>
+    </div>
+</section>
+</div>
+
+<div class="ov hidden" id="ov">
+    <div class="ov-head">
+        <div class="tabs" id="ovTabs" style="flex-wrap:wrap"></div>
+        <span class="sp"></span>
+        <div class="zoomctl row" style="gap:.3rem">
+            <button id="zOut" aria-label="Verkleinern">−</button><span id="zVal">100 %</span><button id="zIn" aria-label="Vergrößern">+</button>
+        </div>
+        <button class="btn-draw" id="ovClose">✕ Schließen</button>
+    </div>
+    <div class="ov-body" id="ovBody"></div>
+</div>
+<div class="modal hidden" id="modal"><div class="card" id="modalCard"></div></div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   Hilfsfunktionen für alle Prüfungssimulationen
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const fmt = (x, d) => (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d).replace('.', ',');
+const fmtT = x => Math.round(x).toLocaleString('de-DE');
+const parseNum = s => { if (s === undefined || s === null) return NaN; s = String(s).trim().replace(/\s/g, '').replace('−', '-'); s = s.replace(',', '.'); if (s === '') return NaN; return Number(s); };
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
+function shuffle(r, arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function uniqOpts(list) { const seen = new Set(); const out = []; list.forEach(t => { if (!seen.has(t)) { seen.add(t); out.push(t); } }); return out; }
+
+/* ---------- SVG ---------- */
+const SVGSTYLE = `<style>
+.v{stroke:#000;stroke-width:1.7;fill:none}.vf{stroke:#000;stroke-width:1.7;fill:#fff}.t{stroke:#000;stroke-width:.7;fill:none}
+.h{stroke:#000;stroke-width:.9;stroke-dasharray:5 3;fill:none}.c{stroke:#000;stroke-width:.6;stroke-dasharray:16 3 2 3;fill:none}
+.p{stroke:#444;stroke-width:.9;stroke-dasharray:12 3 2 3 2 3;fill:none}.d{stroke:#000;stroke-width:.6;fill:none}
+text{font-family:Arial,Helvetica,sans-serif;fill:#000}.fill{fill:#000;stroke:none}.grey{fill:#e5e7eb;stroke:#000;stroke-width:1.2}
+.sv{stroke:#000;stroke-width:1.7}.thin{stroke:#000;stroke-width:.7}
+</style>`;
+function defs(id) {
+    return `<defs><marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="3" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,3 L0,6 z" fill="#000"/></marker>
+<pattern id="${id}h1" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#000" stroke-width=".7"/></pattern>
+<pattern id="${id}h2" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#000" stroke-width=".7"/></pattern>
+<pattern id="${id}h3" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-width=".6"/></pattern></defs>`;
+}
+const Ln = (x1, y1, x2, y2, c = 'v') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${c}"/>`;
+const Rc = (x, y, w, h, c = 'v') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${c}"/>`;
+const Ci = (x, y, r, c = 'v') => `<circle cx="${x}" cy="${y}" r="${r}" class="${c}"/>`;
+const Tx = (x, y, s, size = 13, anchor = 'middle', extra = '') => `<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" ${extra}>${s}</text>`;
+const Poly = (pts, c = 'v') => `<polygon points="${pts.map(p => p.join(',')).join(' ')}" class="${c}"/>`;
+const PolyL = (pts, c = 'v') => `<polyline points="${pts.map(p => p.join(',')).join(' ')}" class="${c}"/>`;
+const Hatch = (pts, m, n = 1) => `<polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="url(#${m}h${n})" stroke="#000" stroke-width="1.7"/>`;
+const HatchR = (x, y, w, h, m, n = 1) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${m}h${n})" stroke="#000" stroke-width="1.7"/>`;
+function dimH(m, x1, x2, y, yref, label, yref2) {
+    const dir = y < yref ? -1 : 1; const yr2 = yref2 === undefined ? yref : yref2;
+    return Ln(x1, yref + dir * 3, x1, y + dir * 6, 'd') + Ln(x2, yr2 + dir * 3, x2, y + dir * 6, 'd') +
+        `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` +
+        Tx((x1 + x2) / 2, y - 4, label, 13);
+}
+function dimV(m, y1, y2, x, xref, label, xref2) {
+    const dir = x < xref ? -1 : 1; const xr2 = xref2 === undefined ? xref : xref2;
+    return Ln(xref + dir * 3, y1, x + dir * 6, y1, 'd') + Ln(xr2 + dir * 3, y2, x + dir * 6, y2, 'd') +
+        `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` +
+        `<text x="${x - 5}" y="${(y1 + y2) / 2}" font-size="13" text-anchor="middle" transform="rotate(-90 ${x - 5} ${(y1 + y2) / 2})">${label}</text>`;
+}
+function cross(x, y, r) { return Ln(x - r, y, x + r, y, 'c') + Ln(x, y - r, x, y + r, 'c'); }
+function threadTop(x, y, rCore, rMaj) {
+    const p = a => [x + rMaj * Math.cos(a), y - rMaj * Math.sin(a)];
+    const [sx, sy] = p(0), [ex, ey] = p(1.5 * Math.PI);
+    return Ci(x, y, rCore) + `<path d="M${sx},${sy} A${rMaj},${rMaj} 0 1 0 ${ex},${ey}" class="t" transform="rotate(10 ${x} ${y})"/>`;
+}
+function projSymbol(x, y) {
+    return `<g transform="translate(${x},${y})">${Ln(0, 6, 22, 0, 't')}${Ln(0, 14, 22, 20, 't')}${Ln(0, 6, 0, 14, 't')}${Ln(22, 0, 22, 20, 't')}${Ci(42, 10, 10, 't')}${Ci(42, 10, 4, 't')}${Ln(-4, 10, 56, 10, 'c')}</g>`;
+}
+function tolFrame(x, y, sym, val, datum) { // sym: 'flat' | 'runout' | 'par' | 'perp'
+    let s = Rc(x, y, 28, 20, 't') + Rc(x + 28, y, 46, 20, 't');
+    if (sym === 'flat') s += `<polygon points="${x + 5},${y + 14} ${x + 11},${y + 6} ${x + 23},${y + 6} ${x + 17},${y + 14}" class="t"/>`;
+    if (sym === 'runout') s += Ln(x + 9, y + 16, x + 19, y + 4, 't') + `<path d="M${x + 15},${y + 4} L${x + 19},${y + 4} L${x + 18},${y + 8}" class="t"/>`;
+    if (sym === 'par') s += Ln(x + 9, y + 15, x + 15, y + 5, 't') + Ln(x + 14, y + 15, x + 20, y + 5, 't');
+    if (sym === 'perp') s += Ln(x + 14, y + 4, x + 14, y + 15, 't') + Ln(x + 7, y + 15, x + 21, y + 15, 't');
+    s += Tx(x + 51, y + 15, val, 13);
+    if (datum) s += Rc(x + 74, y, 28, 20, 't') + Tx(x + 88, y + 15, datum, 13);
+    return s;
+}
+function datumBox(x, y, letter, tx, ty) { // Bezugsbuchstabe mit Dreieck an (tx,ty)
+    return Ln(x + 10, y + 20, tx, ty - 6, 't') + `<polygon points="${tx - 6},${ty} ${tx + 6},${ty} ${tx},${ty - 7}" class="fill"/>` + Rc(x, y, 20, 20, 't') + Tx(x + 10, y + 15, letter, 13);
+}
+function titleBlock(x, y, w, f) { // f: {name, werkstoff, nr, tol, mass, extra}
+    const c1 = x + w * 0.42, c2 = x + w * 0.70;
+    let s = Rc(x, y, w, 66, 't') + Ln(x, y + 33, x + w, y + 33, 't') + Ln(c1, y, c1, y + 66, 't') + Ln(c2, y, c2, y + 66, 't');
+    s += Tx(x + 6, y + 12, 'Benennung', 9, 'start') + Tx(x + 6, y + 28, f.name, 15, 'start', 'font-weight="bold"');
+    s += Tx(c1 + 6, y + 12, 'Werkstoff', 9, 'start') + Tx(c1 + 6, y + 28, f.werkstoff, 13, 'start');
+    s += Tx(c2 + 6, y + 12, 'Zeichnungs-Nr.', 9, 'start') + Tx(c2 + 6, y + 28, f.nr, 13, 'start');
+    s += Tx(x + 6, y + 45, 'Allgemeintoleranz', 9, 'start') + Tx(x + 6, y + 61, f.tol, 12, 'start');
+    s += Tx(c1 + 6, y + 45, 'Maßstab', 9, 'start') + Tx(c1 + 6, y + 61, f.mass || 'nicht maßstäblich', 12, 'start');
+    s += projSymbol(c2 + 20, y + 40);
+    return s;
+}
+function balloon(tx, ty, bx, by, n) {
+    const dx = bx - tx, dy = by - ty, L = Math.hypot(dx, dy) || 1;
+    return Ln(tx, ty, bx - dx / L * 13, by - dy / L * 13, 't') + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+}
+function tableSvg(x, y, cols, rows, rh = 22) { // cols: x-Positionen inkl. Ende
+    let s = `<rect x="${cols[0]}" y="${y}" width="${cols[cols.length - 1] - cols[0]}" height="${rh}" class="grey"/>`;
+    rows.forEach((r, i) => { const yy = y + i * rh; s += Ln(cols[0], yy, cols[cols.length - 1], yy, 't'); r.forEach((c, j) => { s += Tx(cols[j] + 5, yy + rh - 6, c, 12, 'start', i === 0 ? 'font-weight="bold"' : ''); }); });
+    s += Ln(cols[0], y + rows.length * rh, cols[cols.length - 1], y + rows.length * rh, 't');
+    cols.forEach(cx => { s += Ln(cx, y, cx, y + rows.length * rh, 't'); });
+    return s;
+}
+function stuecklisteHtml(title, rows) {
+    return `<div class="paper text" style="max-width:940px"><h3>${title}</h3><table><tr><th>Pos.</th><th>Menge</th><th>Benennung / Norm</th><th>Werkstoff</th><th>Bemerkung</th></tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+}
+
+</script>
+<script>
+/* ============================================================
+   AP Teil 2 – Wirtschafts- und Sozialkunde (für IM und WM gleich)
+   ============================================================ */
+const EXAM = {
+    id: 'wiso', key: 'ap2-wiso-1', summary: true,
+    title: 'Wirtschafts- und Sozialkunde', subtitle: 'Abschlussprüfung Teil 2 · Industrie- und Werkzeugmechaniker/-in',
+    logo: '⚖️', back: './', backLabel: '← Zurück zur Übersicht Teil 2',
+    duration: 60, aAbw: 3, aWeight: 0.4, bAbw: 1, bWeight: 0.6,
+    intro: `<h2>So läuft die Prüfung</h2>
+    <ul class="steps">
+      <li>Prüfungsbereich <b>Wirtschafts- und Sozialkunde</b>. Du hast <b>60 Minuten</b>. Die Uhr läuft oben rückwärts.</li>
+      <li><b>Teil A:</b> 18 Aufgaben zum Ankreuzen. <b>3 Aufgaben musst du abwählen.</b> Sonst werden die letzten 3 nicht gewertet.</li>
+      <li><b>Teil B:</b> 6 Aufgaben mit je 10 Punkten. <b>1 Aufgabe musst du abwählen.</b> Sonst wird die letzte nicht gewertet.</li>
+      <li>Die Fälle spielen in einem Beispielbetrieb: Maschinenbau GmbH mit 85 Beschäftigten, davon 12 Auszubildende. Der Betrieb liegt in Bayern und ist an den Tarifvertrag der Metall- und Elektroindustrie gebunden.</li>
+    </ul>
+    <div class="info warn"><b>Hilfsmittel:</b> Taschenrechner. Gesetzestexte sind in der echten Prüfung nicht erlaubt.</div>
+    <table class="tbl"><tr><th>Teil</th><th>Aufgaben</th><th>Punkte</th><th>Anteil</th></tr>
+    <tr><td>A – gebunden</td><td>18, davon 3 abwählen</td><td>15 × 1 Punkt</td><td>40 %</td></tr>
+    <tr><td>B – ungebunden</td><td>6, davon 1 abwählen</td><td>5 × 10 Punkte</td><td>60 %</td></tr></table>`,
+    bIntro: '<p>Lies jeden Fall genau. Gib Zahlen mit Komma oder Punkt ein.</p>',
+    docs: [],
+    cats: { BB: 'Berufsausbildung', AR: 'Arbeits- und Tarifrecht', MB: 'Mitbestimmung', SV: 'Sozialversicherung und Lohn', UN: 'Betrieb und Unternehmen', WI: 'Wirtschaft', US: 'Umwelt- und Arbeitsschutz' },
+    aDef: [
+ { cat: 'BB', q: 'Wie lang muss die Probezeit in einem Berufsausbildungsverhältnis sein?',
+   o: ['Mindestens 1 Monat, höchstens 4 Monate', 'Genau 6 Monate', 'Mindestens 3 Monate, höchstens 6 Monate', 'Höchstens 2 Wochen', 'Sie kann frei vereinbart werden.'],
+   e: 'Das steht im Berufsbildungsgesetz (BBiG). In der Probezeit können beide jederzeit ohne Frist kündigen.' },
+ { cat: 'BB', q: 'Wann kann ein Auszubildender nach der Probezeit mit einer Frist von vier Wochen kündigen?',
+   o: ['Wenn er die Ausbildung aufgeben oder einen anderen Beruf erlernen will', 'Jederzeit ohne Grund', 'Nur wenn der Betrieb schließt', 'Nur mit Zustimmung der IHK', 'Gar nicht, nur fristlos'],
+   e: 'Der Betrieb kann nach der Probezeit nur noch aus wichtigem Grund fristlos kündigen. Die Kündigung muss schriftlich erfolgen.' },
+ { cat: 'BB', q: 'Was bedeutet <b>duale Berufsausbildung</b>?',
+   o: ['Ausbildung an zwei Lernorten: im Betrieb und in der Berufsschule', 'Ausbildung in zwei Berufen gleichzeitig', 'Ausbildung mit zwei Abschlussprüfungen bei zwei Kammern', 'Ausbildung in zwei Betrieben', 'Ausbildung mit Studium'],
+   e: 'Der Betrieb vermittelt vor allem die Praxis, die Berufsschule Theorie und Allgemeinbildung.' },
+ { cat: 'BB', q: 'Welche Aufgabe hat die IHK als zuständige Stelle in der Ausbildung?',
+   o: ['Sie überwacht die Ausbildung, führt das Verzeichnis der Ausbildungsverhältnisse und nimmt die Prüfungen ab.', 'Sie zahlt die Ausbildungsvergütung.', 'Sie stellt die Berufsschullehrer ein.', 'Sie schließt den Ausbildungsvertrag ab.', 'Sie legt die Höhe des Tariflohns fest.'],
+   e: 'Die Kammer berät, überwacht und prüft. Den Vertrag schließen Betrieb und Auszubildender.' },
+ { cat: 'AR', q: 'Wie lange darf ein 17-jähriger Auszubildender nach dem Jugendarbeitsschutzgesetz höchstens arbeiten?',
+   o: ['8 Stunden am Tag und 40 Stunden in der Woche', '10 Stunden am Tag und 48 Stunden in der Woche', '6 Stunden am Tag und 30 Stunden in der Woche', '9 Stunden am Tag und 45 Stunden in der Woche', 'Das legt nur der Tarifvertrag fest.'],
+   e: 'Für Jugendliche gelten strengere Grenzen als für Erwachsene.' },
+ { cat: 'AR', q: 'Wie viel Mindesturlaub haben Erwachsene nach dem Bundesurlaubsgesetz?',
+   o: ['24 Werktage', '30 Arbeitstage', '20 Werktage', '18 Werktage', '28 Werktage'],
+   e: 'Werktage sind Montag bis Samstag. Bei einer 5-Tage-Woche sind das 20 Arbeitstage. Tarifverträge geben oft mehr.' },
+ { cat: 'AR', q: 'Innerhalb welcher Frist muss eine Kündigungsschutzklage beim Arbeitsgericht erhoben werden?',
+   o: ['Innerhalb von 3 Wochen nach Zugang der Kündigung', 'Innerhalb von 3 Monaten', 'Innerhalb von 1 Woche', 'Innerhalb von 6 Monaten', 'Es gibt keine Frist.'],
+   e: 'Nach drei Wochen gilt die Kündigung als wirksam, wenn nicht geklagt wurde.' },
+ { cat: 'AR', q: 'Was bedeutet <b>Friedenspflicht</b> bei Tarifverträgen?',
+   o: ['Während der Laufzeit eines Tarifvertrags darf für dessen Inhalte nicht gestreikt werden.', 'Streiks sind in Deutschland verboten.', 'Der Betriebsrat darf nicht streiken.', 'Arbeitgeber dürfen nie aussperren.', 'Streit wird immer vor Gericht geklärt.'],
+   e: 'Erst nach Ablauf und gescheiterten Verhandlungen sind Arbeitskampfmaßnahmen erlaubt.' },
+ { cat: 'AR', q: 'Was besagt das <b>Günstigkeitsprinzip</b>?',
+   o: ['Vom Tarifvertrag darf zugunsten des Arbeitnehmers abgewichen werden.', 'Der Arbeitgeber darf immer die günstigste Lösung wählen.', 'Der Tarifvertrag gilt nur, wenn er günstiger als das Gesetz ist.', 'Der günstigste Bewerber wird eingestellt.', 'Die Arbeitszeit muss möglichst günstig liegen.'],
+   e: 'Ein Arbeitsvertrag darf z. B. mehr Lohn oder mehr Urlaub geben als der Tarifvertrag, aber nicht weniger.' },
+ { cat: 'MB', q: 'Ab wie vielen Arbeitnehmern kann ein Betriebsrat gewählt werden?',
+   o: ['Ab 5 ständigen wahlberechtigten Arbeitnehmern, von denen 3 wählbar sind', 'Ab 20 Arbeitnehmern', 'Ab 50 Arbeitnehmern', 'Ab 100 Arbeitnehmern', 'In jedem Betrieb, auch mit einem Arbeitnehmer'],
+   e: 'Das regelt das Betriebsverfassungsgesetz.' },
+ { cat: 'MB', q: 'Wer wählt die Jugend- und Auszubildendenvertretung (JAV)?',
+   o: ['Arbeitnehmer unter 18 Jahren und Auszubildende unter 25 Jahren', 'Alle Arbeitnehmer des Betriebs', 'Nur der Betriebsrat', 'Nur die Ausbilder', 'Die Berufsschule'],
+   e: 'Die JAV vertritt die Interessen der Jugendlichen und Auszubildenden gegenüber dem Betriebsrat.' },
+ { cat: 'MB', q: 'Der Arbeitgeber kündigt, ohne den Betriebsrat vorher anzuhören. Was gilt?',
+   o: ['Die Kündigung ist unwirksam.', 'Die Kündigung ist wirksam, der Betriebsrat kann nur protestieren.', 'Die Kündigung wird automatisch um einen Monat verschoben.', 'Der Betriebsrat muss die Kündigung nachträglich unterschreiben.', 'Das ist nur bei Auszubildenden erlaubt.'],
+   e: 'Vor jeder Kündigung muss der Betriebsrat gehört werden. Sonst ist sie unwirksam.' },
+ { cat: 'SV', q: 'Wer zahlt die Beiträge zur gesetzlichen Unfallversicherung?',
+   o: ['Allein der Arbeitgeber an die Berufsgenossenschaft', 'Arbeitgeber und Arbeitnehmer je zur Hälfte', 'Allein der Arbeitnehmer', 'Der Staat aus Steuern', 'Die Krankenkasse'],
+   e: 'Die Berufsgenossenschaft ist Träger. Sie kümmert sich auch um die Unfallverhütung.' },
+ { cat: 'SV', q: 'Ist ein Unfall auf dem direkten Weg von der Wohnung zur Berufsschule versichert?',
+   o: ['Ja, als Wegeunfall über die gesetzliche Unfallversicherung', 'Nein, nur Unfälle im Betrieb sind versichert.', 'Nur, wenn man mit dem Auto fährt.', 'Nur mit privater Unfallversicherung.', 'Nur in der Probezeit.'],
+   e: 'Versichert sind Arbeit, Berufsschule und die direkten Wege dorthin.' },
+ { cat: 'SV', q: 'Was bedeutet der <b>Generationenvertrag</b> in der Rentenversicherung?',
+   o: ['Die heute Beschäftigten zahlen mit ihren Beiträgen die Renten der heutigen Rentner.', 'Jeder spart seine eigene Rente auf einem Konto an.', 'Kinder müssen ihre Eltern versorgen.', 'Die Rente wird nur aus Steuern bezahlt.', 'Rentner zahlen für die Jüngeren.'],
+   e: 'Das nennt man Umlageverfahren.' },
+ { cat: 'UN', q: 'Was trifft auf eine <b>GmbH</b> zu?',
+   o: ['Die Gesellschaft haftet nur mit ihrem Gesellschaftsvermögen. Das Mindeststammkapital beträgt 25 000 €.', 'Die Gesellschafter haften unbeschränkt mit ihrem Privatvermögen.', 'Sie braucht mindestens 50 000 € Grundkapital und einen Aufsichtsrat.', 'Sie ist ein Einzelunternehmen.', 'Sie darf keine Mitarbeiter haben.'],
+   e: 'GmbH = Gesellschaft mit beschränkter Haftung. Sie ist eine Kapitalgesellschaft.' },
+ { cat: 'WI', q: 'Ein Betrieb will einen Auftrag mit möglichst <b>geringem Materialeinsatz</b> erfüllen. Welches Prinzip ist das?',
+   o: ['Minimalprinzip', 'Maximalprinzip', 'Günstigkeitsprinzip', 'Solidaritätsprinzip', 'Verursacherprinzip'],
+   e: 'Minimalprinzip: ein festes Ziel mit möglichst wenig Mitteln. Maximalprinzip: mit festen Mitteln möglichst viel erreichen.' },
+ { cat: 'US', q: 'Was steht nach dem Kreislaufwirtschaftsgesetz an <b>erster</b> Stelle?',
+   o: ['Abfälle vermeiden', 'Abfälle recyceln', 'Abfälle verbrennen', 'Abfälle deponieren', 'Abfälle exportieren'],
+   e: 'Reihenfolge: Vermeidung – Vorbereitung zur Wiederverwendung – Recycling – sonstige Verwertung – Beseitigung.' }
+    ],
+    genA() { return null; },
+    buildB(rngFor) {
+        const r2 = rngFor('B2');
+        const brutto = pick(r2, [3200, 3450, 3600, 3800]);
+        const lst = Math.round(brutto * pick(r2, [0.105, 0.11, 0.115]));
+        const kist = lst * 0.08, sv = brutto * 0.21, netto = brutto - lst - kist - sv;
+        const euro = x => fmt(x, 2) + ' €';
+        return [
+        { id: 'B1', title: 'Der Ausbildungsvertrag', intro: 'Tim ist zu Beginn des Kalenderjahres 17 Jahre alt. Er beginnt eine Ausbildung zum Industriemechaniker. Sein Ausbildungsvertrag wird vorbereitet.',
+          parts: [
+            { id: 'a', type: 'match', pts: 4, cat: 'BB', q: 'Prüfe die Vertragsinhalte: Pflichtangabe oder unzulässig?',
+              rows: ['Dauer der Probezeit', 'Höhe der Ausbildungsvergütung', 'Dauer des Urlaubs', 'Tim muss nach der Ausbildung 2 Jahre im Betrieb bleiben'],
+              options: ['Pflichtangabe', 'unzulässig'], ans: [0, 0, 0, 1], keepOrder: true,
+              e: 'Probezeit, Vergütung und Urlaub gehören zu den Mindestangaben. Eine Pflicht, nach der Ausbildung zu bleiben, ist nichtig.' },
+            { id: 'b', type: 'num', pts: 3, cat: 'AR', q: 'Was gilt für Tim nach dem Jugendarbeitsschutzgesetz?',
+              fields: [{ label: 'Mindesturlaub in diesem Jahr', unit: 'Werktage', ans: 25, tol: 0.01, show: '25' }, { label: 'höchstens Arbeitszeit am Tag', unit: 'Stunden', ans: 8, tol: 0.01, show: '8' }],
+              e: 'Wer zu Jahresbeginn noch nicht 18 ist: mindestens 25 Werktage Urlaub. Höchstens 8 Stunden am Tag.' },
+            { id: 'c', type: 'text', pts: 3, cat: 'BB', q: 'Nenne drei Pflichten, die Tim als Auszubildender hat.',
+              crit: [{ t: 'Sich bemühen, die Fertigkeiten und Kenntnisse zu erwerben (Lernpflicht), aufgetragene Aufgaben sorgfältig ausführen.', p: 1 },
+                     { t: 'Berufsschule besuchen und an Prüfungen teilnehmen.', p: 1 }, { t: 'Weisungen befolgen, Betriebsordnung beachten, Ausbildungsnachweis führen, Betriebsgeheimnisse wahren, Werkzeuge pfleglich behandeln (eine davon).', p: 1 }],
+              muster: 'Tim muss lernen und die übertragenen Aufgaben sorgfältig erledigen. Er muss die Berufsschule besuchen und an Prüfungen teilnehmen. Er muss Weisungen befolgen, die Betriebsordnung beachten, den Ausbildungsnachweis führen und Betriebsgeheimnisse für sich behalten.' }
+          ] },
+        { id: 'B2', title: 'Die Lohnabrechnung', intro: `Ein Facharbeiter verdient <b>${fmtT(brutto)} €</b> brutto im Monat. Lohnsteuer laut Tabelle: <b>${lst} €</b>. Kirchensteuer in Bayern: <b>8 %</b> der Lohnsteuer. Solidaritätszuschlag fällt nicht an. Arbeitnehmeranteil zur Sozialversicherung: <b>zusammen 21 %</b> des Bruttolohns (Annahme für diese Aufgabe).`,
+          parts: [
+            { id: 'a', type: 'num', pts: 6, cat: 'SV', q: 'Berechne die Beträge. Zwei Nachkommastellen.',
+              fields: [{ label: 'Kirchensteuer', unit: '€', ans: kist, tol: 0.011, show: fmt(kist, 2) }, { label: 'Sozialversicherung (AN-Anteil)', unit: '€', ans: sv, tol: 0.011, show: fmt(sv, 2) },
+                       { label: 'Nettolohn', unit: '€', ans: netto, tol: 0.021, show: fmt(netto, 2) }],
+              e: `Kirchensteuer = 8 % von ${lst} € = ${euro(kist)}. SV = 21 % von ${fmtT(brutto)} € = ${euro(sv)}. Netto = ${fmtT(brutto)} − ${lst} − ${fmt(kist, 2)} − ${fmt(sv, 2)} = ${euro(netto)}.` },
+            { id: 'b', type: 'match', pts: 4, cat: 'SV', q: 'Ordne jedem Versicherungszweig den Träger zu.',
+              rows: ['Krankenversicherung', 'Rentenversicherung', 'Arbeitslosenversicherung', 'Unfallversicherung'],
+              options: ['Krankenkasse', 'Deutsche Rentenversicherung', 'Bundesagentur für Arbeit', 'Berufsgenossenschaft'], ans: [0, 1, 2, 3],
+              e: 'Der fünfte Zweig ist die Pflegeversicherung mit den Pflegekassen.' }
+          ] },
+        { id: 'B3', title: 'Die Kündigung', intro: 'Herr Weber arbeitet seit 3 Jahren im Betrieb. Die Firma kündigt ihm ordentlich. Die Kündigung geht ihm am <b>10. März</b> zu. Im Arbeitsvertrag und im Tarifvertrag ist nichts anderes geregelt.',
+          parts: [
+            { id: 'a', type: 'select', pts: 4, cat: 'AR', q: 'Wann endet das Arbeitsverhältnis nach dem Gesetz (BGB)?',
+              options: ['Am 30. April', 'Am 15. April', 'Am 10. April', 'Am 31. März', 'Am 30. Juni'], ans: 0,
+              e: 'Nach zwei Jahren Betriebszugehörigkeit gilt bei Kündigung durch den Arbeitgeber: ein Monat zum Ende eines Kalendermonats. 10. März + 1 Monat = 10. April → zum Monatsende: 30. April.' },
+            { id: 'b', type: 'select', pts: 2, cat: 'AR', q: 'Gilt für Herrn Weber das Kündigungsschutzgesetz?',
+              options: ['Ja: Der Betrieb hat mehr als 10 Arbeitnehmer, und er ist länger als 6 Monate beschäftigt.', 'Nein, das gilt nur im öffentlichen Dienst.', 'Nein, erst ab 20 Jahren Betriebszugehörigkeit.', 'Nur wenn er Betriebsratsmitglied ist.'], ans: 0,
+              e: 'Dann muss die Kündigung sozial gerechtfertigt sein.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'AR', q: 'Wann ist eine Kündigung sozial gerechtfertigt? Nenne die drei Arten von Gründen mit je einem Beispiel. Was muss bei verhaltensbedingten Gründen meist vorher passieren?',
+              crit: [{ t: 'Personenbedingt, z. B. lange Krankheit, Verlust des Führerscheins bei Berufskraftfahrer.', p: 1 }, { t: 'Verhaltensbedingt, z. B. häufiges Zuspätkommen, Arbeitsverweigerung.', p: 1 },
+                     { t: 'Betriebsbedingt, z. B. Auftragsmangel, Schließung einer Abteilung (mit Sozialauswahl).', p: 1 }, { t: 'Bei verhaltensbedingten Gründen vorher eine Abmahnung.', p: 1 }],
+              muster: 'Eine Kündigung kann personenbedingt sein, z. B. bei langer Krankheit ohne Aussicht auf Besserung. Sie kann verhaltensbedingt sein, z. B. wenn jemand immer wieder zu spät kommt. Dann muss meist vorher abgemahnt werden. Oder sie ist betriebsbedingt, z. B. wenn Aufträge fehlen. Dann ist eine Sozialauswahl nötig.' }
+          ] },
+        { id: 'B4', title: 'Betriebsrat und JAV', intro: 'Im Betrieb arbeiten 85 Beschäftigte, darunter 12 Auszubildende unter 25 Jahren.',
+          parts: [
+            { id: 'a', type: 'select', pts: 2, cat: 'MB', q: 'Kann im Betrieb eine Jugend- und Auszubildendenvertretung gewählt werden?',
+              options: ['Ja, weil es mindestens 5 Jugendliche oder Auszubildende unter 25 gibt und ein Betriebsrat besteht.', 'Nein, dafür braucht man mindestens 50 Auszubildende.', 'Nein, die JAV gibt es nur in Behörden.', 'Nur wenn der Arbeitgeber zustimmt.'], ans: 0,
+              e: 'Die JAV wird gewählt, wenn es mindestens 5 solche Beschäftigte gibt. Sie arbeitet mit dem Betriebsrat zusammen.' },
+            { id: 'b', type: 'match', pts: 4, cat: 'MB', q: 'Welches Recht hat der Betriebsrat in diesen Fällen?',
+              rows: ['Beginn und Ende der täglichen Arbeitszeit werden geändert', 'Eine elektronische Zeiterfassung mit Leistungsauswertung wird eingeführt', 'Einem Mitarbeiter soll gekündigt werden', 'Eine neue Werkhalle wird geplant'],
+              options: ['Mitbestimmungsrecht', 'Anhörungsrecht', 'Unterrichtungs- und Beratungsrecht'], ans: [0, 0, 1, 2],
+              e: 'Bei Arbeitszeit und technischen Überwachungseinrichtungen bestimmt der Betriebsrat mit. Vor Kündigungen wird er angehört. Bei Bauvorhaben wird er unterrichtet und berät.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'MB', q: 'Nenne vier Aufgaben der Jugend- und Auszubildendenvertretung.',
+              crit: [{ t: 'Maßnahmen beim Betriebsrat beantragen, die den Jugendlichen und Azubis dienen (z. B. Berufsbildung).', p: 1 }, { t: 'Darüber wachen, dass Gesetze, Tarifverträge und Betriebsvereinbarungen eingehalten werden (z. B. JArbSchG).', p: 1 },
+                     { t: 'Anregungen und Beschwerden der Jugendlichen/Azubis aufnehmen und an den Betriebsrat weitergeben.', p: 1 }, { t: 'Gleichstellung und Integration fördern / an Betriebsratssitzungen teilnehmen.', p: 1 }],
+              muster: 'Die JAV beantragt beim Betriebsrat Maßnahmen für die Jugendlichen und Azubis, z. B. zur Ausbildung. Sie achtet darauf, dass Gesetze und Tarifverträge eingehalten werden. Sie nimmt Anregungen und Beschwerden auf und gibt sie an den Betriebsrat weiter. Sie setzt sich für Gleichstellung und Integration ein und kann an Sitzungen des Betriebsrats teilnehmen.' }
+          ] },
+        { id: 'B5', title: 'Unternehmensformen', intro: 'Ein Werkzeugmacher-Meister will sich selbstständig machen. Er vergleicht Rechtsformen.',
+          parts: [
+            { id: 'a', type: 'match', pts: 4, cat: 'UN', q: 'Ordne jeder Rechtsform die Haftung zu.',
+              rows: ['Einzelunternehmen (e. K.)', 'OHG – Gesellschafter', 'GmbH', 'KG – Kommanditist'],
+              options: ['Der Inhaber haftet allein und unbeschränkt.', 'Alle Gesellschafter haften unbeschränkt und gesamtschuldnerisch.', 'Es haftet nur das Gesellschaftsvermögen.', 'Er haftet nur bis zur Höhe seiner Einlage.'], ans: [0, 1, 2, 3],
+              e: 'Personengesellschaften haften meist persönlich. Bei Kapitalgesellschaften haftet die Gesellschaft.' },
+            { id: 'b', type: 'select', pts: 2, cat: 'UN', q: 'Wie hoch ist das Mindestgrundkapital einer Aktiengesellschaft (AG)?',
+              options: ['50 000 €', '25 000 €', '1 €', '100 000 €'], ans: 0,
+              e: 'AG: 50 000 € Grundkapital. GmbH: 25 000 € Stammkapital.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'UN', q: 'Vergleiche Einzelunternehmen und GmbH: Nenne je einen Vorteil und je einen Nachteil.',
+              crit: [{ t: 'Einzelunternehmen Vorteil: allein entscheiden, einfache Gründung, kein Mindestkapital.', p: 1 }, { t: 'Einzelunternehmen Nachteil: Haftung mit dem ganzen Privatvermögen, Kapital nur vom Inhaber.', p: 1 },
+                     { t: 'GmbH Vorteil: Haftung beschränkt auf das Gesellschaftsvermögen.', p: 1 }, { t: 'GmbH Nachteil: 25 000 € Stammkapital, Notar und Handelsregister, mehr Aufwand und Kosten.', p: 1 }],
+              muster: 'Einzelunternehmen: Der Meister entscheidet allein, und die Gründung ist einfach. Aber er haftet mit seinem ganzen Privatvermögen. GmbH: Die Haftung ist auf das Gesellschaftsvermögen beschränkt. Dafür braucht man 25 000 € Stammkapital, einen Notarvertrag und hat mehr Kosten für Buchführung.' }
+          ] },
+        { id: 'B6', title: 'Umweltschutz im Betrieb', intro: 'Im Betrieb fallen verschiedene Abfälle an. Die Werkstatt will umweltfreundlicher werden.',
+          parts: [
+            { id: 'a', type: 'match', pts: 4, cat: 'US', q: 'Wie werden diese Abfälle richtig entsorgt?',
+              rows: ['Verbrauchte Kühlschmierstoff-Emulsion', 'Trockene Stahlspäne', 'Ölverschmierte Putzlappen', 'Kartons von Zulieferteilen'],
+              options: ['Gefährlicher Abfall – Entsorgung durch Fachbetrieb', 'Wertstoff – Metallrecycling (Schrott)', 'Altpapier', 'Restmüll'], ans: [0, 1, 0, 2],
+              e: 'Öl- und emulsionshaltige Abfälle sind gefährlich. Metalle und Papier werden recycelt.' },
+            { id: 'b', type: 'order', pts: 3, cat: 'US', q: 'Bringe die Abfallhierarchie des Kreislaufwirtschaftsgesetzes in die richtige Reihenfolge.',
+              items: ['Vermeidung', 'Vorbereitung zur Wiederverwendung', 'Recycling', 'Sonstige Verwertung, z. B. energetisch', 'Beseitigung'],
+              e: 'Am besten ist, wenn Abfall gar nicht entsteht. Beseitigung ist die letzte Möglichkeit.' },
+            { id: 'c', type: 'text', pts: 3, cat: 'US', q: 'Nenne drei Maßnahmen, mit denen die Werkstatt Energie sparen kann.',
+              crit: [{ t: 'Maschinen und Licht abschalten, wenn sie nicht gebraucht werden (kein Leerlauf/Standby).', p: 1 }, { t: 'Druckluftleckagen suchen und beseitigen, Druck nicht höher als nötig.', p: 1 }, { t: 'Energiesparende Geräte/LED, Abwärme nutzen, Hallentore geschlossen halten (eine davon).', p: 1 }],
+              muster: 'Maschinen, Absaugungen und Licht abschalten, wenn sie nicht gebraucht werden. Druckluftleckagen beseitigen und den Druck nicht höher einstellen als nötig. LED-Beleuchtung und sparsame Motoren nutzen, Abwärme der Kompressoren nutzen und Hallentore geschlossen halten.' }
+          ] }
+        ];
+    }
+};
+
+</script>
+<script>
+/* ============================================================
+   Prüfungs-Engine (gemeinsam für alle Prüfungssimulationen)
+   Erwartet ein globales Objekt EXAM (siehe daten/*.js)
+   ============================================================ */
+const KEY = EXAM.key;
+const DURATION = EXAM.duration * 60 * 1000;
+const NA = EXAM.aDef.length;
+let state = null;
+function rngFor(key) { return mulberry(hashStr(state.seed + ':' + key)); }
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.seed) return s; } catch (e) {} return null; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function freshState() { return { seed: String(Date.now()) + Math.floor(Math.random() * 1e6), phase: 'exam', start: Date.now(), ansA: {}, abw: [], abwB: [], ansB: {}, self: {}, timeUp: false }; }
+
+/* ---------- Teil A ---------- */
+let A = [];
+function buildA() {
+    A = EXAM.aDef.map((d, idx) => {
+        const nr = idx + 1;
+        const base = d.gen ? EXAM.genA(nr, rngFor('A' + nr)) : { q: d.q, o: d.o, e: d.e };
+        const order = shuffle(rngFor('Aorder' + nr), base.o.map((_, k) => k));
+        return { nr, cat: d.cat, lock: !!d.lock, q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
+    });
+}
+/* ---------- Teil B ---------- */
+let B = [];
+function buildB() { B = EXAM.buildB(rngFor); }
+
+/* ---------- Overlay Unterlagen ---------- */
+const DOCS = EXAM.docs || [];
+let ovTab = DOCS.length ? (DOCS[1] || DOCS[0]).id : null, zoom = 1;
+const zoomByTab = {};
+function renderOv() {
+    $('ovTabs').innerHTML = DOCS.map(t => `<button class="tab ${t.id === ovTab ? 'on' : ''}" data-ov="${t.id}">${t.label}</button>`).join('');
+    const t = DOCS.find(x => x.id === ovTab);
+    $('ovBody').innerHTML = t.svg ? `<div class="paper" data-zoom>${t.html()}</div>` : t.html();
+    zoom = zoomByTab[ovTab] || 1; applyZoom();
+    document.querySelector('.zoomctl').style.visibility = t.svg ? 'visible' : 'hidden';
+}
+function applyZoom() {
+    const p = $('ovBody').querySelector('[data-zoom]');
+    if (p) { p.style.width = (zoom * 100) + '%'; p.style.maxWidth = (zoom * 1000) + 'px'; }
+    $('zVal').textContent = Math.round(zoom * 100) + ' %';
+}
+function openOv() { renderOv(); $('ov').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+function closeOv() { $('ov').classList.add('hidden'); document.body.style.overflow = ''; }
+function toggleOv() { if ($('ov').classList.contains('hidden')) openOv(); else closeOv(); }
+
+/* ---------- Ansicht ---------- */
+function show(id) { ['scrStart', 'scrExam', 'scrSelf', 'scrResult'].forEach(s => $(s).classList.toggle('hidden', s !== id)); $('bar').classList.toggle('hidden', id !== 'scrExam'); window.scrollTo(0, 0); }
+function setPart(p) {
+    $('partA').classList.toggle('hidden', p !== 'A'); $('partB').classList.toggle('hidden', p !== 'B');
+    document.querySelectorAll('#partTabs .tab').forEach(b => b.classList.toggle('on', b.dataset.part === p));
+    window.scrollTo(0, 0);
+}
+function lockLabel(cat) { return cat === 'TM' ? 'Mathematik' : cat === 'TK' ? 'Techn. Kommunikation' : (EXAM.cats[cat] || ''); }
+function renderA() {
+    $('listA').innerHTML = A.map(a => `
+    <div class="qa" id="qa-${a.nr}">
+      <div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span>
+        ${a.lock ? `<span class="badge lock">🔒 nicht abwählbar · ${lockLabel(a.cat)}</span>` : `<button class="abw-btn" data-abw="${a.nr}">Abwählen</button>`}
+      </div>
+      <div class="qtext">${a.q}</div>
+      <div class="opts">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
+    </div>`).join('');
+    refreshA();
+}
+function refreshA() {
+    A.forEach(a => {
+        document.querySelectorAll(`[data-q="${a.nr}"]`).forEach(l => l.classList.toggle('sel', state.ansA[a.nr] === Number(l.dataset.k)));
+        const struck = state.abw.includes(a.nr);
+        $('qa-' + a.nr).classList.toggle('struck', struck);
+        const b = document.querySelector(`[data-abw="${a.nr}"]`);
+        if (b) { b.classList.toggle('on', struck); b.textContent = struck ? 'Abgewählt ✓ (rückgängig)' : 'Abwählen'; }
+    });
+    $('abwCount').textContent = state.abw.length;
+    $('sheet').innerHTML = A.map(a => `<div class="cell ${state.abw.includes(a.nr) ? 'abw' : (state.ansA[a.nr] !== undefined ? 'ans' : '')}" data-go="${a.nr}">${a.nr}${a.lock ? '<span class="lk">🔒</span>' : ''}</div>`).join('');
+    updStat();
+}
+function pKey(t, p) { return t.id + p.id; }
+function selOrder(key, p) { return shuffle(rngFor('s' + key), p.options.map((_, i) => i)); }
+function initOrder(key, p) { let o, tries = 0; do { o = shuffle(rngFor('o' + key + tries), p.items.map((_, i) => i)); tries++; } while (o.every((k, i) => k === i) && tries < 10); return o; }
+function numOk(f, val) {
+    const ok = x => !isNaN(x) && Math.abs(x - f.ans) <= f.tol + 1e-9;
+    if (ok(parseNum(val))) return true;
+    const t = String(val || '').trim().replace(/\s/g, '');
+    return /^-?\d{1,3}(\.\d{3})+$/.test(t) && ok(Number(t.replace(/\./g, ''))); // Tausenderpunkt, z. B. 1.768
+}
+function selfPts(key, p) { const s = state.self[key] || []; return p.crit.reduce((sum, c, i) => sum + (s[i] ? c.p : 0), 0); }
+function partHtml(t, p, mode) {
+    const key = pKey(t, p), v = state.ansB[key];
+    const ro = mode !== 'exam' ? 'disabled' : '';
+    let h = `<div class="part"><span class="pp">${p.pts} P.</span><span class="pl">${p.id})</span>${p.q}`;
+    if (p.type === 'num') {
+        h += p.fields.map((f, i) => {
+            const val = v && v[i] !== undefined ? v[i] : '';
+            let fb = '';
+            if (mode === 'review') fb = numOk(f, val) ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${f.show} ${f.unit}</span>`;
+            return `<div class="numrow"><label>${f.label}</label><input class="inp" inputmode="decimal" data-key="${key}" data-i="${i}" value="${esc(val)}" ${ro}> <span>${f.unit}</span>${fb}</div>`;
+        }).join('');
+    } else if (p.type === 'select') {
+        h += `<div class="opts" style="margin-top:.5rem">${selOrder(key, p).map((k, pos) => {
+            let cls = v === k ? 'sel' : '';
+            if (mode === 'review') { if (k === p.ans) cls += ' right'; else if (v === k) cls += ' wrong'; }
+            return `<label class="opt ${cls}" data-skey="${key}" data-k="${k}"><input type="radio"><span class="onr">${pos + 1}</span><span>${p.options[k]}</span></label>`;
+        }).join('')}</div>`;
+    } else if (p.type === 'order') {
+        const ord = v || initOrder(key, p);
+        h += `<ol class="ord">${ord.map((k, i) => {
+            const fb = mode === 'review' ? (k === i ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ (Platz ${k + 1})</span>`) : '';
+            return `<li><span class="n">${i + 1}.</span><span class="t">${p.items[k]}${fb}</span>${mode === 'exam' ? `<button data-up="${key}" data-i="${i}" aria-label="nach oben">▲</button><button data-down="${key}" data-i="${i}" aria-label="nach unten">▼</button>` : ''}</li>`;
+        }).join('')}</ol>`;
+    } else if (p.type === 'match') {
+        const optOrder = p.keepOrder ? p.options.map((_, i) => i) : shuffle(rngFor('m' + key), p.options.map((_, i) => i));
+        h += p.rows.map((row, i) => {
+            const val = v && v[i] !== undefined ? v[i] : -1;
+            const fb = mode === 'review' ? (val === p.ans[i] ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${p.options[p.ans[i]]}</span>`) : '';
+            return `<div class="mrow"><span class="ml">${row}</span><select class="sel" data-mkey="${key}" data-i="${i}" ${ro}><option value="-1">– bitte wählen –</option>${optOrder.map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${p.options[k]}</option>`).join('')}</select>${fb}</div>`;
+        }).join('');
+    } else if (p.type === 'text') {
+        if (mode === 'exam') h += `<textarea class="inp" data-tkey="${key}" placeholder="Deine Antwort in kurzen Sätzen …" style="margin-top:.5rem">${esc(v || '')}</textarea>`;
+        else h += `<div class="yours">${esc(v || '(keine Antwort)')}</div><div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
+    }
+    if (mode === 'review' && p.e) h += `<p class="expl">💡 ${p.e}</p>`;
+    return h + '</div>';
+}
+function bHead(t) {
+    const abwOk = EXAM.bAbw > 0;
+    return `<div class="qhead"><span class="qnr">Aufgabe ${t.id} – ${t.title}</span>${abwOk ? `<button class="abw-btn" data-abwb="${t.id}">Abwählen</button>` : `<span class="badge">${tPts(t)} Punkte</span>`}</div>`;
+}
+function tPts(t) { return t.parts.reduce((s, p) => s + p.pts, 0); }
+function renderB() {
+    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}">${bHead(t)}<div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
+    refreshB();
+}
+function refreshB() {
+    if (!EXAM.bAbw) return;
+    B.forEach(t => {
+        const struck = state.abwB.includes(t.id);
+        $('qb-' + t.id).classList.toggle('struck', struck);
+        const b = document.querySelector(`[data-abwb="${t.id}"]`);
+        if (b) { b.classList.toggle('on', struck); b.textContent = struck ? 'Abgewählt ✓ (rückgängig)' : 'Abwählen'; }
+    });
+    $('abwBCount').textContent = state.abwB.length;
+    updStat();
+}
+function updStat() {
+    const a = Object.keys(state.ansA).length;
+    let bDone = 0, bAll = 0;
+    B.forEach(t => t.parts.forEach(p => { bAll++; const v = state.ansB[pKey(t, p)]; if (v !== undefined && v !== '' && !(Array.isArray(v) && v.every(x => x === '' || x === -1 || x === undefined))) bDone++; }));
+    $('stat').textContent = `A: ${a}/${NA} · ${state.abw.length}/${EXAM.aAbw} abgewählt · B: ${bDone}/${bAll} Teilaufgaben`;
+}
+
+/* ---------- Timer ---------- */
+let tick = null, warned = {};
+function remaining() { return state.start + DURATION - Date.now(); }
+function runTimer() {
+    clearInterval(tick);
+    const upd = () => {
+        const ms = remaining();
+        if (ms <= 0) { $('timer').textContent = '00:00'; clearInterval(tick); state.timeUp = true; finishExam(true); return; }
+        const sec = Math.ceil(ms / 1000), mm = Math.floor(sec / 60), ss = sec % 60;
+        $('timer').textContent = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+        $('timer').className = 'timer' + (mm < 5 ? ' red' : mm < 15 ? ' yellow' : '');
+        [30, 10, 5].forEach(w => { if (mm === w - 1 && ss > 50 && !warned[w]) { warned[w] = 1; toast(`Noch ${w} Minuten!`); } });
+    };
+    upd(); tick = setInterval(upd, 1000);
+}
+let toastT = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.add('hidden'), 3500); }
+function modal(html) { $('modalCard').innerHTML = html; $('modal').classList.remove('hidden'); }
+function closeModal() { $('modal').classList.add('hidden'); }
+
+/* ---------- Bewertung ---------- */
+function effectiveAbw() {
+    const abw = state.abw.slice();
+    for (let n = NA; n >= 1 && abw.length < EXAM.aAbw; n--) { const a = A[n - 1]; if (!a.lock && !abw.includes(n)) abw.push(n); }
+    return abw;
+}
+function effectiveAbwB() {
+    const abw = (state.abwB || []).slice();
+    for (let i = B.length - 1; i >= 0 && abw.length < (EXAM.bAbw || 0); i--) { if (!abw.includes(B[i].id)) abw.push(B[i].id); }
+    return abw;
+}
+function partScore(t, p) {
+    const key = pKey(t, p), v = state.ansB[key];
+    if (p.type === 'num') { const per = p.pts / p.fields.length; return p.fields.reduce((s, f, i) => s + (v && numOk(f, v[i]) ? per : 0), 0); }
+    if (p.type === 'select') return v === p.ans ? p.pts : 0;
+    if (p.type === 'order') { if (!v) return 0; const c = v.filter((k, i) => k === i).length; return Math.round(p.pts * c / v.length * 2) / 2; }
+    if (p.type === 'match') { const per = p.pts / p.rows.length; return p.rows.reduce((s, _, i) => s + (v && v[i] === p.ans[i] ? per : 0), 0); }
+    if (p.type === 'text') return selfPts(key, p);
+    return 0;
+}
+const DEZ = { 100: '1,0', 99: '1,1', 98: '1,1', 97: '1,2', 96: '1,2', 95: '1,3', 94: '1,3', 93: '1,4', 92: '1,4', 91: '1,5', 90: '1,6', 89: '1,7', 88: '1,8', 87: '1,9', 86: '2,0', 85: '2,0', 84: '2,1', 83: '2,2', 82: '2,3', 81: '2,4', 80: '2,5', 79: '2,5', 78: '2,6', 77: '2,7', 76: '2,8', 75: '2,8', 74: '2,9', 73: '3,0', 72: '3,0', 71: '3,1', 70: '3,2', 69: '3,3', 68: '3,3', 67: '3,4', 66: '3,5', 65: '3,5', 64: '3,6', 63: '3,6', 62: '3,7', 61: '3,8', 60: '3,8', 59: '3,9', 58: '3,9', 57: '4,0', 56: '4,0', 55: '4,1', 54: '4,2', 53: '4,2', 52: '4,3', 51: '4,3', 50: '4,4', 49: '4,5', 48: '4,5', 47: '4,6', 46: '4,6', 45: '4,7', 44: '4,7', 43: '4,8', 42: '4,8', 41: '4,9', 40: '4,9', 39: '5,0', 38: '5,0', 37: '5,1', 36: '5,1', 35: '5,2', 34: '5,2', 33: '5,3', 32: '5,3', 31: '5,4', 30: '5,4' };
+function dezNote(p) { if (p >= 30) return DEZ[p]; if (p >= 25) return '5,5'; if (p >= 20) return '5,6'; if (p >= 15) return '5,7'; if (p >= 10) return '5,8'; if (p >= 5) return '5,9'; return '6,0'; }
+function note(p) { if (p >= 92) return [1, 'sehr gut']; if (p >= 81) return [2, 'gut']; if (p >= 67) return [3, 'befriedigend']; if (p >= 50) return [4, 'ausreichend']; if (p >= 30) return [5, 'mangelhaft']; return [6, 'ungenügend']; }
+function computeScore() {
+    const abw = effectiveAbw(), abwB = effectiveAbwB();
+    const cat = {}; const add = (k, g, m) => { cat[k] = cat[k] || [0, 0]; cat[k][0] += g; cat[k][1] += m; };
+    let aPts = 0; const aMax = NA - EXAM.aAbw;
+    A.forEach(a => { if (abw.includes(a.nr)) return; const ok = state.ansA[a.nr] === a.correct; if (ok) aPts++; add(a.cat, ok ? 1 : 0, 1); });
+    let bPts = 0, bMax = 0;
+    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.forEach(p => { const s = partScore(t, p); bPts += s; bMax += p.pts; add(p.cat, s, p.pts); }); });
+    const sA = aPts / aMax * EXAM.aWeight * 100, sB = bPts / bMax * EXAM.bWeight * 100, total = sA + sB;
+    return { abw, abwB, aPts, aMax, bPts, bMax, sA, sB, total, rounded: Math.round(total), cat };
+}
+
+function finishExam(timeUp) {
+    clearInterval(tick); closeOv();
+    state.phase = 'self'; state.endTime = state.endTime || Math.min(Date.now(), state.start + DURATION); save();
+    renderSelf(); show('scrSelf');
+    if (timeUp) { modal(`<h2>⏰ Die Zeit ist um!</h2><p>Deine Prüfung wurde automatisch abgegeben. Jetzt bewertest du deine Textantworten selbst.</p><div class="row" style="margin-top:1rem"><button class="btn" id="mOk">OK</button></div>`); $('mOk').onclick = closeModal; }
+}
+function renderSelf() {
+    const abwB = effectiveAbwB();
+    let h = '';
+    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.filter(p => p.type === 'text').forEach(p => {
+        const key = pKey(t, p), s = state.self[key] || [];
+        h += `<div class="qa"><div class="qhead"><span class="qnr">${t.id} ${p.id}) – ${t.title}</span><span class="badge">${p.pts} Punkte</span></div>
+        <div class="qtext">${p.q}</div>
+        <b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>
+        <div class="muster"><b>Musterlösung:</b> ${p.muster}</div>
+        <p style="margin-top:.6rem"><b>Hake ab, was in deiner Antwort steht:</b></p>
+        ${p.crit.map((c, i) => `<label class="crit"><input type="checkbox" data-self="${key}" data-i="${i}" ${s[i] ? 'checked' : ''} ${state.ansB[key] ? '' : 'disabled'}><span>${c.t} <span class="stat" style="display:inline">(${c.p} P.)</span></span></label>`).join('')}
+        </div>`;
+    }); });
+    $('selfList').innerHTML = h || '<div class="card"><p>Keine Textantworten zu bewerten.</p></div>';
+}
+function saveSummary(r) {
+    try {
+        const all = JSON.parse(localStorage.getItem('ap2-ergebnisse') || '{}');
+        all[EXAM.id] = { punkte: Math.round(r.total * 10) / 10, datum: Date.now() };
+        localStorage.setItem('ap2-ergebnisse', JSON.stringify(all));
+    } catch (e) {}
+}
+function renderResult() {
+    const r = computeScore(); const [n, w] = note(r.rounded);
+    if (EXAM.summary) saveSummary(r);
+    const autoAbw = r.abw.filter(x => !state.abw.includes(x));
+    const autoAbwB = r.abwB.filter(x => !(state.abwB || []).includes(x));
+    const usedMin = Math.max(0, Math.round(((state.endTime || Date.now()) - state.start) / 60000));
+    $('resCard').innerHTML = `
+      <div class="grade"><div class="big g${n}">${n}</div><div class="word g${n}">${w}</div><p class="sub">${r.rounded} von 100 Punkten · Dezimalnote ${dezNote(r.rounded)}</p></div>
+      <table class="tbl">
+        <tr><th>Teil</th><th>erreicht</th><th>umgerechnet</th></tr>
+        <tr><td>Teil A (gebunden)</td><td>${r.aPts} von ${r.aMax} Punkten</td><td>${fmt(r.sA, 1)} von ${EXAM.aWeight * 100}</td></tr>
+        <tr><td>Teil B (ungebunden)</td><td>${fmt(r.bPts, 1)} von ${r.bMax} Punkten</td><td>${fmt(r.sB, 1)} von ${EXAM.bWeight * 100}</td></tr>
+        <tr><td><b>Gesamt</b></td><td></td><td><b>${fmt(r.total, 1)} von 100</b></td></tr>
+      </table>
+      ${autoAbw.length ? `<div class="info warn">Du hast in Teil A nicht ${EXAM.aAbw} Aufgaben abgewählt. Deshalb wurden die Aufgaben ${autoAbw.sort((a, b) => a - b).join(', ')} nicht gewertet.</div>` : ''}
+      ${autoAbwB.length ? `<div class="info warn">Du hast in Teil B keine Aufgabe abgewählt. Deshalb wurde Aufgabe ${autoAbwB.join(', ')} nicht gewertet.</div>` : ''}
+      <p class="stat" style="display:block">Bearbeitungszeit: ${Math.min(EXAM.duration, usedMin)} von ${EXAM.duration} Minuten${state.timeUp ? ' (Zeit abgelaufen)' : ''}.</p>
+      <p class="stat" style="display:block">Notenschlüssel der IHK: 100–92 = 1 · unter 92–81 = 2 · unter 81–67 = 3 · unter 67–50 = 4 · unter 50–30 = 5 · unter 30 = 6. Teil B enthält deine Selbstbewertung.</p>
+      ${EXAM.summary ? `<p style="margin-top:.6rem"><a class="btn grey small" href="${EXAM.back}">Zur Gesamtübersicht Teil 2</a></p>` : ''}`;
+    const keys = Object.keys(EXAM.cats).filter(k => r.cat[k]);
+    $('lfCard').innerHTML = `<h2>Wo stehst du?</h2><p>So viel Prozent der Punkte hast du in den einzelnen Bereichen erreicht. Unter 50 % solltest du das Thema wiederholen.</p><div style="margin-top:.8rem">` +
+        keys.map(k => { const [g, m] = r.cat[k]; const pc = Math.round(g / m * 100); return `<div class="lfbar"><span>${EXAM.cats[k]}</span><div class="track"><div class="fill" style="width:${pc}%;${pc < 50 ? 'background:linear-gradient(90deg,#ef4444,#f97316)' : ''}"></div></div><b>${pc} %</b></div>`; }).join('') + '</div>';
+    $('review').innerHTML = '';
+}
+function renderReview(part) {
+    const abw = effectiveAbw(), abwB = effectiveAbwB();
+    if (part === 'A') {
+        $('review').innerHTML = A.map(a => {
+            const your = state.ansA[a.nr], struck = abw.includes(a.nr);
+            return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span><span class="badge">${struck ? 'nicht gewertet' : (your === a.correct ? '✔ richtig' : '✘ falsch')}</span></div>
+            <div class="qtext">${a.q}</div><div class="opts">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
+            <p class="expl">💡 ${a.e}</p></div>`;
+        }).join('');
+    } else {
+        $('review').innerHTML = B.map(t => { const struck = abwB.includes(t.id); const sum = t.parts.reduce((s, p) => s + partScore(t, p), 0);
+            return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${t.id} – ${t.title}</span><span class="badge">${struck ? 'nicht gewertet' : fmt(sum, 1) + ' von ' + tPts(t) + ' Punkten'}</span></div><div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'review')).join('')}</div>`; }).join('');
+    }
+    $('review').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ---------- Start ---------- */
+function startExam() { buildA(); buildB(); renderA(); renderB(); setPart('A'); show('scrExam'); warned = {}; runTimer(); }
+function startNew() { state = freshState(); save(); startExam(); }
+
+function initApp() {
+    // Seitentexte
+    document.title = EXAM.title;
+    $('tTitle').textContent = EXAM.title;
+    $('tSub').textContent = EXAM.subtitle;
+    $('tLogo').textContent = EXAM.logo || '📝';
+    $('backLink').href = EXAM.back; $('backLink').textContent = EXAM.backLabel;
+    $('backLink2').href = EXAM.back;
+    $('tIntro').innerHTML = EXAM.intro;
+    $('tA').textContent = `Wähle ${EXAM.aAbw} Aufgaben ab (`; $('tAmax').textContent = EXAM.aAbw;
+    if (EXAM.bAbw) $('bAbwInfo').classList.remove('hidden');
+    if (!DOCS.length) { $('drawBtn').classList.add('hidden'); $('drawBtn2').classList.add('hidden'); }
+    else { $('drawBtn').textContent = EXAM.docBtn || '📐 Zeichnung'; $('drawBtn2').textContent = EXAM.docBtn || '📐 Zeichnung'; }
+    $('bIntro').innerHTML = EXAM.bIntro;
+
+    // Ereignisse
+    $('ovTabs').addEventListener('click', e => { const b = e.target.closest('[data-ov]'); if (b) { ovTab = b.dataset.ov; renderOv(); } });
+    $('zIn').onclick = () => { zoom = Math.min(3, zoom + 0.25); zoomByTab[ovTab] = zoom; applyZoom(); };
+    $('zOut').onclick = () => { zoom = Math.max(0.5, zoom - 0.25); zoomByTab[ovTab] = zoom; applyZoom(); };
+    $('ovClose').onclick = closeOv; $('drawBtn').onclick = toggleOv; $('drawBtn2').onclick = toggleOv;
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('ov').classList.contains('hidden')) closeOv(); });
+    $('partTabs').addEventListener('click', e => { const b = e.target.closest('[data-part]'); if (b) setPart(b.dataset.part); });
+    $('toB').onclick = () => setPart('B'); $('toA').onclick = () => setPart('A');
+    $('listA').addEventListener('click', e => {
+        const l = e.target.closest('.opt');
+        if (l) { e.preventDefault(); if (state.phase !== 'exam') return; const q = Number(l.dataset.q), k = Number(l.dataset.k); if (state.ansA[q] === k) delete state.ansA[q]; else state.ansA[q] = k; save(); refreshA(); return; }
+        const b = e.target.closest('[data-abw]');
+        if (b) { const n = Number(b.dataset.abw); const i = state.abw.indexOf(n); if (i >= 0) state.abw.splice(i, 1); else { if (state.abw.length >= EXAM.aAbw) { toast(`Du hast schon ${EXAM.aAbw} Aufgaben abgewählt.`); return; } state.abw.push(n); } save(); refreshA(); }
+    });
+    $('sheet').addEventListener('click', e => { const c = e.target.closest('[data-go]'); if (c) $('qa-' + c.dataset.go).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    $('listB').addEventListener('input', e => {
+        if (state.phase !== 'exam') return; const el = e.target;
+        if (el.dataset.key) { const k = el.dataset.key; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = el.value; save(); updStat(); }
+        if (el.dataset.tkey) { state.ansB[el.dataset.tkey] = el.value; save(); updStat(); }
+    });
+    $('listB').addEventListener('change', e => {
+        if (state.phase !== 'exam') return; const el = e.target;
+        if (el.dataset.mkey) { const k = el.dataset.mkey; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = Number(el.value); save(); updStat(); }
+    });
+    $('listB').addEventListener('click', e => {
+        if (state.phase !== 'exam') return;
+        const ab = e.target.closest('[data-abwb]');
+        if (ab) { const id = ab.dataset.abwb; state.abwB = state.abwB || []; const i = state.abwB.indexOf(id); if (i >= 0) state.abwB.splice(i, 1); else { if (state.abwB.length >= EXAM.bAbw) { toast(`Du kannst nur ${EXAM.bAbw} Aufgabe abwählen.`); return; } state.abwB.push(id); } save(); refreshB(); return; }
+        const l = e.target.closest('[data-skey]');
+        if (l) { e.preventDefault(); state.ansB[l.dataset.skey] = Number(l.dataset.k); save(); l.parentElement.querySelectorAll('.opt').forEach(x => x.classList.toggle('sel', x === l)); updStat(); return; }
+        const up = e.target.closest('[data-up]'), dn = e.target.closest('[data-down]'); const b = up || dn;
+        if (b) {
+            const key = b.dataset.up || b.dataset.down, i = Number(b.dataset.i);
+            const t = B.find(t => key.startsWith(t.id) && t.parts.some(p => pKey(t, p) === key)), p = t.parts.find(p => pKey(t, p) === key);
+            const ord = (state.ansB[key] || initOrder(key, p)).slice(); const j = up ? i - 1 : i + 1;
+            if (j < 0 || j >= ord.length) return;
+            [ord[i], ord[j]] = [ord[j], ord[i]]; state.ansB[key] = ord; save();
+            const y = window.scrollY; b.closest('.part').outerHTML = partHtml(t, p, 'exam'); window.scrollTo(0, y); updStat();
+        }
+    });
+    $('submitBtn').onclick = () => {
+        const open = NA - Object.keys(state.ansA).length;
+        let msg = `<h2>Prüfung abgeben?</h2><p>Restzeit: ${$('timer').textContent} min.</p>`;
+        if (state.abw.length < EXAM.aAbw) msg += `<div class="info warn">Du hast in Teil A erst ${state.abw.length} von ${EXAM.aAbw} Aufgaben abgewählt. Dann werden die letzten abwählbaren Aufgaben nicht gewertet.</div>`;
+        if (EXAM.bAbw && (state.abwB || []).length < EXAM.bAbw) msg += `<div class="info warn">Du hast in Teil B keine Aufgabe abgewählt. Dann wird die letzte Aufgabe (${B[B.length - 1].id}) nicht gewertet.</div>`;
+        if (open > 0) msg += `<p>In Teil A sind ${open} Aufgaben ohne Kreuz.</p>`;
+        msg += `<div class="row" style="margin-top:1rem"><button class="btn red" id="mYes">Ja, abgeben</button><button class="btn grey" id="mNo">Weiterarbeiten</button></div>`;
+        modal(msg); $('mYes').onclick = () => { closeModal(); finishExam(false); }; $('mNo').onclick = closeModal;
+    };
+    $('selfList').addEventListener('change', e => { const c = e.target; if (c.dataset.self) { const k = c.dataset.self; state.self[k] = state.self[k] || []; state.self[k][Number(c.dataset.i)] = c.checked; save(); } });
+    $('toResult').onclick = () => { state.phase = 'result'; save(); renderResult(); show('scrResult'); };
+    $('showRevA').onclick = () => renderReview('A'); $('showRevB').onclick = () => renderReview('B');
+    $('newBtn').onclick = () => {
+        modal(`<h2>Neue Prüfung starten?</h2><p>Dein Ergebnis wird gelöscht. Die Rechenaufgaben bekommen neue Zahlen.</p><div class="row" style="margin-top:1rem"><button class="btn" id="mYes">Ja, neu starten</button><button class="btn grey" id="mNo">Abbrechen</button></div>`);
+        $('mYes').onclick = () => { closeModal(); startNew(); }; $('mNo').onclick = closeModal;
+    };
+    $('startBtn').onclick = () => {
+        const s = load();
+        if (s && s.phase === 'exam' && s.start + DURATION > Date.now()) {
+            modal(`<h2>Laufende Prüfung</h2><p>Du hast schon eine Prüfung angefangen. Neu starten löscht deine Antworten.</p><div class="row" style="margin-top:1rem"><button class="btn red" id="mYes">Neu starten</button><button class="btn grey" id="mNo">Abbrechen</button></div>`);
+            $('mYes').onclick = () => { closeModal(); startNew(); }; $('mNo').onclick = closeModal; return;
+        }
+        startNew();
+    };
+    $('resumeBtn').onclick = () => { state = load(); startExam(); };
+
+    const s = load();
+    if (!s) return;
+    state = s; state.abwB = state.abwB || [];
+    if (s.phase === 'exam') {
+        if (s.start + DURATION > Date.now()) { $('resumeBtn').style.display = ''; $('resumeBtn').textContent = 'Weiter zur laufenden Prüfung (' + Math.ceil((s.start + DURATION - Date.now()) / 60000) + ' min übrig)'; }
+        else { buildA(); buildB(); state.timeUp = true; state.endTime = s.start + DURATION; state.phase = 'self'; save(); renderSelf(); show('scrSelf'); }
+    } else if (s.phase === 'self') { buildA(); buildB(); renderSelf(); show('scrSelf'); }
+    else if (s.phase === 'result') { buildA(); buildB(); renderResult(); show('scrResult'); }
+}
+
+/* Testzugang für automatische Prüfung */
+window.__pruefung = {
+    get state() { return state; }, get A() { return A; }, get B() { return B; },
+    computeScore, effectiveAbw, effectiveAbwB, numOk, docs: DOCS,
+    solveAll() {
+        A.forEach(a => state.ansA[a.nr] = a.correct);
+        B.forEach(t => t.parts.forEach(p => {
+            const k = pKey(t, p);
+            if (p.type === 'num') state.ansB[k] = p.fields.map(f => String(f.show).replace('+', '').replace('±', '').replace('−', '-').trim());
+            if (p.type === 'select') state.ansB[k] = p.ans;
+            if (p.type === 'order') state.ansB[k] = p.items.map((_, i) => i);
+            if (p.type === 'match') state.ansB[k] = p.ans.slice();
+            if (p.type === 'text') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
+        }));
+        save();
+    }
+};
+initApp();
+
+</script>
+</body>
+</html>

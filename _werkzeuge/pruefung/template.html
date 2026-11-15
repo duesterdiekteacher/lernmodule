@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}}</title>
+<style>
+{{STYLE}}
+</style>
+</head>
+<body>
+<!-- Erzeugt aus _werkzeuge/pruefung (build.py). Nicht direkt bearbeiten. -->
+<div class="bar hidden" id="bar">
+    <div class="bar-in">
+        <div class="row" style="gap:.5rem">
+            <div class="timer" id="timer" title="Restzeit">00:00</div>
+            <span class="stat" id="stat"></span>
+        </div>
+        <div class="tabs" id="partTabs">
+            <button class="tab on" data-part="A">Teil A</button>
+            <button class="tab" data-part="B">Teil B</button>
+        </div>
+        <button class="btn-draw" id="drawBtn">📐 Zeichnung</button>
+    </div>
+</div>
+
+<div class="wrap">
+<section id="scrStart">
+    <a class="back-link" id="backLink" href="./">← Zurück</a>
+    <header class="top">
+        <div class="logo" id="tLogo">📝</div>
+        <h1 id="tTitle"></h1>
+        <p class="sub" id="tSub"></p>
+    </header>
+    <div class="card">
+        <div id="tIntro"></div>
+        <p class="stat" style="display:block;margin-top:.6rem">Die Aufgaben sind selbst erstellt. Sie sind keine Originalaufgaben der PAL, folgen aber deren Aufbau.</p>
+        <div class="row" style="margin-top:1rem">
+            <button class="btn" id="startBtn">▶ Prüfung starten</button>
+            <button class="btn grey" id="resumeBtn" style="display:none">Weiter</button>
+        </div>
+    </div>
+</section>
+
+<section id="scrExam" class="hidden">
+    <div id="partA">
+        <div class="card">
+            <h2>Teil A – Gebundene Aufgaben</h2>
+            <p>Kreuze pro Aufgabe eine Antwort an. <span id="tA"></span><span id="abwCount">0</span> von <span id="tAmax"></span> abgewählt).</p>
+            <div class="sheet" id="sheet"></div>
+            <p class="stat" style="display:block;margin-top:.4rem">Grün = beantwortet · durchgestrichen = abgewählt · 🔒 = nicht abwählbar. Klick springt zur Aufgabe.</p>
+        </div>
+        <div id="listA"></div>
+        <div class="row"><button class="btn" id="toB">Weiter zu Teil B →</button></div>
+    </div>
+    <div id="partB" class="hidden">
+        <div class="card">
+            <h2>Teil B – Ungebundene Aufgaben</h2>
+            <div id="bIntro"></div>
+            <p id="bAbwInfo" class="hidden"><b>Wähle 1 Aufgabe ab</b> (<span id="abwBCount">0</span> von 1 abgewählt). Sonst wird die letzte Aufgabe nicht gewertet.</p>
+        </div>
+        <div id="listB"></div>
+        <div class="row"><button class="btn grey" id="toA">← Zurück zu Teil A</button></div>
+    </div>
+    <div class="card" style="margin-top:1.5rem">
+        <h3>Fertig?</h3>
+        <p>Wenn du abgibst, kannst du nichts mehr ändern.</p>
+        <div class="row" style="margin-top:.6rem"><button class="btn red" id="submitBtn">Prüfung abgeben</button></div>
+    </div>
+</section>
+
+<section id="scrSelf" class="hidden">
+    <header class="top">
+        <div class="logo">✍️</div>
+        <h1>Selbstbewertung</h1>
+        <p class="sub">Vergleiche deine Antworten mit der Musterlösung. Hake nur ab, was du wirklich geschrieben hast. Sei ehrlich zu dir.</p>
+    </header>
+    <div id="selfList"></div>
+    <div class="row"><button class="btn" id="toResult">Ergebnis anzeigen →</button></div>
+</section>
+
+<section id="scrResult" class="hidden">
+    <header class="top"><div class="logo">🏁</div><h1>Dein Ergebnis</h1></header>
+    <div class="card" id="resCard"></div>
+    <div class="card" id="lfCard"></div>
+    <div class="card">
+        <h2>Lösungen ansehen</h2>
+        <p>Hier siehst du jede Aufgabe mit der richtigen Lösung und einer Erklärung.</p>
+        <div class="row" style="margin-top:.6rem">
+            <button class="btn grey small" id="showRevA">Teil A</button>
+            <button class="btn grey small" id="showRevB">Teil B</button>
+            <button class="btn-draw" id="drawBtn2">📐 Zeichnung</button>
+        </div>
+    </div>
+    <div id="review"></div>
+    <div class="card">
+        <div class="row">
+            <button class="btn" id="newBtn">🔄 Neue Prüfung (neue Zahlen)</button>
+            <a class="btn grey" id="backLink2" href="./">Zur Übersicht</a>
+        </div>
+    </div>
+</section>
+</div>
+
+<div class="ov hidden" id="ov">
+    <div class="ov-head">
+        <div class="tabs" id="ovTabs" style="flex-wrap:wrap"></div>
+        <span class="sp"></span>
+        <div class="zoomctl row" style="gap:.3rem">
+            <button id="zOut" aria-label="Verkleinern">−</button><span id="zVal">100 %</span><button id="zIn" aria-label="Vergrößern">+</button>
+        </div>
+        <button class="btn-draw" id="ovClose">✕ Schließen</button>
+    </div>
+    <div class="ov-body" id="ovBody"></div>
+</div>
+<div class="modal hidden" id="modal"><div class="card" id="modalCard"></div></div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+{{LIB}}
+</script>
+<script>
+{{DATA}}
+</script>
+<script>
+{{APP}}
+</script>
+</body>
+</html>
