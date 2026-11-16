@@ -18,7 +18,7 @@ function buildA() {
         const nr = idx + 1;
         const base = d.gen ? EXAM.genA(nr, rngFor('A' + nr)) : { q: d.q, o: d.o, e: d.e };
         const order = shuffle(rngFor('Aorder' + nr), base.o.map((_, k) => k));
-        return { nr, cat: d.cat, lock: !!d.lock, q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
+        return { nr, cat: d.cat, lock: !!d.lock, ref: base.ref || d.ref || '', img: !!(base.img || d.img), q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
     });
 }
 /* ---------- Teil B ---------- */
@@ -59,8 +59,8 @@ function renderA() {
       <div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span>
         ${a.lock ? `<span class="badge lock">🔒 nicht abwählbar · ${lockLabel(a.cat)}</span>` : `<button class="abw-btn" data-abw="${a.nr}">Abwählen</button>`}
       </div>
-      <div class="qtext">${a.q}</div>
-      <div class="opts">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
+      ${a.ref ? `<div class="ref">📐 ${a.ref}</div>` : ''}<div class="qtext">${a.q}</div>
+      <div class="opts ${a.img ? 'imgopts' : ''}">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
     </div>`).join('');
     refreshA();
 }
@@ -116,6 +116,9 @@ function partHtml(t, p, mode) {
             const fb = mode === 'review' ? (val === p.ans[i] ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${p.options[p.ans[i]]}</span>`) : '';
             return `<div class="mrow"><span class="ml">${row}</span><select class="sel" data-mkey="${key}" data-i="${i}" ${ro}><option value="-1">– bitte wählen –</option>${optOrder.map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${p.options[k]}</option>`).join('')}</select>${fb}</div>`;
         }).join('');
+    } else if (p.type === 'sketch') {
+        if (mode === 'exam') h += `<div class="info">✏️ Skizziere auf Papier (Bleistift, Lineal). Nach der Abgabe vergleichst du deine Skizze mit der Musterlösung.</div><label class="crit"><input type="checkbox" data-sketch="${key}" ${v ? 'checked' : ''}><span>Meine Skizze ist fertig.</span></label>`;
+        else h += `<div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
     } else if (p.type === 'text') {
         if (mode === 'exam') h += `<textarea class="inp" data-tkey="${key}" placeholder="Deine Antwort in kurzen Sätzen …" style="margin-top:.5rem">${esc(v || '')}</textarea>`;
         else h += `<div class="yours">${esc(v || '(keine Antwort)')}</div><div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
@@ -129,7 +132,7 @@ function bHead(t) {
 }
 function tPts(t) { return t.parts.reduce((s, p) => s + p.pts, 0); }
 function renderB() {
-    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}">${bHead(t)}<div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
+    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}">${bHead(t)}${t.ref ? `<div class="ref">📐 ${t.ref}</div>` : ''}<div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
     refreshB();
 }
 function refreshB() {
@@ -187,7 +190,7 @@ function partScore(t, p) {
     if (p.type === 'select') return v === p.ans ? p.pts : 0;
     if (p.type === 'order') { if (!v) return 0; const c = v.filter((k, i) => k === i).length; return Math.round(p.pts * c / v.length * 2) / 2; }
     if (p.type === 'match') { const per = p.pts / p.rows.length; return p.rows.reduce((s, _, i) => s + (v && v[i] === p.ans[i] ? per : 0), 0); }
-    if (p.type === 'text') return selfPts(key, p);
+    if (p.type === 'text' || p.type === 'sketch') return selfPts(key, p);
     return 0;
 }
 const DEZ = { 100: '1,0', 99: '1,1', 98: '1,1', 97: '1,2', 96: '1,2', 95: '1,3', 94: '1,3', 93: '1,4', 92: '1,4', 91: '1,5', 90: '1,6', 89: '1,7', 88: '1,8', 87: '1,9', 86: '2,0', 85: '2,0', 84: '2,1', 83: '2,2', 82: '2,3', 81: '2,4', 80: '2,5', 79: '2,5', 78: '2,6', 77: '2,7', 76: '2,8', 75: '2,8', 74: '2,9', 73: '3,0', 72: '3,0', 71: '3,1', 70: '3,2', 69: '3,3', 68: '3,3', 67: '3,4', 66: '3,5', 65: '3,5', 64: '3,6', 63: '3,6', 62: '3,7', 61: '3,8', 60: '3,8', 59: '3,9', 58: '3,9', 57: '4,0', 56: '4,0', 55: '4,1', 54: '4,2', 53: '4,2', 52: '4,3', 51: '4,3', 50: '4,4', 49: '4,5', 48: '4,5', 47: '4,6', 46: '4,6', 45: '4,7', 44: '4,7', 43: '4,8', 42: '4,8', 41: '4,9', 40: '4,9', 39: '5,0', 38: '5,0', 37: '5,1', 36: '5,1', 35: '5,2', 34: '5,2', 33: '5,3', 32: '5,3', 31: '5,4', 30: '5,4' };
@@ -213,11 +216,11 @@ function finishExam(timeUp) {
 function renderSelf() {
     const abwB = effectiveAbwB();
     let h = '';
-    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.filter(p => p.type === 'text').forEach(p => {
+    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.filter(p => p.type === 'text' || p.type === 'sketch').forEach(p => {
         const key = pKey(t, p), s = state.self[key] || [];
         h += `<div class="qa"><div class="qhead"><span class="qnr">${t.id} ${p.id}) – ${t.title}</span><span class="badge">${p.pts} Punkte</span></div>
         <div class="qtext">${p.q}</div>
-        <b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>
+        ${p.type === 'sketch' ? `<b>Deine Antwort:</b><div class="yours">${state.ansB[key] ? 'Skizze auf Papier – lege sie neben die Musterlösung.' : '(keine Skizze)'}</div>` : `<b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>`}
         <div class="muster"><b>Musterlösung:</b> ${p.muster}</div>
         <p style="margin-top:.6rem"><b>Hake ab, was in deiner Antwort steht:</b></p>
         ${p.crit.map((c, i) => `<label class="crit"><input type="checkbox" data-self="${key}" data-i="${i}" ${s[i] ? 'checked' : ''} ${state.ansB[key] ? '' : 'disabled'}><span>${c.t} <span class="stat" style="display:inline">(${c.p} P.)</span></span></label>`).join('')}
@@ -262,7 +265,7 @@ function renderReview(part) {
         $('review').innerHTML = A.map(a => {
             const your = state.ansA[a.nr], struck = abw.includes(a.nr);
             return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span><span class="badge">${struck ? 'nicht gewertet' : (your === a.correct ? '✔ richtig' : '✘ falsch')}</span></div>
-            <div class="qtext">${a.q}</div><div class="opts">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
+            ${a.ref ? `<div class="ref">📐 ${a.ref}</div>` : ''}<div class="qtext">${a.q}</div><div class="opts ${a.img ? 'imgopts' : ''}">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
             <p class="expl">💡 ${a.e}</p></div>`;
         }).join('');
     } else {
@@ -313,6 +316,7 @@ function initApp() {
     });
     $('listB').addEventListener('change', e => {
         if (state.phase !== 'exam') return; const el = e.target;
+        if (el.dataset.sketch) { state.ansB[el.dataset.sketch] = el.checked ? 'Skizze' : ''; save(); updStat(); return; }
         if (el.dataset.mkey) { const k = el.dataset.mkey; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = Number(el.value); save(); updStat(); }
     });
     $('listB').addEventListener('click', e => {
@@ -379,7 +383,7 @@ window.__pruefung = {
             if (p.type === 'select') state.ansB[k] = p.ans;
             if (p.type === 'order') state.ansB[k] = p.items.map((_, i) => i);
             if (p.type === 'match') state.ansB[k] = p.ans.slice();
-            if (p.type === 'text') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
+            if (p.type === 'text' || p.type === 'sketch') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
         }));
         save();
     }

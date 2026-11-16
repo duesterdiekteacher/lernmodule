@@ -42,7 +42,7 @@ function svgWmWerkzeug() {
     const R = (x1, z1, x2, z2, c = 'vf') => Rc(X(x1), Z(z2), (x2 - x1) * k, (z2 - z1) * k, c);
     let s = `<svg viewBox="0 0 760 640" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
     s += Rc(4, 4, 752, 632, 't');
-    s += Tx(380, 26, 'Gesamtzeichnung Folgeschneidwerkzeug (Schnitt durch die Lochreihe, Werkzeug offen)', 15, 'middle', 'font-weight="bold"');
+    s += Tx(380, 26, 'Blatt 1 – Folgeschneidwerkzeug (Schnitt durch die Lochreihe, Werkzeug offen)', 15, 'middle', 'font-weight="bold"');
     // Unterteil
     s += H(-70, 0, -5, 30) + H(5, 0, 14, 30) + H(50, 0, 110, 30); // Grundplatte mit Durchfall
     s += H(-30, 30, -3.3, 52, 2) + H(3.3, 30, 17, 52, 2) + H(47, 30, 70, 52, 2); // Schneidplatte
@@ -92,7 +92,7 @@ function svgWmTeil() {
     const m = 'arWT', k = 4.2;
     let s = `<svg viewBox="0 0 760 640" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
     s += Rc(4, 4, 752, 632, 't');
-    s += Tx(380, 30, 'Stanzteil „Halteblech“ und Streifenbild', 17, 'middle', 'font-weight="bold"');
+    s += Tx(380, 30, 'Blatt 2 – Stanzteil „Halteblech“ und Streifenbild', 17, 'middle', 'font-weight="bold"');
     // Teil: 30 (x) × 40 (y), R5, Löcher Ø6,4 bei y ±13
     const cx = 170, cy = 200;
     const X = x => cx + x * k, Y = y => cy - y * k;
@@ -137,7 +137,7 @@ function svgWmSchneidplatte() {
     const X = x => ox + x * k, Y = y => oyT + (80 - y) * k;
     let s = `<svg viewBox="0 0 760 970" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
     s += Rc(4, 4, 752, 962, 't');
-    s += Tx(380, 30, 'Schneidplatte – Pos. 10', 17, 'middle', 'font-weight="bold"');
+    s += Tx(380, 30, 'Blatt 3 – Schneidplatte Pos. 10', 17, 'middle', 'font-weight="bold"');
     // Draufsicht 100 × 80
     s += Rc(X(0), Y(80), 100 * k, 80 * k);
     [53, 27].forEach(y => { s += Ci(X(30), Y(y), 3.3 * k) + cross(X(30), Y(y), 3.3 * k + 7); });
@@ -183,8 +183,19 @@ function svgWmSchneidplatte() {
 
 const WM_DOCS = [
     { id: 'sit', label: 'Situation', svg: false, html: () => `<div class="paper text">${WM_SITUATION}</div>` },
-    { id: 'wkz', label: 'Werkzeug', svg: true, html: svgWmWerkzeug },
-    { id: 'tei', label: 'Teil + Streifen', svg: true, html: svgWmTeil },
-    { id: 'spl', label: 'Schneidplatte (Pos. 10)', svg: true, html: svgWmSchneidplatte },
-    { id: 'stl', label: 'Stückliste', svg: false, html: () => stuecklisteHtml('Stückliste Folgeschneidwerkzeug Halteblech', WM_STUECKLISTE) }
+    { id: 'wkz', label: 'Blatt 1 Werkzeug', svg: true, html: svgWmWerkzeug },
+    { id: 'tei', label: 'Blatt 2 Teil + Streifen', svg: true, html: svgWmTeil },
+    { id: 'spl', label: 'Blatt 3 Schneidplatte', svg: true, html: svgWmSchneidplatte },
+    { id: 'stl', label: 'Blatt 4 Stückliste', svg: false, html: () => stuecklisteHtml('Blatt 4 – Stückliste Folgeschneidwerkzeug Halteblech', WM_STUECKLISTE) }
 ];
+
+/* Musterlösung Skizze Lochstempel */
+function svgWmStempelSkizze() {
+    const cx = 75;
+    let s = Ln(cx, 6, cx, 104, 'c');
+    s += Rc(cx - 14, 10, 28, 8, 'v');          // Kopf
+    s += Rc(cx - 9, 18, 18, 12, 'v');          // Bund/Schaft oben
+    s += Rc(cx - 6, 30, 12, 70, 'v');          // Schneidteil Ø6,4
+    s += Ln(cx - 9, 30, cx - 6, 33, 'v') + Ln(cx + 9, 30, cx + 6, 33, 'v');
+    return picWrap(s, 150, 110);
+}

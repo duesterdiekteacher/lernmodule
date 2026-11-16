@@ -8,8 +8,8 @@ function introAfaFt(name, min) {
       <li><b>Teil A:</b> 28 Aufgaben zum Ankreuzen. Pro Aufgabe ist genau eine Antwort richtig.</li>
       <li>In Teil A musst du <b>3 Aufgaben abwählen</b>. Die 8 Aufgaben mit 🔒 (Mathematik und Technische Kommunikation) kannst du nicht abwählen.</li>
       <li>Wählst du nicht ab, werden die <b>letzten 3 abwählbaren Aufgaben</b> nicht gewertet.</li>
-      <li><b>Teil B:</b> 8 Aufgaben mit je 10 Punkten. Keine Abwahl.</li>
-      <li>Alle Aufgaben beziehen sich auf die Unterlagen hinter dem Knopf <b>📐 Zeichnung</b>.</li>
+      <li><b>Teil B:</b> 8 Aufgaben mit je 10 Punkten. Keine Abwahl. Eine Teilaufgabe ist eine Skizze auf Papier.</li>
+      <li>Die Aufgaben beziehen sich auf den Zeichnungssatz hinter dem Knopf <b>📐 Zeichnung</b>. Über jeder Aufgabe steht, welches Blatt du brauchst.</li>
     </ul>
     <div class="info warn"><b>Hilfsmittel:</b> Tabellenbuch Metall, Taschenrechner, Papier für Nebenrechnungen.</div>
     <table class="tbl"><tr><th>Teil</th><th>Aufgaben</th><th>Punkte</th><th>Anteil</th></tr>
@@ -17,26 +17,26 @@ function introAfaFt(name, min) {
     <tr><td>B – ungebunden</td><td>8, keine Abwahl</td><td>8 × 10 Punkte</td><td>50 %</td></tr></table>`;
 }
 const EXAM = {
-    id: 'ft-wm', key: 'ap2-ft-wm-1', summary: true,
+    id: 'ft-wm', key: 'ap2-ft-wm-2', summary: true,
     title: 'Fertigungstechnik', subtitle: 'Abschlussprüfung Teil 2 · Werkzeugmechaniker/-in · Projekt Folgeschneidwerkzeug',
     logo: '⚙️', back: './', backLabel: '← Zurück zur Übersicht Teil 2',
     duration: 105, aAbw: 3, aWeight: 0.5, bAbw: 0, bWeight: 0.5,
     intro: introAfaFt('Fertigungstechnik', 105),
     bIntro: '<p>Arbeite mit den Unterlagen (📐 Zeichnung) und deinem Tabellenbuch. Gib Zahlen mit Komma oder Punkt ein.</p>',
     docs: WM_DOCS,
-    cats: { ERO: 'Erodieren', FRA: 'Fräsen und CNC', SCH: 'Schleifen', WST: 'Werkstoffe und Wärmebehandlung', MON: 'Montage und Fügen', QS: 'Prüftechnik und Qualität', TM: 'Technische Mathematik', TK: 'Technische Kommunikation' },
+    cats: { ERO: 'Erodieren', FRA: 'Fräsen und CNC', SCH: 'Schleifen', WST: 'Werkstoffe und Wärmebehandlung', MON: 'Montage und Fügen', QS: 'Prüftechnik, Qualität und Sicherheit', TM: 'Technische Mathematik', TK: 'Technische Kommunikation' },
     aDef: [
- { cat: 'TK', lock: true, q: 'In welchem Bereich muss das Maß <b>40 +0,02/0</b> des Durchbruchs liegen?',
+ { cat: 'TK', ref: 'Blatt 3', lock: true, q: 'In welchem Bereich muss das Maß <b>40 +0,02/0</b> des Durchbruchs liegen?',
    o: ['40,00 mm bis 40,02 mm', '39,98 mm bis 40,02 mm', '40,02 mm bis 40,04 mm', '39,98 mm bis 40,00 mm', '39,80 mm bis 40,20 mm'],
    e: 'Oberes Abmaß +0,02, unteres Abmaß 0: Mindestmaß 40,00 mm, Höchstmaß 40,02 mm.' },
  { cat: 'ERO', q: 'Wie trägt das <b>Drahterodieren</b> Werkstoff ab?',
    o: ['Durch Funkenentladungen zwischen Drahtelektrode und Werkstück in deionisiertem Wasser', 'Durch Schleifkörner, die im Draht eingebettet sind', 'Durch Schmelzen mit einem Laserstrahl', 'Durch chemisches Ätzen mit Säure', 'Durch Abscheren wie beim Stanzen'],
    e: 'Jeder Funke schmilzt und verdampft ein winziges Stück Werkstoff. Das Dielektrikum spült die Teilchen weg.' },
- { cat: 'ERO', q: 'Die Durchbrüche liegen innen in der Platte. Was muss vor dem Drahterodieren gemacht werden?',
+ { cat: 'ERO', ref: 'Blatt 3', q: 'Die Durchbrüche liegen innen in der Platte. Was muss vor dem Drahterodieren gemacht werden?',
    o: ['Ein Startloch bohren, durch das der Draht gefädelt wird', 'Die Platte entmagnetisieren', 'Die Platte verkupfern', 'Die Durchbrüche fertig fräsen', 'Nichts, der Draht schneidet sich von oben hinein'],
    e: 'Der Draht muss durch das Werkstück laufen. Bei Innenkonturen braucht man dafür ein Startloch.' },
- { cat: 'TM', lock: true, gen: true },
- { cat: 'TK', lock: true, q: 'Im Schnitt A–A ist eine <b>Schneidkantenhöhe von 6 mm</b> angegeben. Was bedeutet das?',
+ { cat: 'TM', ref: 'Blatt 3', lock: true, gen: true },
+ { cat: 'TK', ref: 'Blatt 3', lock: true, q: 'Im Schnitt A–A ist eine <b>Schneidkantenhöhe von 6 mm</b> angegeben. Was bedeutet das?',
    o: ['Auf 6 mm Höhe ist der Durchbruch gerade (zylindrisch). Nur innerhalb dieser Höhe kann nachgeschliffen werden.', 'Die Platte ist 6 mm dick.', 'Der Stempel taucht 6 mm tief ein.', 'Der Durchbruch ist auf 6 mm gehärtet.', 'Der Freiwinkel beträgt 6°.'],
    e: 'Darunter folgt der Freiwinkel. Schleift man zu viel ab, wird der Durchbruch an der Schneidkante größer.' },
  { cat: 'ERO', q: 'Aus welchem Werkstoff sind Elektroden für das <b>Senkerodieren</b> meistens?',
@@ -45,10 +45,10 @@ const EXAM = {
  { cat: 'ERO', q: 'Eine Elektrode für das Senkerodieren wird gefertigt. Was gilt für ihr Maß?',
    o: ['Sie ist um den Funkenspalt kleiner als die fertige Form.', 'Sie hat genau das Maß der Form.', 'Sie ist um den Funkenspalt größer als die Form.', 'Ihr Maß ist egal, die Maschine korrigiert alles.', 'Sie muss doppelt so groß sein wie die Form.'],
    e: 'Zwischen Elektrode und Werkstück bleibt ein Spalt, in dem die Funken überspringen.' },
- { cat: 'ERO', q: 'Warum werden die Durchbrüche der Schneidplatte erodiert und nicht gefräst?',
+ { cat: 'ERO', ref: 'Blatt 3', q: 'Warum werden die Durchbrüche der Schneidplatte erodiert und nicht gefräst?',
    o: ['Die Platte ist schon gehärtet. Erodieren funktioniert unabhängig von der Härte und erzeugt genaue Konturen.', 'Weil Fräsen bei X153CrMoV12 verboten ist.', 'Weil Erodieren immer schneller ist.', 'Weil Erodieren die Platte härtet.', 'Weil Fräsmaschinen keine Rundungen fräsen können.'],
    e: 'Erodiert man nach dem Härten, verzieht sich der Durchbruch nicht mehr. Fräsen von 60 HRC ist nur eingeschränkt möglich.' },
- { cat: 'SCH', q: 'Die Schneidplatte wird auf der Magnetspannplatte flachgeschliffen. Was ist danach nötig?',
+ { cat: 'SCH', ref: 'Blatt 3', q: 'Die Schneidplatte wird auf der Magnetspannplatte flachgeschliffen. Was ist danach nötig?',
    o: ['Die Platte entmagnetisieren', 'Die Platte sofort härten', 'Die Platte rostschutzlackieren', 'Die Platte mit Wasser abschrecken', 'Nichts'],
    e: 'Restmagnetismus hält Späne und Butzen fest. Das stört später beim Stanzen.' },
  { cat: 'SCH', q: 'Beim Schleifen zeigen sich braune und blaue Verfärbungen (Schleifbrand). Was ist eine Ursache?',
@@ -61,13 +61,13 @@ const EXAM = {
  { cat: 'FRA', q: 'Gehärtete Werkzeugteile werden heute oft hart gefräst (HSC). Welche Bedingungen sind typisch?',
    o: ['Hohe Schnittgeschwindigkeit, kleine Zustellung, beschichtete Hartmetall- oder CBN-Werkzeuge', 'Kleine Schnittgeschwindigkeit, große Zustellung, HSS-Fräser', 'Fräsen ohne Werkzeugkühlung mit Holzfräser', 'Nur mit Scheibenfräsern', 'Immer mit Wasser als Kühlmittel'],
    e: 'Kleine Spanungsquerschnitte mit hoher Geschwindigkeit halten die Kräfte klein und die Oberfläche gut.' },
- { cat: 'TK', lock: true, q: 'Wozu dienen die Bohrungen <b>2× Ø8 H7</b> in der Schneidplatte?',
+ { cat: 'TK', ref: 'Blatt 3', lock: true, q: 'Wozu dienen die Bohrungen <b>2× Ø8 H7</b> in der Schneidplatte?',
    o: ['Für Zylinderstifte, die die Lage der Platte auf der Grundplatte genau festlegen', 'Für die Schrauben', 'Als Startlöcher für das Drahterodieren', 'Als Durchfall für Butzen', 'Für die Führungssäulen'],
    e: 'Schrauben halten, Stifte positionieren. So sitzt die Platte nach jedem Ausbau wieder genau.' },
  { cat: 'FRA', q: 'Eine Außenkontur wird mit rechtsdrehendem Fräser (M03) im <b>Gleichlauf</b> gefräst. Welche Fräserradiuskorrektur ist richtig?',
    o: ['G41 – Werkzeug links von der Kontur', 'G42 – Werkzeug rechts von der Kontur', 'G40 – keine Korrektur', 'G43', 'G90'],
    e: 'Bei M03 ergibt G41 (links der Kontur in Fahrtrichtung) das Gleichlauffräsen.' },
- { cat: 'FRA', q: 'Der Durchbruch hat Innenecken mit R5. Welcher Schaftfräser ist für das Fertigfräsen höchstens möglich?',
+ { cat: 'FRA', ref: 'Blatt 3', q: 'Der Durchbruch hat Innenecken mit R5. Welcher Schaftfräser ist für das Fertigfräsen höchstens möglich?',
    o: ['Ø10 mm', 'Ø12 mm', 'Ø16 mm', 'Ø20 mm', 'Ø5 mm ist zu groß'],
    e: 'Der Fräserradius darf nicht größer sein als der Innenradius: 5 mm → höchstens Ø10 mm, besser etwas kleiner.' },
  { cat: 'WST', q: 'Bei welcher Temperatur wird X153CrMoV12 etwa gehärtet?',
@@ -79,33 +79,33 @@ const EXAM = {
  { cat: 'WST', q: 'Wie prüfst du die Härte 60 HRC?',
    o: ['Rockwell-Härteprüfung Verfahren C mit Diamantkegel', 'Brinell mit Hartmetallkugel 10 mm', 'Zugversuch', 'Kerbschlagbiegeversuch', 'Mit der Feile ritzen und schätzen'],
    e: 'HRC = Rockwell C. Ein Diamantkegel wird mit festgelegter Kraft eingedrückt, die bleibende Tiefe ergibt die Härte.' },
- { cat: 'TM', lock: true, q: 'Wie groß ist die Masse der Schneidplatte (100 × 80 × 22 mm, ohne Durchbrüche und Bohrungen)? ρ = 7,7 kg/dm³.',
+ { cat: 'TM', ref: 'Blatt 3', lock: true, q: 'Wie groß ist die Masse der Schneidplatte (100 × 80 × 22 mm, ohne Durchbrüche und Bohrungen)? ρ = 7,7 kg/dm³.',
    o: ['1,36 kg', '13,6 kg', '0,14 kg', '1,76 kg', '2,72 kg'],
    e: 'V = 1,0 · 0,8 · 0,22 dm³ = 0,176 dm³. m = 0,176 · 7,7 ≈ 1,36 kg.' },
- { cat: 'MON', q: 'Wie werden die Stiftbohrungen von Schneidplatte und Grundplatte üblicherweise hergestellt?',
+ { cat: 'MON', ref: 'Blatt 3', q: 'Wie werden die Stiftbohrungen von Schneidplatte und Grundplatte üblicherweise hergestellt?',
    o: ['Platten ausrichten, verschrauben und dann gemeinsam bohren und reiben (bzw. erodieren)', 'Jede Platte getrennt nach Maß bohren', 'Mit dem Körner durchschlagen', 'Die Stifte einkleben, ohne Bohrung', 'Nur die Grundplatte bohren'],
    e: 'Gemeinsam bearbeitet passen die Bohrungen genau zueinander.' },
- { cat: 'MON', q: 'Die Schrauben haben die Festigkeitsklasse <b>10.9</b>. Was bedeutet das?',
+ { cat: 'MON', ref: 'Blatt 4', q: 'Die Schrauben haben die Festigkeitsklasse <b>10.9</b>. Was bedeutet das?',
    o: ['Zugfestigkeit 1000 N/mm², Streckgrenze 900 N/mm²', 'Zugfestigkeit 109 N/mm²', 'Streckgrenze 1000 N/mm², Zugfestigkeit 900 N/mm²', 'Härte 10,9 HRC', 'Zugfestigkeit 900 N/mm², Bruchdehnung 10 %'],
    e: '10 × 100 = 1000 N/mm². 10 × 9 × 10 = 900 N/mm² Streckgrenze.' },
- { cat: 'MON', q: 'Wie werden die Stempel in der Stempelhalteplatte gegen Herausziehen gesichert?',
+ { cat: 'MON', ref: 'Blatt 1', q: 'Wie werden die Stempel in der Stempelhalteplatte gegen Herausziehen gesichert?',
    o: ['Durch einen Kopf oder Bund am Stempel, der von der Druckplatte gehalten wird', 'Durch Kleben mit Sekundenkleber', 'Nur durch Reibung', 'Durch Schweißen an die Schneidplatte', 'Durch einen Sicherungsring auf der Schneide'],
    e: 'Beim Rückhub zieht der Streifen an den Stempeln. Der Kopf verhindert, dass sie herausrutschen.' },
- { cat: 'QS', q: 'Womit prüfst du die Lage und Form der Durchbrüche (Toleranz ±0,01 mm) am besten?',
+ { cat: 'QS', ref: 'Blatt 3', q: 'Womit prüfst du die Lage und Form der Durchbrüche (Toleranz ±0,01 mm) am besten?',
    o: ['Mit einem Koordinatenmessgerät', 'Mit dem Messschieber', 'Mit dem Stahlmaßstab', 'Mit einer Radiuslehre', 'Mit dem Haarlineal'],
    e: 'Bei ±0,01 mm und Konturen braucht man ein sehr genaues Messverfahren.' },
  { cat: 'QS', q: 'Bei welcher Temperatur gelten die Maße einer Zeichnung?',
    o: ['20 °C', '0 °C', '25 °C', '15 °C', 'bei Raumtemperatur, egal welche'],
    e: 'Die Bezugstemperatur für geometrische Produktspezifikationen ist 20 °C.' },
- { cat: 'TK', lock: true, q: 'Wie weit darf der Abstand zwischen Lochmitte und Durchbruchmitte (32 ±0,01) abweichen?',
+ { cat: 'TK', ref: 'Blatt 3', lock: true, q: 'Wie weit darf der Abstand zwischen Lochmitte und Durchbruchmitte (32 ±0,01) abweichen?',
    o: ['Er muss zwischen 31,99 mm und 32,01 mm liegen.', 'Er muss zwischen 31,90 mm und 32,10 mm liegen.', 'Er muss genau 32,00 mm sein.', 'Er muss zwischen 32,00 mm und 32,01 mm liegen.', 'Es gilt die Allgemeintoleranz ±0,2 mm.'],
    e: 'Der Abstand entspricht dem Vorschub. Er muss sehr genau sein, sonst passen Löcher und Außenkontur nicht zueinander.' },
- { cat: 'TM', lock: true, q: 'Wo liegt der Mittelpunkt des Radius R5 in der <b>unteren linken</b> Ecke des Durchbruchs? Nullpunkt: linke untere Ecke der Platte. Der Durchbruch reicht von X47 bis X77 und von Y20 bis Y60.',
+ { cat: 'TM', ref: 'Blatt 3', lock: true, q: 'Wo liegt der Mittelpunkt des Radius R5 in der <b>unteren linken</b> Ecke des Durchbruchs? Nullpunkt: linke untere Ecke der Platte. Der Durchbruch reicht von X47 bis X77 und von Y20 bis Y60.',
    o: ['X52 Y25', 'X47 Y20', 'X57 Y30', 'X42 Y15', 'X52 Y20'],
    e: 'Der Mittelpunkt liegt um den Radius nach innen versetzt: 47 + 5 = 52 und 20 + 5 = 25.' },
- { cat: 'MON', q: 'Die Führungsbuchsen werden mit Gießharz in die Kopfplatte eingeklebt. Was ist der Vorteil?',
-   o: ['Die Buchsen werden spannungsfrei und genau fluchtend zu den Säulen befestigt.', 'Die Buchsen lassen sich nie mehr ausbauen.', 'Man braucht keine Säulen mehr.', 'Das Harz schmiert die Säulen.', 'Das Harz härtet die Buchsen.'],
-   e: 'Man richtet die Buchsen auf den Säulen aus und vergießt sie. So passen sie genau zueinander.' }
+ { cat: 'QS', img: true, q: 'Bei einer Schnittverletzung suchst du den Verbandkasten. Er ist mit einem <b>Rettungszeichen</b> gekennzeichnet. Welche Abbildung zeigt Form und Farbe eines Rettungszeichens?',
+   o: [sicherheitszeichen('rettung'), sicherheitszeichen('gebot'), sicherheitszeichen('verbot'), sicherheitszeichen('warn'), sicherheitszeichen('brand')],
+   e: 'Rettungszeichen sind grüne Rechtecke oder Quadrate mit weißem Symbol. Brandschutzzeichen sind rot.' }
     ],
     genA(i, r) {
         if (i === 4) {
@@ -134,7 +134,7 @@ const EXAM = {
         mk(r8() < 0.5, ['31,995', '32,006', '32,009'], ['32,013', '31,987', '32,018']);
         mk(r8() < 0.5, ['6,604', '6,608', '6,601'], ['6,598', '6,614', '6,596']);
         return [
-        { id: 'B1', title: 'Arbeitsplan für die Schneidplatte', intro: 'Die neue Schneidplatte (Pos. 10) wird aus X153CrMoV12 gefertigt. Sieh dir die Einzelteilzeichnung an.',
+        { id: 'B1', ref: 'Blatt 3', title: 'Arbeitsplan für die Schneidplatte', intro: 'Die neue Schneidplatte (Pos. 10) wird aus X153CrMoV12 gefertigt. Sieh dir die Einzelteilzeichnung an.',
           parts: [
             { id: 'a', type: 'order', pts: 6, cat: 'FRA', q: 'Bringe die Arbeitsschritte in die richtige Reihenfolge.',
               items: ['Rohteil mit Aufmaß zuschneiden', 'Allseitig vorfräsen, Gewinde M8 schneiden, Startlöcher bohren', 'Durchbrüche mit Aufmaß vorfräsen', 'Härten und mehrfach anlassen', 'Ober- und Unterseite flachschleifen', 'Durchbrüche und Stiftbohrungen drahterodieren'],
@@ -144,7 +144,7 @@ const EXAM = {
                      { t: 'Beim Härten verzieht sich die Platte und ändert ihr Maß.', p: 1 }, { t: 'Durch Erodieren nach dem Härten stimmen Maß, Lage und Schneidkante genau.', p: 1 }],
               muster: 'Gehärteten Stahl kann man kaum bohren oder Gewinde schneiden. Deshalb macht man das vorher, auch die Startlöcher für den Draht. Beim Härten verzieht sich die Platte etwas. Die genauen Durchbrüche werden deshalb erst danach erodiert. So stimmen Maße und Lage.' }
           ] },
-        { id: 'B2', title: 'Drahterodieren', intro: `Die Durchbrüche werden drahterodiert. Schnittgeschwindigkeit bei 22 mm Plattendicke: <b>${fmt(v, 1)} mm/min</b>. Rechne mit der π-Taste.`,
+        { id: 'B2', ref: 'Blatt 3', title: 'Drahterodieren', intro: `Die Durchbrüche werden drahterodiert. Schnittgeschwindigkeit bei 22 mm Plattendicke: <b>${fmt(v, 1)} mm/min</b>. Rechne mit der π-Taste.`,
           parts: [
             { id: 'a', type: 'num', pts: 6, cat: 'TM', q: 'Berechne die Konturlängen und die Schnittzeit für den Ausschneid-Durchbruch. Eine Nachkommastelle.',
               fields: [{ label: 'Konturlänge Ausschneid-Durchbruch', unit: 'mm', ans: lA, tol: 0.3, show: fmt(lA, 1) }, { label: 'Konturlänge beide Lochdurchbrüche Ø6,6', unit: 'mm', ans: lL, tol: 0.25, show: fmt(lL, 1) },
@@ -157,7 +157,7 @@ const EXAM = {
               options: ['Durch einen Konikschnitt: Der Draht wird mit den U/V-Achsen schräg gestellt', 'Durch Nachschleifen von Hand', 'Durch Härten', 'Er entsteht von selbst durch den Funkenspalt'], ans: 0,
               e: 'Drahterodiermaschinen können den Draht neigen. So entstehen konische Wände.' }
           ] },
-        { id: 'B3', title: 'CNC-Vorfräsen des Durchbruchs', intro: 'Der Ausschneid-Durchbruch wird vor dem Härten vorgefräst. Nullpunkt: linke untere Ecke der Schneidplatte. Durchbruch: X47 bis X77, Y20 bis Y60, Ecken R5.',
+        { id: 'B3', ref: 'Blatt 3', title: 'CNC-Vorfräsen des Durchbruchs', intro: 'Der Ausschneid-Durchbruch wird vor dem Härten vorgefräst. Nullpunkt: linke untere Ecke der Schneidplatte. Durchbruch: X47 bis X77, Y20 bis Y60, Ecken R5.',
           parts: [
             { id: 'a', type: 'num', pts: 6, cat: 'FRA', q: 'Bestimme die Mittelpunkte der Eckradien.',
               fields: [{ label: 'Ecke unten links: X', unit: '', ans: 52, tol: 0.001, show: '52' }, { label: 'Ecke unten links: Y', unit: '', ans: 25, tol: 0.001, show: '25' },
@@ -169,7 +169,7 @@ const EXAM = {
               fields: [{ label: 'Drehzahl n', unit: '1/min', ans: n, tol: n * 0.015, show: String(Math.round(n)) }],
               e: `n = ${vc} · 1000 / (π · 8) ≈ ${fmtT(n)} 1/min.` }
           ] },
-        { id: 'B4', title: 'Flachschleifen', intro: 'Ober- und Unterseite der gehärteten Schneidplatte werden flachgeschliffen.',
+        { id: 'B4', ref: 'Blatt 3', title: 'Flachschleifen', intro: 'Ober- und Unterseite der gehärteten Schneidplatte werden flachgeschliffen.',
           parts: [
             { id: 'a', type: 'num', pts: 2, cat: 'TM', q: 'Pro Seite sind 0,15 mm abzuschleifen. Zustellung je Überlauf: 0,01 mm. Wie viele Überläufe sind für <b>beide</b> Seiten zusammen nötig?',
               fields: [{ label: 'Anzahl Überläufe', unit: '', ans: 30, tol: 0.01, show: '30' }],
@@ -183,7 +183,7 @@ const EXAM = {
                      { t: 'Neue Scheibe: Klangprobe und Probelauf, zulässige Umfangsgeschwindigkeit beachten.', p: 1 }, { t: 'Nicht in den Bereich der laufenden Scheibe greifen, Messen nur bei Stillstand.', p: 1 }],
               muster: 'Schutzbrille tragen, die Schutzhaube muss dran sein. Das Werkstück sicher auf der Magnetplatte spannen, bei kleinen Teilen mit Anschlagleisten. Neue Scheiben mit Klangprobe und Probelauf prüfen. Nicht in die laufende Scheibe greifen. Gemessen wird nur bei Stillstand.' }
           ] },
-        { id: 'B5', title: 'Härten der Schneidplatte', intro: 'Die Schneidplatte aus X153CrMoV12 soll auf 60 +2 HRC gehärtet werden.',
+        { id: 'B5', ref: 'Blatt 3, 4', title: 'Härten der Schneidplatte', intro: 'Die Schneidplatte aus X153CrMoV12 soll auf 60 +2 HRC gehärtet werden.',
           parts: [
             { id: 'a', type: 'order', pts: 4, cat: 'WST', q: 'Bringe die Schritte in die richtige Reihenfolge.',
               items: ['In Stufen langsam vorwärmen', 'Auf Härtetemperatur (etwa 1000–1050 °C) erwärmen und durchwärmen', 'Abkühlen (z. B. im Gasstrom des Vakuumofens)', 'Zwei- bis dreimal anlassen'],
@@ -196,7 +196,7 @@ const EXAM = {
                      { t: 'Das Aufmaß wird durch Schleifen (Flächen) entfernt.', p: 1 }, { t: 'Konturen werden durch Erodieren auf Endmaß gebracht.', p: 1 }],
               muster: 'Beim Härten ändert sich das Maß, und das Teil verzieht sich. Außerdem kann die Oberfläche entkohlen oder verzundern. Deshalb lässt man Aufmaß stehen. Die Flächen werden danach geschliffen, die Konturen erodiert.' }
           ] },
-        { id: 'B6', title: 'Montage und Nachschleifen', intro: 'Die Schneidkantenhöhe beträgt 6 mm. Damit die Schneidplatte stabil bleibt, dürfen höchstens 3 mm Schneidkantenhöhe verbraucht werden. Je Nachschliff werden 0,2 mm abgetragen.',
+        { id: 'B6', ref: 'Blatt 1, 3', title: 'Montage und Nachschleifen', intro: 'Die Schneidkantenhöhe beträgt 6 mm. Damit die Schneidplatte stabil bleibt, dürfen höchstens 3 mm Schneidkantenhöhe verbraucht werden. Je Nachschliff werden 0,2 mm abgetragen.',
           parts: [
             { id: 'a', type: 'order', pts: 6, cat: 'MON', q: 'Bringe die Schritte beim Einpassen des Werkzeugs in die richtige Reihenfolge.',
               items: ['Schneidplatte auf der Grundplatte ausrichten und verschrauben', 'Schneidplatte und Grundplatte gemeinsam verstiften', 'Oberteil über die Säulen langsam auf das Unterteil absenken', 'Prüfen, ob die Stempel ohne Anstoßen in die Durchbrüche tauchen', 'Schneidspalt rundum prüfen (Lichtspalt / Probeschnitt mit Papier)', 'Probeteile schneiden und Gratbild beurteilen'],
@@ -205,19 +205,16 @@ const EXAM = {
               fields: [{ label: 'Mindestens verbleibende Schneidkantenhöhe', unit: 'mm', ans: 3, tol: 0.001, show: '3' }, { label: 'Anzahl möglicher Nachschliffe', unit: '', ans: 15, tol: 0.01, show: '15' }],
               e: '6 mm − 3 mm = 3 mm bleiben. 3 mm / 0,2 mm = 15 Nachschliffe.' }
           ] },
-        { id: 'B7', title: 'Werkstoffe der Werkzeugteile', intro: 'Sieh in die Stückliste.',
+        { id: 'B7', ref: 'Blatt 1, 4', title: 'Skizze und Werkstoffe der Stempel', intro: 'Ein Lochstempel (Pos. 5) ist abgebrochen. Für die Ersatzteilfertigung wird eine Skizze gebraucht.',
           parts: [
-            { id: 'a', type: 'match', pts: 4, cat: 'TK', q: 'Ordne jedem Bauteil den Werkstoff zu.',
+            { id: 'a', type: 'sketch', pts: 6, cat: 'TK', q: 'Skizziere den Lochstempel (Pos. 5) mit Kopf in der <b>Vorderansicht</b>, ohne Bemaßung. Die Mittellinie liegt senkrecht.',
+              crit: [{ t: 'Mittellinie als Strich-Punkt-Linie über die ganze Länge.', p: 2 }, { t: 'Kopf oben breiter als der Schaft, Schaft lang und schlank, Schneide unten scharfkantig (eben).', p: 2 }, { t: 'Breite Volllinien für Körperkanten, Proportionen ungefähr richtig.', p: 2 }],
+              muster: `Lochstempel mit Kopf und Übergang zum Schneidteil. ${svgWmStempelSkizze()}` },
+            { id: 'b', type: 'match', pts: 4, cat: 'TK', q: 'Ordne jedem Bauteil den Werkstoff aus der Stückliste zu.',
               rows: ['Schneidplatte (Pos. 10)', 'Lochstempel (Pos. 5)', 'Grundplatte (Pos. 11)', 'Führungsplatte (Pos. 8)'], options: ['X153CrMoV12', 'HS6-5-2C', 'S355J2', 'C45'], ans: [0, 1, 2, 3],
-              e: 'Siehe Stückliste.' },
-            { id: 'b', type: 'select', pts: 2, cat: 'WST', q: 'Warum sind die schlanken Lochstempel aus Schnellarbeitsstahl und nicht aus X153CrMoV12?',
-              options: ['Schnellarbeitsstahl ist bei gleicher Härte zäher. Schlanke Stempel brechen weniger leicht.', 'Schnellarbeitsstahl ist weicher und lässt sich biegen.', 'X153CrMoV12 kann man nicht härten.', 'Schnellarbeitsstahl ist billiger als jeder andere Stahl.'], ans: 0,
-              e: 'X153CrMoV12 hat viele grobe Karbide und ist eher spröde. Für dünne Stempel nimmt man zähere Stähle.' },
-            { id: 'c', type: 'text', pts: 4, cat: 'WST', q: 'Welche Eigenschaften braucht ein Werkstoff für Schneidplatte und Stempel? Nenne vier.',
-              crit: [{ t: 'Hohe Härte.', p: 1 }, { t: 'Hohe Verschleißfestigkeit.', p: 1 }, { t: 'Ausreichende Zähigkeit (kein Ausbrechen der Kanten).', p: 1 }, { t: 'Maßbeständigkeit beim Härten / Druckfestigkeit / gute Erodierbarkeit.', p: 1 }],
-              muster: 'Der Werkstoff muss hart und verschleißfest sein, damit die Kanten lange scharf bleiben. Er muss zäh genug sein, damit die Kanten nicht ausbrechen. Er soll sich beim Härten wenig verziehen, hohen Druck aushalten und sich gut erodieren lassen.' }
+              e: 'Siehe Stückliste.' }
           ] },
-        { id: 'B8', title: 'Prüfen der Schneidplatte', intro: 'Die fertige Schneidplatte wird geprüft. Nutze die Einzelteilzeichnung.',
+        { id: 'B8', ref: 'Blatt 3', title: 'Prüfen der Schneidplatte', intro: 'Die fertige Schneidplatte wird geprüft. Nutze die Einzelteilzeichnung.',
           parts: [
             { id: 'a', type: 'num', pts: 4, cat: 'QS', q: 'Bestimme die Grenzmaße. Drei Nachkommastellen.',
               fields: [{ label: 'Durchbruch 40 +0,02/0: Höchstmaß', unit: 'mm', ans: 40.02, tol: 0.0005, show: '40,020' }, { label: 'Durchbruch 40 +0,02/0: Mindestmaß', unit: 'mm', ans: 40, tol: 0.0005, show: '40,000' },

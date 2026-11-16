@@ -141,6 +141,13 @@ textarea.inp { width: 100%; min-height: 6.5rem; resize: vertical; line-height: 1
     .stat { display: none; }
 }
 
+.ref { font-size: 0.85rem; color: #fbbf24; margin-bottom: 0.3rem; }
+.imgopts { flex-direction: row; flex-wrap: wrap; }
+.imgopts .opt { flex: 1 1 140px; flex-direction: column; align-items: center; }
+.opt .pic { background: #fff; border-radius: 6px; padding: 4px; display: block; }
+.opt .pic svg { display: block; width: 130px; height: auto; }
+.muster svg { background: #fff; border-radius: 6px; max-width: 360px; width: 100%; height: auto; display: block; margin-top: .4rem; }
+
 </style>
 </head>
 <body>
@@ -349,156 +356,288 @@ function stuecklisteHtml(title, rows) {
     return `<div class="paper text" style="max-width:940px"><h3>${title}</h3><table><tr><th>Pos.</th><th>Menge</th><th>Benennung / Norm</th><th>Werkstoff</th><th>Bemerkung</th></tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
 }
 
+/* ---------- kleine Bilder für Antwortmöglichkeiten ---------- */
+function picWrap(inner, w = 150, h = 110) { return `<span class="pic"><svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${inner}</svg></span>`; }
+// Lagerdeckel mit Zentrierbund, Achse waagerecht. variant: ok | voll | unten | kante | ohnebund
+function deckelHalbschnitt(variant, id) {
+    const cy = 55, x1 = 64, x2 = 90, xb = 50, R = 46, r1 = 22, r2 = 34;
+    const hat = `<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-width=".7"/></pattern></defs>`;
+    const H = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${id})" stroke="#000" stroke-width="1.6"/>`;
+    const O = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" stroke="#000" stroke-width="1.6"/>`;
+    let s = hat;
+    const upperCut = variant !== 'unten', lowerCut = variant === 'voll' || variant === 'unten';
+    // obere Hälfte
+    if (upperCut) { s += H(x1, cy - R, x2 - x1, R); if (variant !== 'ohnebund') s += H(xb, cy - r2, x1 - xb, r2 - r1); else s += O(xb, cy - r2, x1 - xb, r2 - r1); }
+    else { s += O(x1, cy - R, x2 - x1, R) + O(xb, cy - r2, x1 - xb, r2 - r1); }
+    // untere Hälfte
+    if (lowerCut) { s += H(x1, cy, x2 - x1, R) + H(xb, cy + r1, x1 - xb, r2 - r1); }
+    else { s += O(x1, cy, x2 - x1, R) + O(xb, cy + r1, x1 - xb, r2 - r1); }
+    s += variant === 'kante' ? Ln(xb - 10, cy, x2 + 12, cy, 'v') : Ln(xb - 10, cy, x2 + 12, cy, 'c');
+    return picWrap(s, 150, 110);
+}
+// Sicherheitszeichen (vereinfacht). kind: gebot | verbot | warn | rettung | brand
+function sicherheitszeichen(kind) {
+    let s = '';
+    if (kind === 'gebot') s = '<circle cx="75" cy="55" r="40" fill="#1d4ed8"/><rect x="71" y="30" width="8" height="34" rx="3" fill="#fff"/><circle cx="75" cy="76" r="5" fill="#fff"/>';
+    if (kind === 'verbot') s = '<circle cx="75" cy="55" r="38" fill="#fff" stroke="#dc2626" stroke-width="9"/><line x1="49" y1="29" x2="101" y2="81" stroke="#dc2626" stroke-width="9"/>';
+    if (kind === 'warn') s = '<polygon points="75,14 118,94 32,94" fill="#facc15" stroke="#000" stroke-width="5" stroke-linejoin="round"/><rect x="71" y="42" width="8" height="30" rx="3" fill="#000"/><circle cx="75" cy="82" r="5" fill="#000"/>';
+    if (kind === 'rettung') s = '<rect x="35" y="15" width="80" height="80" fill="#16a34a"/><rect x="68" y="30" width="14" height="50" fill="#fff"/><rect x="50" y="48" width="50" height="14" fill="#fff"/>';
+    if (kind === 'brand') s = '<rect x="35" y="15" width="80" height="80" fill="#dc2626"/><path d="M75,30 C95,50 92,62 88,72 C84,84 66,84 62,72 C58,62 64,54 70,48 C70,58 76,60 78,56 C80,48 74,40 75,30 Z" fill="#fff"/>';
+    return picWrap(s, 150, 110);
+}
+
 </script>
 <script>
 /* ============================================================
-   Projekt Industriemechaniker: Hubstation einer Montagelinie
+   Projekt Industriemechaniker: Hubstation mit Rollenbahn-Getriebe
    Gemeinsamer Zeichnungssatz für AFA und Fertigungstechnik
+   Kennzeichnung der Betriebsmittel nach DIN EN IEC 81346-2
    ============================================================ */
 const IM_SITUATION = `<h3>Situation</h3>
-<p>In einer Montagelinie hebt eine <b>Hubstation</b> Werkstückträger auf die nächste Ebene. Ein <b>Hydraulikzylinder</b> (1A1) hebt den Hubtisch. Auf dem Hubtisch treibt ein Getriebemotor über einen Riementrieb eine <b>Antriebswelle</b> (Pos. 1) an. Die Welle bewegt die Rollen der Rollenbahn.</p>
-<p>Die Welle ist in einem Lagergehäuse mit zwei Rillenkugellagern gelagert. An einem Lager ist ein Schaden aufgetreten: Die Lagerstelle wird heiß und macht Geräusche.</p>
-<h3>Deine Aufträge</h3>
-<ul style="margin-left:1.2rem"><li>die Funktion der Lagereinheit, der Hydraulik und der Steuerung analysieren,</li><li>den Lagerschaden beurteilen und die Lagereinheit instand setzen,</li><li>eine neue Antriebswelle (Pos. 1) fertigen und prüfen,</li><li>die Anlage wieder in Betrieb nehmen.</li></ul>
+<p>In einer Montagelinie werden Werkstückträger mit einer <b>Hubstation</b> auf eine höhere Ebene gebracht (Anlagenskizze).</p>
+<p>Ein Werkstückträger fährt auf den Hubtisch. Der Sensor -BG3 meldet ihn. Ist der Tisch unten (-BG2) und läuft die Hydraulikpumpe, hebt der Hydraulikzylinder -MM1 den Tisch an. Oben (-BG1) schaltet der Getriebemotor -MA2 die Rollen auf dem Tisch ein. Der Werkstückträger fährt auf die obere Rollenbahn. Hat er den Tisch verlassen, senkt sich der Tisch wieder ab (GRAFCET, Blatt 5).</p>
+<p>Die Rollen auf dem Hubtisch werden über ein <b>Stirnradgetriebe</b> angetrieben (Blatt 1). Ein Drehstrommotor treibt über einen Keilriemen die Ritzelwelle (Pos. 2) an. Die Abtriebswelle (Pos. 3) treibt über ein Kettenrad die Rollen an.</p>
+<p>Das Getriebegehäuse ist zweiteilig. Die Teilfuge liegt in Höhe der Abtriebswelle (in der Zeichnung nicht sichtbar). Das Gehäuseoberteil kann zusammen mit der Ritzelwelle abgehoben werden.</p>
+<p>Das Getriebe ist laut geworden, an der Abtriebswelle tritt Öl aus. Es soll instand gesetzt werden. Dabei wird eine neue Abtriebswelle gefertigt (Blatt 3).</p>
 <h3>Technische Daten</h3>
 <table><tr><th>Bauteil</th><th>Daten</th></tr>
-<tr><td>Hydraulikzylinder 1A1</td><td>Kolben-Ø D = 63 mm, Stangen-Ø d = 36 mm, Hub 400 mm</td></tr>
-<tr><td>Hydraulikpumpe 0P1</td><td>Konstantpumpe, Förderstrom Q = 12 l/min</td></tr>
-<tr><td>Druckbegrenzungsventil 0V1</td><td>eingestellt auf 120 bar</td></tr>
-<tr><td>Antriebsmotor Rollenbahn</td><td>Drehstrom 400 V, 0,75 kW, n = 1400 1/min</td></tr>
-<tr><td>Riementrieb</td><td>Motor-Riemenscheibe d₁ = 80 mm, Riemenscheibe an Pos. 1 d₂ = 200 mm</td></tr></table>
+<tr><td>Getriebemotor Rollenbahn -MA2</td><td>Drehstrom 400 V, P = 0,55 kW, n = 1400 1/min</td></tr>
+<tr><td>Riementrieb</td><td>Motor-Riemenscheibe d<sub>w1</sub> = 90 mm, Keilriemenscheibe (Pos. 9) d<sub>w2</sub> = 180 mm</td></tr>
+<tr><td>Zahnradstufe</td><td>Ritzel z₁ = 17, Stirnrad z₂ = 51, Modul m = 2 mm</td></tr>
+<tr><td>Getriebeöl</td><td>CLP 220 nach DIN 51517-3, Ölstand bis Mitte Abtriebswelle</td></tr>
+<tr><td>Hydraulikzylinder -MM1</td><td>Kolben-Ø D = 63 mm, Stangen-Ø d = 36 mm, Hub 400 mm</td></tr>
+<tr><td>Hydraulikpumpe -GP1</td><td>Konstantpumpe, Q = 12 l/min, Druckbegrenzungsventil -QN1 auf 120 bar</td></tr></table>
 <p>Die Zeichnungen sind vereinfacht und nicht maßstäblich. Es gelten nur die eingetragenen Maße.</p>`;
 
 const IM_STUECKLISTE = [
-    ['1', '1', 'Antriebswelle', '42CrMo4+QT', 'Zeichnung HS-02-001'],
-    ['2', '1', 'Lagergehäuse', 'EN-GJL-250', 'Lagerbohrungen Ø52 H7'],
-    ['3', '2', 'Rillenkugellager DIN 625 – 6205', 'Wälzlagerstahl', 'd = 25, D = 52, B = 15'],
-    ['4', '2', 'Sicherungsring DIN 471 – 25 × 1,2', 'Federstahl', 'für Wellen'],
-    ['5', '2', 'Radial-Wellendichtring DIN 3760 – A 25 × 40 × 7', 'NBR', ''],
-    ['6', '2', 'Lagerdeckel', 'S235JR', 'links mit Zentrierbund, rechts mit Spalt'],
-    ['7', '2', 'Passfeder DIN 6885 – A 6 × 6 × 28', 'E295', ''],
-    ['8', '8', 'Zylinderschraube ISO 4762 – M6 × 20 – 8.8', 'Stahl', 'Lagerdeckel']
+    ['1', '1', 'Getriebegehäuse, zweiteilig', '', 'EN-GJL-250', 'Teilfuge in Höhe der Abtriebswelle'],
+    ['2', '1', 'Ritzelwelle', '', '16MnCr5', 'z = 17, m = 2, einsatzgehärtet'],
+    ['3', '1', 'Abtriebswelle', '', '42CrMo4+QT', 'Blatt 3'],
+    ['4', '1', 'Stirnrad', '', '16MnCr5', 'z = 51, m = 2, einsatzgehärtet'],
+    ['5', '2', 'Lagerdeckel mit Bohrung', '', 'S235JR', 'für Wellendichtring'],
+    ['6', '1', 'Lagerdeckel geschlossen', '', 'S235JR', 'Abtriebswelle links'],
+    ['7', '1', 'Distanzhülse', '', 'E295', ''],
+    ['8', '1', 'Lagerdeckel geschlossen, mit Zentrierbund', '', 'S235JR', 'Ritzelwelle rechts'],
+    ['9', '1', 'Keilriemenscheibe SPZ', '', 'EN-GJL-200', 'd<sub>w</sub> = 180 mm'],
+    ['10', '2', 'Rillenkugellager 6205-2Z', 'DIN 625', '', ''],
+    ['11', '2', 'Kegelrollenlager 30206', 'DIN 720', '', ''],
+    ['12', '1', 'Radial-Wellendichtring A 25 × 40 × 7', 'DIN 3760', 'NBR', ''],
+    ['13', '1', 'Radial-Wellendichtring A 30 × 47 × 7', 'DIN 3760', 'NBR', ''],
+    ['14', '1', 'Passfeder A 6 × 6 × 18', 'DIN 6885', 'E295', ''],
+    ['15', '1', 'Passfeder A 10 × 8 × 20', 'DIN 6885', 'E295', ''],
+    ['16', 'n. B.', 'Passscheiben (Satz)', 'DIN 988', 'Stahl', 'Lagerspiel einstellen'],
+    ['17', '1', 'Endscheibe', '', 'S235JR', ''],
+    ['18', '1', 'Passfeder A 8 × 7 × 36', 'DIN 6885', 'E295', 'für Kettenrad'],
+    ['19', '4', 'O-Ring', 'DIN ISO 3601', 'NBR', 'Abdichtung Lagerdeckel'],
+    ['20', '1', 'Verschlussschraube M16 × 1,5', 'DIN 908', '5.8', 'Ölablass'],
+    ['21', '1', 'Dichtring A 16 × 20', 'DIN 7603', 'Cu', ''],
+    ['22', '1', 'Entlüftungsschraube M12 × 1,5', '', '', 'Kaufteil'],
+    ['23', '1', 'Zylinderschraube M8 × 20', 'ISO 4762', '8.8', 'Endscheibe'],
+    ['24', '2', 'Sicherungsring 25 × 1,2', 'DIN 471', 'Federstahl', ''],
+    ['25', '16', 'Zylinderschraube M6 × 16', 'ISO 4762', '8.8', 'Lagerdeckel (nicht dargestellt)']
 ];
+function stuecklisteHtmlIM(title, rows) {
+    return `<div class="paper text" style="max-width:980px"><h3>${title}</h3><table><tr><th>Pos.</th><th>Menge</th><th>Benennung</th><th>Normblatt</th><th>Werkstoff</th><th>Bemerkung</th></tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+}
 
-function svgImLagerung() {
-    const m = 'arIL', k = 2.6, ox = 80, cy = 250;
-    const X = x => ox + x * k, Yu = r => cy - r * k, Yl = r => cy + r * k;
-    const polyR = (pts, Y, cls, hatch) => hatch ? Hatch(pts.map(([x, r]) => [X(x), Y(r)]), m, hatch) : Poly(pts.map(([x, r]) => [X(x), Y(r)]), cls);
-    let s = `<svg viewBox="0 0 760 560" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
-    s += Rc(4, 4, 752, 552, 't');
-    s += Tx(380, 30, 'Gesamtzeichnung Lagereinheit Antriebswelle (Schnitt, vereinfacht)', 16, 'middle', 'font-weight="bold"');
-    // Gehäuse (Pos 2) – oben und unten, unten mit Fuß
-    const geh = [[45, 26], [45, 45], [175, 45], [175, 26], [152, 26], [152, 22], [65, 22], [65, 26]];
-    s += polyR(geh, Yu, '', 1);
-    s += polyR(geh, Yl, '', 1);
-    s += HatchR(X(60), Yl(45), 100 * k, 12 * k, m, 1);
-    // Deckel (Pos 6)
-    const dl = [[35, 14], [35, 45], [45, 45], [45, 26], [50, 26], [50, 23], [45, 23], [45, 20], [37, 20], [37, 14]];
-    const dr = [[185, 14], [185, 45], [175, 45], [175, 26], [172, 26], [172, 23], [175, 23], [175, 20], [183, 20], [183, 14]];
-    s += polyR(dl, Yu, '', 2) + polyR(dl, Yl, '', 2) + polyR(dr, Yu, '', 2) + polyR(dr, Yl, '', 2);
-    // Welle (Pos 1) – nicht geschnitten
-    const w = [[0, 10], [34, 10], [34, 12.5], [65, 12.5], [65, 16], [155, 16], [155, 12.5], [186, 12.5], [186, 10], [220, 10]];
-    s += `<path d="M${X(0)},${Yu(10)} ${w.map(([x, r]) => `L${X(x)},${Yu(r)}`).join(' ')} L${X(220)},${Yl(10)} ${w.slice().reverse().map(([x, r]) => `L${X(x)},${Yl(r)}`).join(' ')} Z" class="vf"/>`;
-    [34, 65, 155, 186].forEach(x => { s += Ln(X(x), Yu(x === 65 || x === 155 ? 16 : 12.5), X(x), Yl(x === 65 || x === 155 ? 16 : 12.5), 't'); });
-    // Lager (Pos 3)
-    [50, 155].forEach(x0 => {
-        [Yu, Yl].forEach(Y => {
-            s += HatchR(X(x0), Math.min(Y(26), Y(22.5)), 15 * k, 3.5 * k, m, 3);
-            s += HatchR(X(x0), Math.min(Y(16), Y(12.5)), 15 * k, 3.5 * k, m, 3);
-            s += Ci(X(x0 + 7.5), Y(19.25), 3.2 * k, 'vf');
-        });
+/* ---------- Blatt 1: Getriebe ---------- */
+function svgImGetriebe() {
+    const m = 'arIG', k = 2.9, ox = 243, oy = 399;
+    const X = x => ox + x * k, Y = y => oy - y * k;
+    const P = pts => pts.map(([x, y]) => [X(x), Y(y)]);
+    const HP = (pts, n = 1) => Hatch(P(pts), m, n);
+    const RR = (x1, y1, x2, y2, cls = 'vf') => Rc(X(x1), Y(Math.max(y1, y2)), (x2 - x1) * k, Math.abs(y2 - y1) * k, cls);
+    const HR = (x1, y1, x2, y2, n = 1) => HatchR(X(x1), Y(Math.max(y1, y2)), (x2 - x1) * k, Math.abs(y2 - y1) * k, m, n);
+    const yR = 68; // Achse Ritzelwelle
+    let s = `<svg viewBox="0 0 780 720" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 772, 712, 't');
+    s += Tx(390, 24, 'Blatt 1 – Stirnradgetriebe der Rollenbahn (Schnitt, vereinfacht)', 15, 'middle', 'font-weight="bold"');
+    // Gehäuse Pos. 1
+    s += HP([[-18, 94], [-18, 112], [16, 112], [16, 100], [0, 100], [0, 91], [-3, 91], [-3, 94]]);
+    s += HP([[24, 112], [118, 112], [118, 94], [100, 94], [100, 100], [24, 100]]);
+    s += HP([[-18, 42], [-3, 42], [-3, 45], [0, 45], [0, 31], [-18, 31]]);
+    s += HP([[100, 42], [118, 42], [118, 31], [100, 31]]);
+    s += HP([[-18, -31], [0, -31], [0, -58], [79, -58], [79, -70], [-18, -70]]);
+    s += HP([[91, -58], [100, -58], [100, -31], [118, -31], [118, -70], [91, -70]]);
+    // Entlüftung Pos. 22 (oben)
+    s += RR(16, 100, 24, 112, 'vf') + RR(14, 112, 26, 117, 'vf');
+    // Ölablass Pos. 20 + Dichtring Pos. 21
+    s += RR(79, -70, 91, -58, 'vf') + Rc(X(78), Y(-70), 14 * k, 1.2 * k, 'fill') + RR(77, -76, 93, -71.2, 'vf');
+    // Ölstand
+    s += `<line x1="${X(2)}" y1="${Y(-2)}" x2="${X(98)}" y2="${Y(-2)}" stroke="#2563eb" stroke-width="1" stroke-dasharray="6 4"/>` + Tx(X(96), Y(-2) - 4, 'Ölstand', 10, 'end', 'fill="#2563eb"');
+    // Abtriebswelle Pos. 3 (nicht geschnitten)
+    const wA = [[-18, 15], [-1, 15], [-1, 21], [40, 21], [40, 18], [64, 18], [64, 15], [130, 15], [130, 12.5], [170, 12.5]];
+    s += `<path d="M${X(-18)},${Y(15)} ${wA.map(([x, r]) => `L${X(x)},${Y(r)}`).join(' ')} L${X(170)},${Y(-12.5)} ${wA.slice().reverse().map(([x, r]) => `L${X(x)},${Y(-r)}`).join(' ')} Z" class="vf"/>`;
+    [[-1, 15], [130, 12.5]].forEach(([x, r]) => { s += Ln(X(x), Y(r), X(x), Y(-r), 't'); });
+    // Stirnrad Pos. 4 (geschnitten)
+    s += HR(40, 18, 64, 53, 2) + HR(40, -53, 64, -18, 2);
+    s += Ln(X(38), Y(51), X(66), Y(51), 'c') + Ln(X(38), Y(-51), X(66), Y(-51), 'c');
+    // Passfeder Pos. 15 (Stirnrad)
+    s += `<rect x="${X(42)}" y="${Y(21.3)}" width="${20 * k}" height="${8.3 * k}" rx="${4 * k}" class="vf"/>`;
+    // Distanzhülse Pos. 7
+    s += HR(64, 15, 101, 20, 3) + HR(64, -20, 101, -15, 3);
+    // Ritzelwelle Pos. 2 (nicht geschnitten) mit Verzahnung
+    const wR = [[-63, 10], [-36, 10], [-36, 12.5], [-3, 12.5], [-3, 15], [40, 15], [40, 19], [64, 19], [64, 15], [101, 15], [101, 12.5], [117.5, 12.5]];
+    s += `<path d="M${X(-63)},${Y(yR + 10)} ${wR.map(([x, r]) => `L${X(x)},${Y(yR + r)}`).join(' ')} L${X(117.5)},${Y(yR - 12.5)} ${wR.slice().reverse().map(([x, r]) => `L${X(x)},${Y(yR - r)}`).join(' ')} Z" class="vf"/>`;
+    [[-36, 10], [-3, 12.5], [40, 15], [64, 15], [101, 12.5]].forEach(([x, r]) => { s += Ln(X(x), Y(yR + r), X(x), Y(yR - r), 't'); });
+    s += Ln(X(40), Y(yR + 14.5), X(64), Y(yR + 14.5), 't') + Ln(X(40), Y(yR - 14.5), X(64), Y(yR - 14.5), 't');
+    s += Ln(X(38), Y(yR + 17), X(66), Y(yR + 17), 'c') + Ln(X(38), Y(yR - 17), X(66), Y(yR - 17), 'c');
+    // Rillenkugellager Pos. 10 (Ritzelwelle)
+    [-18, 101].forEach(x0 => { [1, -1].forEach(sg => {
+        s += HR(x0, yR + sg * 22.5, x0 + 15, yR + sg * 26, 3) + HR(x0, yR + sg * 12.5, x0 + 15, yR + sg * 16, 3) + Ci(X(x0 + 7.5), Y(yR + sg * 19.25), 3.2 * k, 'vf');
+    }); });
+    // Kegelrollenlager Pos. 11 (Abtriebswelle, X-Anordnung)
+    [[-18, 1], [101, -1]].forEach(([x0, dir]) => { [1, -1].forEach(sg => {
+        s += HR(x0, sg * 26, x0 + 17, sg * 31, 3) + HR(x0, sg * 15, x0 + 17, sg * 19, 3);
+        const a = dir > 0 ? [[x0 + 3, 20.5], [x0 + 14, 19.5], [x0 + 15, 24], [x0 + 4, 25.5]] : [[x0 + 14, 20.5], [x0 + 3, 19.5], [x0 + 2, 24], [x0 + 13, 25.5]];
+        s += Poly(a.map(([x, r]) => [X(x), Y(sg * r)]), 'vf');
+    }); });
+    // Lagerdeckel
+    const dl5 = [[-30, 14], [-30, 34], [-18, 34], [-18, 20], [-28, 20], [-28, 14]]; // Pos 5 links an Ritzelwelle
+    s += HP(dl5.map(([x, r]) => [x, yR + r]), 2) + HP(dl5.map(([x, r]) => [x, yR - r]), 2);
+    s += HR(118, yR - 34, 126, yR + 34, 2) + HR(117, yR + 20, 118, yR + 26, 2) + HR(117, yR - 26, 118, yR - 20, 2); // Pos 8 mit Zentrierbund
+    s += HR(-28, -34, -18, 34, 2); // Pos 6
+    const dr5 = [[118.6, 34], [130.6, 34], [130.6, 16], [128.6, 16], [128.6, 23.5], [118.6, 23.5]]; // Pos 5 rechts
+    s += HP(dr5, 2) + HP(dr5.map(([x, r]) => [x, -r]), 2);
+    // Passscheiben Pos. 16
+    s += Rc(X(118), Y(34), 0.6 * k, 3 * k, 'fill') + Rc(X(118), Y(-31), 0.6 * k, 3 * k, 'fill');
+    // RWDR Pos. 12 / 13
+    [[-28, yR, 12.5, 20], [121.6, 0, 15, 23.5]].forEach(([x0, c, r1, r2]) => { [1, -1].forEach(sg => {
+        const ya = c + sg * r1, yb = c + sg * r2;
+        s += RR(x0, ya, x0 + 7, yb, 'vf') + Ln(X(x0), Y(ya), X(x0 + 7), Y(yb), 't') + Ln(X(x0 + 7), Y(ya), X(x0), Y(yb), 't');
+    }); });
+    // O-Ringe Pos. 19
+    [[-18.6, yR + 30], [-18.6, yR - 30], [-18.6, 32.5], [-18.6, -32.5], [117.4, yR + 30], [117.4, yR - 30]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 3, 'fill'); });
+    // Sicherungsringe Pos. 24
+    [-19.3, 116].forEach(x0 => { [1, -1].forEach(sg => { s += Rc(X(x0), Y(yR + sg * (sg > 0 ? 15 : 11.95)), 1.3 * k, 3.05 * k, 'fill'); }); });
+    // Keilriemenscheibe Pos. 9 + Endscheibe Pos. 17 + Schraube Pos. 23
+    [1, -1].forEach(sg => {
+        const pts = [[-60, 10], [-60, 40], [-56, 40], [-53, 34], [-50, 40], [-46, 40], [-43, 34], [-40, 40], [-36, 40], [-36, 10]];
+        s += HP(pts.map(([x, r]) => [x, yR + sg * r]), 3);
     });
-    // Sicherungsringe (Pos 4)
-    [48.7, 170].forEach(x0 => { [Yu, Yl].forEach(Y => { s += Rc(X(x0), Math.min(Y(15), Y(11.95)), 1.3 * k, 3.05 * k, 'fill'); }); });
-    // RWDR (Pos 5)
-    [37, 176].forEach(x0 => { [Yu, Yl].forEach(Y => { s += Rc(X(x0), Math.min(Y(20), Y(12.5)), 7 * k, 7.5 * k, 'vf') + Ln(X(x0), Y(12.5), X(x0 + 7), Y(20), 't') + Ln(X(x0 + 7), Y(12.5), X(x0), Y(20), 't'); }); });
-    // Passfedern (Pos 7) – nicht geschnitten
-    [3, 189].forEach(x0 => { s += `<rect x="${X(x0)}" y="${Yu(13)}" width="${28 * k}" height="${6 * k}" rx="${3 * k}" class="vf"/>`; });
-    // Schrauben (Pos 8)
-    [[29, 35, 55], [185, 191, 165]].forEach(([h1, h2, e]) => {
-        [Yu, Yl].forEach(Y => {
-            s += Rc(X(h1), Math.min(Y(31), Y(41)), 6 * k, 10 * k, 'vf');
-            const xa = Math.min(X(h2), X(e)), xb = Math.max(X(h2), X(e));
-            s += Rc(xa, Math.min(Y(33), Y(39)), xb - xa, 6 * k, 'vf');
-        });
-    });
-    s += Ln(X(-6), cy, X(226), cy, 'c');
+    s += `<rect x="${X(-57)}" y="${Y(yR + 13.5)}" width="${18 * k}" height="${7 * k}" rx="${3 * k}" class="vf"/>`; // Passfeder Pos 14
+    s += HR(-66, yR - 15, -63, yR + 15, 1);
+    s += RR(-72, yR - 6.5, -66, yR + 6.5, 'vf') + Ln(X(-63), Y(yR + 4), X(-45), Y(yR + 4), 'h') + Ln(X(-63), Y(yR - 4), X(-45), Y(yR - 4), 'h');
+    // Passfeder Pos. 18 (Abtrieb)
+    s += `<rect x="${X(133)}" y="${Y(16)}" width="${36 * k}" height="${7 * k}" rx="${3.5 * k}" class="vf"/>`;
+    // Mittellinien
+    s += Ln(X(-76), Y(yR), X(130), Y(yR), 'c') + Ln(X(-34), Y(0), X(175), Y(0), 'c');
     // Positionsnummern
-    s += balloon(X(110), Yu(12), X(110), 70, 1);
-    s += balloon(X(120), Yu(38), X(160), 70, 2);
-    s += balloon(X(57.5), Yu(24), X(70), 70, 3);
-    s += balloon(X(162.5), Yl(24), X(150), 470, 3);
-    s += balloon(X(49.3), Yl(13.5), X(40), 470, 4);
-    s += balloon(X(40.5), Yu(17), X(28), 70, 5);
-    s += balloon(X(40), Yl(38), X(68), 470, 6);
-    s += balloon(X(180), Yu(40), X(205), 70, 6);
-    s += balloon(X(17), Yu(11.5), X(5), 70, 7);
-    s += balloon(X(32), Yl(36), X(14), 470, 8);
-    s += Tx(X(-4), cy - 20, 'Antrieb', 11, 'end', 'fill="#555"') + Tx(X(-4), cy - 7, '(Riementrieb)', 11, 'end', 'fill="#555"');
-    s += Tx(X(224), cy - 20, 'zur', 11, 'start', 'fill="#555"') + Tx(X(224), cy - 7, 'Rollenbahn', 11, 'start', 'fill="#555"');
+    const B = (tx, ty, bx, by, n) => balloon(X(tx), Y(ty), bx, by, n);
+    s += B(60, 106, 330, 50, 1) + B(80, yR + 13, 400, 50, 2) + B(20, 19, 160, 670, 3) + B(52, -40, 300, 670, 4);
+    s += B(-24, yR + 30, 40, 110, 5) + B(125, 33, 750, 330, 5) + B(-23, -30, 40, 470, 6) + B(80, -17.5, 380, 670, 7);
+    s += B(122, yR + 28, 750, 110, 8) + B(-48, yR + 30, 40, 170, 9) + B(-10, yR + 19, 230, 50, 10) + B(109, -28, 750, 400, 11);
+    s += B(-24, yR + 16, 40, 230, 12) + B(125, -20, 750, 460, 13) + B(-48, yR + 10, 40, 290, 14) + B(52, 20, 460, 670, 15);
+    s += B(118.3, -32.5, 750, 530, 16) + B(-64.5, yR - 12, 40, 350, 17) + B(150, 13, 750, 280, 18) + B(-18.6, -32.5, 40, 530, 19);
+    s += B(85, -64, 540, 670, 20) + B(80, -70.6, 620, 670, 21) + B(20, 115, 160, 50, 22) + B(-69, yR - 4, 40, 410, 23);
+    s += B(-18.6, yR - 13.5, 230, 670, 24);
+    s += Tx(X(-76), Y(yR) + 32, 'Antrieb', 10, 'start', 'fill="#555"');
+    s += Tx(X(170), Y(-12.5) + 16, 'zum Kettenrad', 10, 'end', 'fill="#555"');
     return s + '</svg>';
 }
 
+/* ---------- Blatt 3: Abtriebswelle ---------- */
 function svgImWelle() {
-    const m = 'arIW', k = 2.7, ox = 70, cy = 200;
+    const m = 'arIW', k = 3.1, ox = 70, cy = 200;
     const X = x => ox + x * k, Yu = r => cy - r * k, Yl = r => cy + r * k;
-    let s = `<svg viewBox="0 0 760 720" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
-    s += Rc(4, 4, 752, 712, 't');
-    s += Tx(380, 30, 'Antriebswelle – Pos. 1', 17, 'middle', 'font-weight="bold"');
-    const seg = [[0, 34, 10], [34, 65, 12.5], [65, 155, 16], [155, 186, 12.5], [186, 220, 10]];
+    let s = `<svg viewBox="0 0 760 760" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 752, 752, 't');
+    s += Tx(380, 30, 'Blatt 3 – Abtriebswelle Pos. 3', 17, 'middle', 'font-weight="bold"');
+    const seg = [[0, 17, 15], [17, 58, 21], [58, 82, 18], [82, 148, 15], [148, 188, 12.5]];
     seg.forEach(([a, b, r]) => { s += Rc(X(a), Yu(r), (b - a) * k, 2 * r * k, 'vf'); });
-    // Fasen andeuten
-    s += Ln(X(1), Yu(10), X(1), Yl(10), 't') + Ln(X(219), Yu(10), X(219), Yl(10), 't');
-    // Einstiche Sicherungsringe
-    [48.7, 170].forEach(x0 => { s += Rc(X(x0), Yu(12.5), 1.3 * k, 0.55 * k, 'fill') + Rc(X(x0), Yl(11.95), 1.3 * k, 0.55 * k, 'fill') + Ln(X(x0), Yu(11.95), X(x0), Yl(11.95), 't') + Ln(X(x0 + 1.3), Yu(11.95), X(x0 + 1.3), Yl(11.95), 't'); });
-    // Passfedernuten (Draufsicht auf die Nut)
-    [3, 189].forEach(x0 => { s += `<rect x="${X(x0)}" y="${cy - 3 * k}" width="${28 * k}" height="${6 * k}" rx="${3 * k}" class="v"/>`; });
-    s += Ln(X(-5), cy, X(225), cy, 'c');
-    // Bezüge A und B
-    s += datumBox(X(46), Yl(12.5) + 30, 'A', X(50), Yl(12.5) + 1);
-    s += datumBox(X(166), Yl(12.5) + 30, 'B', X(170), Yl(12.5) + 1);
-    // Rundlauf auf Ø20 links und rechts
-    s += tolFrame(X(0) - 10, Yu(10) - 62, 'runout', '0,02', 'A-B') + `<line x1="${X(14)}" y1="${Yu(10) - 42}" x2="${X(14)}" y2="${Yu(10)}" class="d" marker-end="url(#${m})"/>`;
-    // Durchmesser
+    s += Ln(X(1), Yu(15), X(1), Yl(15), 't') + Ln(X(187), Yu(12.5), X(187), Yl(12.5), 't');
+    [[60, 80, 5], [150, 186, 3.5]].forEach(([a, b, hw]) => { s += `<rect x="${X(a)}" y="${cy - hw * k}" width="${(b - a) * k}" height="${2 * hw * k}" rx="${hw * k}" class="v"/>`; });
+    s += Ln(X(-5), cy, X(193), cy, 'c');
+    s += datumBox(X(4), Yl(15) + 30, 'A', X(8), Yl(15) + 1);
+    s += datumBox(X(123), Yl(15) + 30, 'B', X(127), Yl(15) + 1);
+    s += tolFrame(X(48), Yu(21) - 66, 'runout', '0,02', 'A-B') + `<line x1="${X(62)}" y1="${Yu(21) - 46}" x2="${X(62)}" y2="${Yu(18)}" class="d" marker-end="url(#${m})"/>`;
     const dd = (x, r, lab) => `<line x1="${X(x)}" y1="${Yu(r)}" x2="${X(x)}" y2="${Yl(r)}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + `<text x="${X(x) - 5}" y="${cy}" font-size="13" text-anchor="middle" transform="rotate(-90 ${X(x) - 5} ${cy})">${lab}</text>`;
     const ddE = (x, r, lab) => `<line x1="${X(x)}" y1="${Yu(r)}" x2="${X(x)}" y2="${Yl(r)}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + Tx(X(x), Yu(r) - 8, lab, 13);
-    s += ddE(26, 10, 'Ø20 k6') + dd(57, 12.5, 'Ø25 k5') + dd(110, 16, 'Ø32') + dd(163, 12.5, 'Ø25 k5') + ddE(194, 10, 'Ø20 k6');
-    // Längen (Kette)
-    const yL = Yl(16) + 70;
-    let chain = '';
-    [[0, 34, '34'], [34, 65, '31'], [65, 155, '90'], [155, 186, '31'], [186, 220, '34']].forEach(([a, b, l]) => { chain += dimH(m, X(a), X(b), yL, Yl(a === 65 || a === 155 ? 16 : (a === 0 || a === 186 ? 10 : 12.5)), l, Yl(b === 65 || b === 155 ? 16 : (b === 34 || b === 220 ? 10 : 12.5))); });
-    s += chain;
-    s += dimH(m, X(0), X(220), yL + 32, Yl(10), '220');
-    // Einstich-Lage
-    s += dimH(m, X(34), X(48.7), Yu(16) - 30, Yu(12.5), '14,7');
-    s += dimH(m, X(170), X(186), Yu(16) - 30, Yu(12.5), '14,7', Yu(12.5));
-    // Passfedernut-Länge
-    s += dimH(m, X(3), X(31), Yl(10) + 44, cy + 3 * k, '28');
-    // Schnitt A-A rechts unten
-    const sx = 600, sy = 470, R = 10 * 5.2;
-    s += Tx(sx, sy - R - 30, 'Schnitt C–C (vergrößert)', 13, 'middle', 'font-weight="bold"');
-    const hw = 3 * 5.2, depth = 3.5 * 5.2, ang = Math.asin(hw / R), yTop = sy - Math.sqrt(R * R - hw * hw);
-    s += `<path d="M${sx - hw},${yTop} A${R},${R} 0 1 0 ${sx + hw},${yTop} L${sx + hw},${sy - R + depth} L${sx - hw},${sy - R + depth} Z" fill="url(#${m}h1)" stroke="#000" stroke-width="1.7"/>`;
+    s += dd(9, 15, 'Ø30 k6') + dd(37, 21, 'Ø42') + ddE(70, 18, 'Ø36 n6') + dd(115, 15, 'Ø30 k6') + ddE(168, 12.5, 'Ø25 k6');
+    const yL = Yl(21) + 75;
+    [[0, 17, '17', 15, 21], [17, 58, '41', 21, 21], [58, 82, '24', 21, 18], [82, 148, '66', 18, 15], [148, 188, '40', 15, 12.5]].forEach(([a, b, l, ra, rb]) => { s += dimH(m, X(a), X(b), yL, Yl(ra), l, Yl(rb)); });
+    s += dimH(m, X(0), X(188), yL + 32, Yl(15), '188', Yl(12.5));
+    s += dimH(m, X(60), X(80), Yl(18) + 26, cy + 5 * k, '20', cy + 5 * k);
+    s += dimH(m, X(150), X(186), Yl(12.5) + 30, cy + 3.5 * k, '36', cy + 3.5 * k);
+    // Schnitt C–C
+    const sx = 610, sy = 520, R = 18 * 3.2;
+    const hw = 5 * 3.2, yTop = sy - Math.sqrt(R * R - hw * hw), dep = 5 * 3.2;
+    s += Tx(sx, sy - R - 34, 'Schnitt C–C', 13, 'middle', 'font-weight="bold"');
+    s += `<path d="M${sx - hw},${yTop} A${R},${R} 0 1 0 ${sx + hw},${yTop} L${sx + hw},${sy - R + dep} L${sx - hw},${sy - R + dep} Z" fill="url(#${m}h1)" stroke="#000" stroke-width="1.7"/>`;
     s += cross(sx, sy, R + 12);
-    s += dimV(m, sy - R + depth, sy + R, sx + R + 40, sx + hw, '16,5', sx);
-    s += dimH(m, sx - hw, sx + hw, sy - R - 12, sy - R + depth, '6 P9');
-    s += Ln(X(8), Yu(10) - 18, X(8), Yu(10) - 6, 'v') + Ln(X(8), Yl(10) + 6, X(8), Yl(10) + 18, 'v') + Tx(X(8) - 6, Yu(10) - 10, 'C', 13, 'end', 'font-weight="bold"') + Tx(X(8) - 6, Yl(10) + 20, 'C', 13, 'end', 'font-weight="bold"');
-    // Bohrungsangaben / Hinweise
-    const ny = 420;
-    const notes = ['Zentrierbohrungen beidseitig ISO 6411 – A 2/4,25', 'Freistiche an den Wellenabsätzen DIN 509 – F 0,6 × 0,3', 'Einstiche für Sicherungsring DIN 471: Ø23,9 × 1,3 breit', 'Lagersitze Ø25 k5: Ra 0,4 · Ø20 k6: Ra 0,8 · übrige Flächen Ra 3,2', 'Alle Kanten ohne Maßangabe: Fase 1 × 45°', 'Vergütet auf Rm = 900 … 1100 N/mm²', 'Rohteil: Rundstahl Ø36 × 225'];
-    notes.forEach((t, i) => { s += Tx(70, ny + i * 20, '• ' + t, 13, 'start'); });
-    s += titleBlock(70, 630, 620, { name: 'Antriebswelle', werkstoff: '42CrMo4+QT', nr: 'HS-02-001', tol: 'ISO 2768-mK · Tolerierung ISO 8015' });
+    s += dimV(m, sy - R + dep, sy + R, sx + R + 40, sx + hw, '31', sx);
+    s += dimH(m, sx - hw, sx + hw, sy - R - 14, sy - R + dep, '10 P9');
+    s += Ln(X(76), Yu(21) - 20, X(76), Yu(21) - 8, 'v') + Ln(X(76), Yl(21) + 8, X(76), Yl(21) + 20, 'v') + Tx(X(76) + 6, Yu(21) - 12, 'C', 13, 'start', 'font-weight="bold"') + Tx(X(76) + 6, Yl(21) + 22, 'C', 13, 'start', 'font-weight="bold"');
+    const ny = 450;
+    ['Zentrierbohrungen beidseitig ISO 6411 – A 2,5/5,3', 'Freistiche an allen Wellenabsätzen DIN 509 – F 0,6 × 0,3', 'Lagersitze Ø30 k6: Ra 0,8 · Ø36 n6 und Ø25 k6: Ra 1,6', 'Laufbahn Wellendichtring auf Ø30 rechts: Ra 0,4, drallfrei geschliffen', 'Übrige Flächen Ra 3,2 · nicht bemaßte Kanten: Fase 1 × 45°', 'Rohteil: Rundstahl Ø48 × 193, vergütet'].forEach((t, i) => { s += Tx(70, ny + i * 21, '• ' + t, 12.5, 'start'); });
+    s += titleBlock(70, 680, 620, { name: 'Abtriebswelle', werkstoff: '42CrMo4+QT', nr: 'RB-01-003', tol: 'ISO 2768-mK · Tolerierung ISO 8015' });
     return s + '</svg>';
 }
 
+/* ---------- Anlagenskizze ---------- */
+function svgImAnlage() {
+    const m = 'arIA';
+    let s = `<svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 752, 452, 't');
+    s += Tx(380, 28, 'Anlagenskizze Hubstation (vereinfacht)', 16, 'middle', 'font-weight="bold"');
+    const roll = (x1, x2, y) => { let t = Rc(x1, y, x2 - x1, 10, 'vf'); for (let x = x1 + 14; x < x2 - 6; x += 26) t += Ci(x, y + 5, 7, 'vf'); return t; };
+    s += roll(30, 280, 330) + Tx(155, 365, 'Rollenbahn unten (Zulauf)', 12);
+    s += roll(480, 730, 150) + Tx(605, 185, 'Rollenbahn oben (Ablauf)', 12);
+    s += Rc(300, 150, 160, 10, 'vf'); for (let x = 316; x < 450; x += 26) s += Ci(x, 155, 7, 'vf');
+    s += `<rect x="300" y="330" width="160" height="10" class="p"/>`;
+    s += Tx(380, 100, 'Hubtisch (obere Lage, untere Lage strichpunktiert)', 12);
+    s += Rc(330, 112, 90, 36, 'grey') + Tx(375, 135, 'WT', 12);
+    s += Rc(440, 165, 40, 26, 'vf') + Tx(460, 183, 'M', 13, 'middle', 'font-weight="bold"') + Tx(486, 214, '-MA2 mit Getriebe (Blatt 1)', 11, 'start');
+    s += Rc(360, 250, 40, 160, 'vf') + Rc(374, 160, 12, 90, 'vf') + Rc(362, 300, 36, 6, 'fill');
+    s += Tx(410, 300, '-MM1', 13, 'start', 'font-weight="bold"');
+    s += Rc(470, 140, 14, 10, 'vf') + Tx(488, 136, '-BG1 (oben)', 11, 'start');
+    s += Rc(470, 320, 14, 10, 'vf') + Tx(488, 316, '-BG2 (unten)', 11, 'start');
+    s += Rc(296, 110, 10, 14, 'vf') + `<line x1="306" y1="117" x2="330" y2="117" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>` + Tx(290, 122, '-BG3 (WT da)', 11, 'end');
+    s += `<line x1="230" y1="312" x2="290" y2="312" class="t" marker-end="url(#${m})"/>` + `<line x1="470" y1="125" x2="530" y2="125" class="t" marker-end="url(#${m})"/>`;
+    s += `<line x1="345" y1="322" x2="345" y2="172" class="t" marker-end="url(#${m})" marker-start="url(#${m})"/>` + Tx(338, 250, 'Hub 400', 11, 'end');
+    s += Rc(560, 360, 140, 60, 'vf') + Tx(630, 386, 'Hydraulikaggregat', 11) + Tx(630, 402, '-GP1, -MA1, -QN1', 11);
+    s += `<path d="M560,390 L400,390" class="h"/>`;
+    return s + '</svg>';
+}
+
+/* ---------- Blatt 5: GRAFCET ---------- */
+function svgImGrafcet() {
+    const m = 'arIF';
+    let s = `<svg viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
+    s += Rc(4, 4, 632, 632, 't');
+    s += Tx(320, 28, 'Blatt 5 – GRAFCET Hubstation (Automatikbetrieb, DIN EN 60848)', 15, 'middle', 'font-weight="bold"');
+    const x = 150, w = 40;
+    const step = (y, n, init) => Rc(x - w / 2, y, w, w) + (init ? Rc(x - w / 2 + 4, y + 4, w - 8, w - 8) : '') + Tx(x, y + 26, n, 15, 'middle', 'font-weight="bold"');
+    const act = (y, label, comment) => Ln(x + w / 2, y + w / 2, x + w / 2 + 30, y + w / 2) + Rc(x + w / 2 + 30, y + 6, 90, 28) + Tx(x + w / 2 + 75, y + 25, label, 14) + (comment ? Tx(x + w / 2 + 130, y + 25, comment, 12, 'start', 'fill="#444"') : '');
+    const trans = (y, txt, comment) => Ln(x - 12, y, x + 12, y, 'v') + Tx(x + 22, y + 5, txt, 14, 'start') + (comment ? Tx(x + 22, y + 22, comment, 11, 'start', 'fill="#444"') : '');
+    const ys = [60, 170, 280, 390];
+    s += step(ys[0], '1', true) + Tx(x + w / 2 + 14, ys[0] + 25, '„Grundstellung“', 12, 'start', 'fill="#444"');
+    s += Ln(x, ys[0] + w, x, ys[1]) + trans((ys[0] + w + ys[1]) / 2, '-QA1 · -BG2 · -BG3', 'Pumpe läuft · Tisch unten · Werkstückträger auf dem Tisch');
+    s += step(ys[1], '2') + act(ys[1], '-MB1', '„Tisch heben“');
+    s += Ln(x, ys[1] + w, x, ys[2]) + trans((ys[1] + w + ys[2]) / 2, '-BG1', 'Tisch oben');
+    s += step(ys[2], '3') + act(ys[2], '-MA2', '„WT abfördern“');
+    const ty3 = (ys[2] + w + ys[3]) / 2;
+    s += Ln(x, ys[2] + w, x, ys[3]) + Ln(x - 12, ty3, x + 12, ty3, 'v') + Tx(x + 22, ty3 + 5, '-BG3', 14, 'start') + Ln(x + 22, ty3 - 10, x + 58, ty3 - 10, 't') + Tx(x + 22, ty3 + 22, 'Werkstückträger hat den Tisch verlassen', 11, 'start', 'fill="#444"');
+    s += step(ys[3], '4') + act(ys[3], '-MB2', '„Tisch senken“');
+    const ty4 = ys[3] + w + 30;
+    s += Ln(x, ys[3] + w, x, ty4 + 20) + trans(ty4, '-BG2', 'Tisch unten');
+    s += PolyL([[x, ty4 + 20], [x, ty4 + 40], [x - 70, ty4 + 40], [x - 70, ys[0] - 20], [x, ys[0] - 20], [x, ys[0]]]);
+    s += Poly([[x - 75, 300], [x - 65, 300], [x - 70, 290]], 'fill');
+    const lg = ['-QA1: Schütz Pumpenmotor -MA1 (Pumpe läuft)', '-BG1: Endschalter Tisch oben', '-BG2: Endschalter Tisch unten', '-BG3: Lichttaster Werkstückträger auf dem Tisch', '-MB1 / -MB2: Magnetspulen des Wegeventils -QM1', '-MA2: Getriebemotor Rollen auf dem Hubtisch'];
+    s += Rc(330, 470, 292, 140, 't');
+    lg.forEach((t, i) => { s += Tx(338, 492 + i * 20, t, 11.5, 'start'); });
+    return s + '</svg>';
+}
+
+/* ---------- Blatt 4 und 6 ---------- */
 function svgImHydraulik() {
     const m = 'arIH';
     let s = `<svg viewBox="0 0 640 760" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
     s += Rc(4, 4, 632, 752, 't');
-    s += Tx(320, 30, 'Hydraulikschaltplan Hubzylinder', 17, 'middle', 'font-weight="bold"');
+    s += Tx(320, 30, 'Blatt 4 – Hydraulikschaltplan Hubzylinder', 17, 'middle', 'font-weight="bold"');
     // Zylinder 1A1
     s += Rc(170, 60, 240, 56) + Rc(195, 62, 9, 52, 'fill') + Rc(204, 84, 260, 10, 'vf');
-    s += Tx(150, 95, '1A1', 15, 'end', 'font-weight="bold"');
+    s += Tx(150, 95, '-MM1', 15, 'end', 'font-weight="bold"');
     const xA = 185, xB = 395;
     // Leitung A: Zylinder → 1V3 → 1V2 → Ventil A
     s += Ln(xA, 116, xA, 160) + Ln(xA, 230, xA, 270) + Ln(xA, 340, xA, 380) + Ln(xA, 380, 275, 380) + Ln(275, 380, 275, 440);
@@ -507,11 +646,11 @@ function svgImHydraulik() {
     s += Ln(xA, 160, xA, 172) + Ln(xA, 218, xA, 230) + Ln(165, 172, 205, 172) + Ln(165, 218, 205, 218);
     s += Ln(165, 172, 165, 187) + Ln(165, 203, 165, 218) + `<path d="M159,187 Q165,195 159,203 M171,187 Q165,195 171,203" class="v"/>` + `<line x1="152" y1="210" x2="178" y2="180" class="t" marker-end="url(#${m})"/>`;
     s += Ln(205, 172, 205, 187) + Ln(205, 209, 205, 218) + Ci(205, 194, 6) + PolyL([[196, 197], [205, 209], [214, 197]]);
-    s += Tx(130, 200, '1V3', 15, 'end', 'font-weight="bold"');
+    s += Tx(130, 200, '-RN1', 15, 'end', 'font-weight="bold"');
     // 1V2 entsperrbares Rückschlagventil
     s += Rc(150, 270, 70, 70, 'h');
     s += Ln(xA, 270, xA, 293) + Ln(xA, 317, xA, 340) + Ci(xA, 300, 7) + PolyL([[xA - 10, 304], [xA, 317], [xA + 10, 304]]);
-    s += Tx(130, 310, '1V2', 15, 'end', 'font-weight="bold"');
+    s += Tx(130, 310, '-RM1', 15, 'end', 'font-weight="bold"');
     // Steuerleitung von B zu 1V2
     s += `<polyline points="220,318 300,318 ${xB},318" class="h"/>` + `<line x1="220" y1="318" x2="${xA + 9}" y2="309" class="h"/>`;
     s += Tx(232, 312, 'X', 11);
@@ -531,28 +670,28 @@ function svgImHydraulik() {
     // Federn + Magnete
     s += PolyL([[200, 468], [194, 462], [188, 474], [182, 462], [176, 474], [170, 468]], 't') + Rc(152, 456, 18, 24) + Ln(152, 480, 170, 456, 't');
     s += PolyL([[380, 468], [386, 462], [392, 474], [398, 462], [404, 474], [410, 468]], 't') + Rc(410, 456, 18, 24) + Ln(410, 480, 428, 456, 't');
-    s += Tx(161, 448, 'Y1', 12) + Tx(419, 448, 'Y2', 12);
-    s += Tx(130, 472, '1V1', 15, 'end', 'font-weight="bold"');
+    s += Tx(161, 448, '-MB1', 12) + Tx(419, 448, '-MB2', 12);
+    s += Tx(130, 472, '-QM1', 15, 'end', 'font-weight="bold"');
     s += Tx(268, vy - 5, 'A', 12) + Tx(312, vy - 5, 'B', 12) + Tx(268, vy + vh + 14, 'P', 12) + Tx(312, vy + vh + 14, 'T', 12);
     // P-Leitung zur Pumpe, T-Leitung über Filter zum Tank
     s += Ln(275, vy + vh, 275, 650) + Ln(305, vy + vh, 305, 560) + Ln(305, 600, 305, 620);
     // 0Z1 Rücklauffilter
     s += Poly([[305, 560], [325, 580], [305, 600], [285, 580]]) + Ln(287, 580, 323, 580, 'h');
-    s += Tx(335, 585, '0Z1', 14, 'start', 'font-weight="bold"');
+    s += Tx(335, 585, '-HQ1', 14, 'start', 'font-weight="bold"');
     s += PolyL([[293, 616], [293, 626], [317, 626], [317, 616]]);
     // Pumpe 0P1 + Motor 0M1
     s += Ci(275, 670, 20) + Poly([[275, 650], [267, 664], [283, 664]], 'fill') + Ln(275, 690, 275, 715) + PolyL([[263, 711], [263, 721], [287, 721], [287, 711]]);
     s += Ln(255, 668, 215, 668) + Ln(255, 673, 215, 673) + Ci(195, 670, 20) + Tx(195, 676, 'M', 16, 'middle', 'font-weight="bold"');
-    s += Tx(195, 712, '0M1', 14, 'middle', 'font-weight="bold"') + Tx(305, 676, '0P1', 14, 'start', 'font-weight="bold"');
+    s += Tx(195, 712, '-MA1', 14, 'middle', 'font-weight="bold"') + Tx(305, 676, '-GP1', 14, 'start', 'font-weight="bold"');
     // 0V1 Druckbegrenzungsventil (Grundstellung geschlossen)
     s += Ln(275, 640, 420, 640) + Ci(275, 640, 3, 'fill') + Ln(420, 640, 420, 625) + Rc(400, 575, 40, 50);
     s += `<line x1="410" y1="620" x2="410" y2="582" class="t" marker-end="url(#${m})"/>` + Ln(420, 575, 420, 552) + PolyL([[408, 540], [408, 552], [432, 552], [432, 540]]);
     s += PolyL([[440, 600], [446, 594], [452, 606], [458, 594], [464, 606], [470, 600]], 't') + `<line x1="444" y1="616" x2="472" y2="584" class="t" marker-end="url(#${m})"/>`;
     s += `<polyline points="380,640 380,600 400,600" class="h"/>`;
-    s += Tx(482, 605, '0V1', 14, 'start', 'font-weight="bold"');
+    s += Tx(482, 605, '-QN1', 14, 'start', 'font-weight="bold"');
     // 0Z2 Manometer
     s += Ln(275, 530, 230, 530) + Ln(230, 530, 230, 545) + Ci(230, 560, 15) + `<line x1="220" y1="570" x2="240" y2="550" class="t" marker-end="url(#${m})"/>`;
-    s += Tx(205, 565, '0Z2', 14, 'end', 'font-weight="bold"');
+    s += Tx(205, 565, '-PG1', 14, 'end', 'font-weight="bold"');
     return s + '</svg>';
 }
 
@@ -560,7 +699,7 @@ function svgImStromlauf() {
     const m = 'arIS';
     let s = `<svg viewBox="0 0 760 650" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${defs(m)}`;
     s += Rc(4, 4, 752, 642, 't');
-    s += Tx(380, 30, 'Stromlaufplan Steuerstromkreis (Auszug)', 17, 'middle', 'font-weight="bold"');
+    s += Tx(380, 30, 'Blatt 6 – Stromlaufplan Steuerstromkreis (Auszug, Einrichtbetrieb)', 17, 'middle', 'font-weight="bold"');
     const top = 70, bot = 500;
     s += Ln(40, top, 720, top) + Ln(40, bot, 720, bot) + Tx(30, top + 5, 'L1', 13, 'end') + Tx(30, bot + 5, 'N', 13, 'end');
     // Bauelemente
@@ -573,29 +712,29 @@ function svgImStromlauf() {
     const pathNo = (x, n) => Tx(x, bot + 22, n, 12, 'middle', 'fill="#555"');
     // Strompfad 1: F2 – S0 – S1 – S2 ∥ Q1 – Q1-Spule
     let x = 110;
-    s += opener(x, top, 'F2') + Tx(x + 16, top + 34, '95/96', 9, 'start');
-    s += opener(x, top + 60, 'S0', '') + `<path d="M${x - 30},${top + 82} q8,-10 16,0" class="v"/>` + Ln(x - 22, top + 82, x - 22, top + 90, 'h') + Ln(x - 22, top + 90, x - 6, top + 90, 'h');
-    s += opener(x, top + 120, 'S1') + push(x, top + 120);
-    s += closer(x, top + 180, 'S2') + push(x, top + 180);
+    s += opener(x, top, '-FC1') + Tx(x + 16, top + 34, '95/96', 9, 'start');
+    s += opener(x, top + 60, '-SF0', '') + `<path d="M${x - 30},${top + 82} q8,-10 16,0" class="v"/>` + Ln(x - 22, top + 82, x - 22, top + 90, 'h') + Ln(x - 22, top + 90, x - 6, top + 90, 'h');
+    s += opener(x, top + 120, '-SF1') + push(x, top + 120);
+    s += closer(x, top + 180, '-SF2') + push(x, top + 180);
     // Selbsthaltung Q1 13/14 parallel zu S2 (Pfad 2)
-    s += Ln(x, top + 180, 190, top + 180) + Ln(190, top + 180, 190, top + 180) + closer(190, top + 180, 'Q1') + Tx(206, top + 214, '13/14', 9, 'start') + Ln(190, top + 240, x, top + 240);
-    s += Ln(x, top + 240, x, top + 330) + coil(x, top + 330, 'Q1') + Ln(x, top + 352, x, bot);
+    s += Ln(x, top + 180, 190, top + 180) + Ln(190, top + 180, 190, top + 180) + closer(190, top + 180, '-QA1') + Tx(206, top + 214, '13/14', 9, 'start') + Ln(190, top + 240, x, top + 240);
+    s += Ln(x, top + 240, x, top + 330) + coil(x, top + 330, '-QA1') + Ln(x, top + 352, x, bot);
     s += pathNo(x, '1') + pathNo(190, '2');
     // Strompfad 3: Q1 23/24 – H1
     x = 300;
-    s += closer(x, top, 'Q1') + Tx(x + 6, top + 34, '23/24', 9, 'start') + Ln(x, top + 60, x, top + 330) + lamp(x, top + 330, 'H1') + Ln(x, top + 352, x, bot) + pathNo(x, '3');
+    s += closer(x, top, '-QA1') + Tx(x + 6, top + 34, '23/24', 9, 'start') + Ln(x, top + 60, x, top + 330) + lamp(x, top + 330, '-PF1') + Ln(x, top + 352, x, bot) + pathNo(x, '3');
     // Strompfad 4: Q1 33/34 – S3 (Heben) – B1 (oben, Öffner) – Y1
     x = 440;
-    s += closer(x, top, 'Q1') + Tx(x + 6, top + 34, '33/34', 9, 'start') + Ln(x, top + 60, x, 190);
+    s += closer(x, top, '-QA1') + Tx(x + 6, top + 34, '33/34', 9, 'start') + Ln(x, top + 60, x, 190);
     s += Ln(x, 190, 520, 190);
-    s += closer(x, 190, 'S3') + push(x, 190);
-    s += opener(x, 250, 'B1') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, 'Y1') + Ln(x, top + 352, x, bot) + pathNo(x, '4');
+    s += closer(x, 190, '-SF3') + push(x, 190);
+    s += opener(x, 250, '-BG1') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, '-MB1') + Ln(x, top + 352, x, bot) + pathNo(x, '4');
     // Strompfad 5: S4 (Senken) – B2 (unten, Öffner) – Y2
     x = 600;
-    s += Ln(520, 190, x, 190) + closer(x, 190, 'S4') + push(x, 190) + opener(x, 250, 'B2') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, 'Y2') + Ln(x, top + 352, x, bot) + pathNo(x, '5');
+    s += Ln(520, 190, x, 190) + closer(x, 190, '-SF4') + push(x, 190) + opener(x, 250, '-BG2') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, '-MB2') + Ln(x, top + 352, x, bot) + pathNo(x, '5');
     s += Ci(440, 190, 3, 'fill');
     // Legende
-    const lg = ['F2: Motorschutzrelais Pumpenmotor', 'S0: Not-Halt · S1: Aus · S2: Ein (Pumpe)', 'Q1: Schütz Pumpenmotor 0M1 · H1: Meldeleuchte', 'S3: Taster Heben · S4: Taster Senken', 'B1: Endschalter oben · B2: Endschalter unten', 'Y1, Y2: Magnetspulen von 1V1'];
+    const lg = ['-FC1: Motorschutz Pumpenmotor -MA1', '-SF0: Not-Halt · -SF1: Aus · -SF2: Ein (Pumpe)', '-QA1: Schütz Pumpenmotor · -PF1: Meldeleuchte', '-SF3: Taster Heben · -SF4: Taster Senken (Einrichtbetrieb)', '-BG1: Endschalter oben · -BG2: Endschalter unten', '-MB1, -MB2: Magnetspulen von -QM1']
     lg.forEach((t, i) => { s += Tx(i < 3 ? 50 : 400, 560 + (i % 3) * 20, t, 12.5, 'start'); });
     s += Rc(40, 540, 680, 74, 't');
     return s + '</svg>';
@@ -603,15 +742,18 @@ function svgImStromlauf() {
 
 const IM_DOCS = [
     { id: 'sit', label: 'Situation', svg: false, html: () => `<div class="paper text">${IM_SITUATION}</div>` },
-    { id: 'lag', label: 'Lagereinheit', svg: true, html: svgImLagerung },
-    { id: 'wel', label: 'Welle (Pos. 1)', svg: true, html: svgImWelle },
-    { id: 'hyd', label: 'Hydraulikplan', svg: true, html: svgImHydraulik },
-    { id: 'elt', label: 'Stromlaufplan', svg: true, html: svgImStromlauf },
-    { id: 'stl', label: 'Stückliste', svg: false, html: () => stuecklisteHtml('Stückliste Lagereinheit Antriebswelle', IM_STUECKLISTE) }
+    { id: 'anl', label: 'Anlagenskizze', svg: true, html: svgImAnlage },
+    { id: 'get', label: 'Blatt 1 Getriebe', svg: true, html: svgImGetriebe },
+    { id: 'stl', label: 'Blatt 2 Stückliste', svg: false, html: () => stuecklisteHtmlIM('Blatt 2 – Stückliste Stirnradgetriebe', IM_STUECKLISTE) },
+    { id: 'wel', label: 'Blatt 3 Abtriebswelle', svg: true, html: svgImWelle },
+    { id: 'hyd', label: 'Blatt 4 Hydraulik', svg: true, html: svgImHydraulik },
+    { id: 'gra', label: 'Blatt 5 GRAFCET', svg: true, html: svgImGrafcet },
+    { id: 'elt', label: 'Blatt 6 Stromlaufplan', svg: true, html: svgImStromlauf }
 ];
 
 /* ============================================================
    AP Teil 2 – Industriemechaniker – Fertigungstechnik
+   Projekt: Hubstation mit Rollenbahn-Getriebe
    ============================================================ */
 function introAfaFt(name, min) {
     return `<h2>So läuft die Prüfung</h2>
@@ -620,226 +762,228 @@ function introAfaFt(name, min) {
       <li><b>Teil A:</b> 28 Aufgaben zum Ankreuzen. Pro Aufgabe ist genau eine Antwort richtig.</li>
       <li>In Teil A musst du <b>3 Aufgaben abwählen</b>. Die 8 Aufgaben mit 🔒 (Mathematik und Technische Kommunikation) kannst du nicht abwählen.</li>
       <li>Wählst du nicht ab, werden die <b>letzten 3 abwählbaren Aufgaben</b> nicht gewertet.</li>
-      <li><b>Teil B:</b> 8 Aufgaben mit je 10 Punkten. Keine Abwahl.</li>
-      <li>Alle Aufgaben beziehen sich auf die Unterlagen hinter dem Knopf <b>📐 Zeichnung</b>.</li>
+      <li><b>Teil B:</b> 8 Aufgaben mit je 10 Punkten. Keine Abwahl. Eine Aufgabe ist eine Skizze auf Papier.</li>
+      <li>Die Aufgaben beziehen sich auf den Zeichnungssatz hinter dem Knopf <b>📐 Zeichnung</b>. Über jeder Aufgabe steht, welches Blatt du brauchst.</li>
     </ul>
-    <div class="info warn"><b>Hilfsmittel:</b> Tabellenbuch Metall, Taschenrechner, Papier für Nebenrechnungen.</div>
+    <div class="info warn"><b>Hilfsmittel:</b> Tabellenbuch Metall, Taschenrechner, Papier, Bleistift und Lineal für Nebenrechnungen und Skizzen.</div>
     <table class="tbl"><tr><th>Teil</th><th>Aufgaben</th><th>Punkte</th><th>Anteil</th></tr>
     <tr><td>A – gebunden</td><td>28, davon 3 abwählen</td><td>25 × 1 Punkt</td><td>50 %</td></tr>
     <tr><td>B – ungebunden</td><td>8, keine Abwahl</td><td>8 × 10 Punkte</td><td>50 %</td></tr></table>`;
 }
 const EXAM = {
-    id: 'ft-im', key: 'ap2-ft-im-1', summary: true,
-    title: 'Fertigungstechnik', subtitle: 'Abschlussprüfung Teil 2 · Industriemechaniker/-in · Projekt Hubstation',
+    id: 'ft-im', key: 'ap2-ft-im-2', summary: true,
+    title: 'Fertigungstechnik', subtitle: 'Abschlussprüfung Teil 2 · Industriemechaniker/-in · Projekt Hubstation mit Rollenbahn-Getriebe',
     logo: '⚙️', back: './', backLabel: '← Zurück zur Übersicht Teil 2',
     duration: 105, aAbw: 3, aWeight: 0.5, bAbw: 0, bWeight: 0.5,
     intro: introAfaFt('Fertigungstechnik', 105),
     bIntro: '<p>Arbeite mit den Unterlagen (📐 Zeichnung) und deinem Tabellenbuch. Gib Zahlen mit Komma oder Punkt ein.</p>',
     docs: IM_DOCS,
-    cats: { ZER: 'Drehen, Fräsen, Bohren', CNC: 'CNC-Technik', SCH: 'Schleifen', WST: 'Werkstoffe und Wärmebehandlung', MON: 'Fügen und Montage', QS: 'Prüftechnik und Qualität', TM: 'Technische Mathematik', TK: 'Technische Kommunikation' },
+    cats: { ZER: 'Drehen, Fräsen, Bohren', CNC: 'CNC-Technik', SCH: 'Schleifen', WST: 'Werkstoffe und Wärmebehandlung', MON: 'Montage und Instandhaltung', QS: 'Prüftechnik und Qualität', SIC: 'Arbeits- und Umweltschutz', TM: 'Technische Mathematik', TK: 'Technische Kommunikation' },
     aDef: [
- { cat: 'TK', lock: true, q: 'Auf der Wellenzeichnung steht <b>Freistich DIN 509 – F 0,6 × 0,3</b>. Was bedeutet das?',
+ { cat: 'TK', lock: true, ref: 'Blatt 3', q: 'Auf der Wellenzeichnung steht <b>Freistich DIN 509 – F 0,6 × 0,3</b>. Was bedeutet das?',
    o: ['Freistich der Form F mit Radius 0,6 mm und Einstichtiefe 0,3 mm', 'Fase mit 0,6 mm Länge und 0,3 mm Tiefe', 'Freistich mit 0,6 mm Breite und 0,3 mm Radius, nur für Gewinde', 'Einstich für einen Sicherungsring', 'Zentrierbohrung mit 0,6 mm Durchmesser'],
-   e: 'Freistiche nach DIN 509 werden mit Form, Radius r und Tiefe t angegeben. Form F ist für Teile, bei denen Plan- und Zylinderfläche bearbeitet werden.' },
- { cat: 'ZER', q: 'Die Welle hat beidseitig Zentrierbohrungen. Wie spannst du sie für das Drehen der Absätze, damit alles genau rundläuft?',
-   o: ['Zwischen Spitzen mit Mitnehmer', 'Nur im Dreibackenfutter, ohne Gegenspitze', 'Im Maschinenschraubstock', 'Mit Magnetspannplatte', 'In einer Spannzange auf dem Ø32'],
-   e: 'Zwischen Spitzen werden alle Durchmesser auf dieselbe Achse bezogen. Das ist wichtig für den Rundlauf.' },
+   e: 'Freistiche nach DIN 509 werden mit Form, Radius r und Tiefe t angegeben. Form F: Plan- und Zylinderfläche werden bearbeitet.' },
+ { cat: 'ZER', ref: 'Blatt 3', q: 'Die Abtriebswelle hat beidseitig Zentrierbohrungen. Wie spannst du sie beim Drehen der Absätze, damit alles genau rundläuft?',
+   o: ['Zwischen Spitzen mit Mitnehmer', 'Nur im Dreibackenfutter, ohne Gegenspitze', 'Im Maschinenschraubstock', 'Mit Magnetspannplatte', 'In einer Spannzange auf dem Ø42'],
+   e: 'Zwischen Spitzen beziehen sich alle Durchmesser auf dieselbe Achse. Das ist wichtig für den Rundlauf zu A-B.' },
  { cat: 'ZER', q: 'Welcher Schneidstoff eignet sich am besten zum Schruppen der vergüteten Welle aus 42CrMo4?',
-   o: ['Beschichtetes Hartmetall der Anwendungsgruppe P', 'Werkzeugstahl (unlegiert)', 'Polykristalliner Diamant (PKD)', 'HSS ohne Beschichtung bei hoher Schnittgeschwindigkeit', 'Hartmetall der Gruppe N für Aluminium'],
-   e: 'Die Gruppe P steht für Stahl. Beschichtetes Hartmetall hält hohe Temperaturen aus. PKD ist für NE-Metalle, nicht für Stahl.' },
- { cat: 'TM', lock: true, gen: true },
- { cat: 'TK', lock: true, q: 'Für die Lagersitze ist <b>Ra 0,4</b> angegeben. Was bedeutet das?',
-   o: ['Der arithmetische Mittenrauwert darf höchstens 0,4 µm betragen.', 'Die Rautiefe muss mindestens 0,4 mm sein.', 'Die Rundheit darf 0,4 µm abweichen.', 'Der Durchmesser darf um 0,4 µm abweichen.', 'Die Oberfläche muss 0,4 mm tief gehärtet sein.'],
-   e: 'Ra ist der Mittelwert der Abweichungen des Profils von der Mittellinie. Die Angabe ist ein Höchstwert in µm.' },
- { cat: 'ZER', q: 'Wie wirkt sich ein <b>größerer Spanwinkel</b> beim Drehen aus?',
-   o: ['Die Schnittkraft sinkt, aber die Schneide wird schwächer.', 'Die Schneide wird stabiler und die Schnittkraft steigt.', 'Die Oberfläche wird immer rauer.', 'Der Span wird dicker.', 'Der Spanwinkel hat keinen Einfluss.'],
-   e: 'Ein großer, positiver Spanwinkel lässt den Span leichter ablaufen. Der Keil wird aber schlanker und bricht leichter aus.' },
+   o: ['Beschichtetes Hartmetall der Anwendungsgruppe P', 'Unlegierter Werkzeugstahl', 'Polykristalliner Diamant (PKD)', 'HSS ohne Beschichtung bei hoher Schnittgeschwindigkeit', 'Hartmetall der Gruppe N für Aluminium'],
+   e: 'P steht für Stahl. PKD ist für Nichteisenmetalle, nicht für Stahl.' },
+ { cat: 'TM', lock: true, ref: 'Blatt 3', gen: true },
+ { cat: 'TK', lock: true, ref: 'Blatt 3', q: 'Wie tief ist die Passfedernut für das Stirnrad in der Welle (Wellennuttiefe t₁)? Nutze den Schnitt C–C.',
+   o: ['5 mm', '31 mm', '10 mm', '3,3 mm', '8 mm'],
+   e: 'Gemessen ist der Rest von 31 mm. t₁ = 36 mm − 31 mm = 5 mm.' },
+ { cat: 'WST', ref: 'Blatt 2', q: 'Die Ritzelwelle aus 16MnCr5 wird einsatzgehärtet. In welcher Reihenfolge läuft das ab?',
+   o: ['Aufkohlen – Härten (Abschrecken) – Anlassen bei niedriger Temperatur', 'Härten – Aufkohlen – Anlassen bei 600 °C', 'Normalglühen – Abschrecken – Aufkohlen', 'Anlassen – Aufkohlen – Härten', 'Nitrieren – Abschrecken – Spannungsarmglühen'],
+   e: 'Erst wird die Randschicht mit Kohlenstoff angereichert, dann gehärtet und bei etwa 150–200 °C angelassen.' },
  { cat: 'ZER', q: 'Wie erreichst du beim Schlichtdrehen eine glattere Oberfläche?',
    o: ['Kleineren Vorschub und größeren Eckenradius wählen', 'Größeren Vorschub und kleineren Eckenradius wählen', 'Nur die Schnitttiefe vergrößern', 'Die Schnittgeschwindigkeit stark senken', 'Ohne Kühlschmierstoff arbeiten'],
-   e: 'Die theoretische Rautiefe ist etwa R<sub>th</sub> = f² / (8 · r). Kleiner Vorschub und großer Radius ergeben eine kleine Rautiefe.' },
- { cat: 'CNC', q: 'Was bewirkt der Befehl <b>G00</b>?',
-   o: ['Verfahren im Eilgang', 'Linearinterpolation im Vorschub', 'Kreis im Uhrzeigersinn', 'Programmende', 'Spindel aus'],
-   e: 'G00 fährt mit größter Geschwindigkeit, nicht zum Zerspanen. G01 ist die Gerade im Vorschub.' },
+   e: 'Die theoretische Rautiefe ist etwa R<sub>th</sub> = f² / (8 · r).' },
+ { cat: 'CNC', q: 'Welche Aussage zum <b>Werkstücknullpunkt</b> an einer CNC-Drehmaschine ist richtig?',
+   o: ['Er wird vom Programmierer festgelegt, meist auf der Planfläche in der Drehachse.', 'Er wird vom Maschinenhersteller festgelegt und ist unveränderlich.', 'Er liegt immer im Referenzpunkt.', 'Er muss nach jedem Werkzeugwechsel neu angefahren werden.', 'Er ist immer die Spitze des Drehmeißels.'],
+   e: 'Maschinennullpunkt und Referenzpunkt legt der Hersteller fest. Den Werkstücknullpunkt wählt man so, dass sich die Zeichnungsmaße gut übernehmen lassen.' },
  { cat: 'CNC', q: 'Was bewirkt der Befehl <b>G02</b>?',
    o: ['Kreisinterpolation im Uhrzeigersinn', 'Kreisinterpolation gegen den Uhrzeigersinn', 'Eilgang', 'Absolutmaßangabe', 'Werkzeugwechsel'],
-   e: 'G02 = Kreis im Uhrzeigersinn, G03 = gegen den Uhrzeigersinn (Blick entgegen der Achse).' },
+   e: 'G02 = Kreis im Uhrzeigersinn, G03 = gegen den Uhrzeigersinn.' },
  { cat: 'CNC', q: 'Was bewirkt <b>G42</b>?',
    o: ['Schneidenradiuskorrektur rechts von der Kontur (in Bearbeitungsrichtung gesehen)', 'Schneidenradiuskorrektur links von der Kontur', 'Aufheben der Schneidenradiuskorrektur', 'Kettenmaßangabe', 'Konstante Schnittgeschwindigkeit'],
    e: 'G41 = links, G42 = rechts der Kontur, G40 hebt die Korrektur auf.' },
- { cat: 'CNC', q: 'Was bedeutet <b>G90</b>?',
-   o: ['Absolutmaßangabe: Alle Koordinaten beziehen sich auf den Werkstücknullpunkt.', 'Kettenmaß: Jede Koordinate bezieht sich auf den letzten Punkt.', 'Drehung um 90°', 'Eilgang mit 90 % Geschwindigkeit', 'Programmende mit Rücksprung'],
-   e: 'G90 = absolut, G91 = inkremental (Kettenmaß).' },
- { cat: 'TM', lock: true, gen: true },
- { cat: 'SCH', q: 'Die Lagersitze Ø25 k5 mit Ra 0,4 werden nach dem Drehen fertig bearbeitet. Welches Verfahren ist üblich?',
-   o: ['Außenrundschleifen', 'Bohren', 'Räumen', 'Hobeln', 'Gewindewalzen'],
-   e: 'IT5 und Ra 0,4 erreicht man sicher durch Rundschleifen.' },
- { cat: 'TK', lock: true, q: 'Was bedeutet die Angabe <b>ISO 6411 – A 2/4,25</b> auf der Wellenzeichnung?',
-   o: ['Zentrierbohrung Form A mit 2 mm Zentrierdurchmesser und 4,25 mm Senkdurchmesser', 'Gewinde M2 mit 4,25 mm Tiefe', 'Fase 2 × 45° auf 4,25 mm Länge', 'Freistich 2 mm breit, 4,25 mm tief', 'Passfedernut 2 mm breit, 4,25 mm lang'],
+ { cat: 'CNC', q: 'Welche Werkzeugdaten werden für einen Drehmeißel in den Korrekturspeicher eingetragen?',
+   o: ['Längen in X und Z, Schneidenradius und Schneidenlage', 'Nur die Schnittgeschwindigkeit', 'Werkzeugradius und Zähnezahl', 'Nur die Werkzeugnummer', 'Drehzahl und Vorschub'],
+   e: 'Mit Längen, Radius und Lage der Schneide kann die Steuerung die Bahn der Schneidenspitze richtig berechnen.' },
+ { cat: 'TM', lock: true, ref: 'Blatt 3', gen: true },
+ { cat: 'SCH', ref: 'Blatt 3', q: 'Die Laufbahn des Wellendichtrings soll <b>drallfrei</b> geschliffen werden. Wie geht das?',
+   o: ['Durch Einstechschleifen ohne Längsvorschub', 'Durch Längsschleifen mit großem Vorschub', 'Durch Feindrehen mit Rechtsdrall', 'Durch Rändeln', 'Durch Gewindeschleifen'],
+   e: 'Ein Drall wirkt wie ein feines Gewinde und kann Öl nach außen fördern. Beim Einstechschleifen entsteht kein Drall.' },
+ { cat: 'TK', lock: true, ref: 'Blatt 3', q: 'Was bedeutet die Angabe <b>ISO 6411 – A 2,5/5,3</b> auf der Wellenzeichnung?',
+   o: ['Zentrierbohrung Form A mit 2,5 mm Zentrierdurchmesser und 5,3 mm Senkdurchmesser', 'Gewinde M2,5 mit 5,3 mm Tiefe', 'Fase 2,5 × 45° auf 5,3 mm Länge', 'Freistich 2,5 mm breit, 5,3 mm tief', 'Passfedernut 2,5 mm breit, 5,3 mm lang'],
    e: 'ISO 6411 ist die Norm für die vereinfachte Angabe von Zentrierbohrungen.' },
  { cat: 'SCH', q: 'Eine Schleifscheibe ist mit <b>A 60 K 5 V</b> bezeichnet. Was bedeutet die <b>60</b>?',
    o: ['Die Körnung', 'Den Härtegrad', 'Die Bindung', 'Die zulässige Umfangsgeschwindigkeit in m/s', 'Den Außendurchmesser in mm'],
-   e: 'A = Schleifmittel (Normalkorund), 60 = Körnung, K = Härte, 5 = Gefüge, V = keramische Bindung.' },
- { cat: 'SCH', q: 'Eine neue Schleifscheibe wird aufgespannt. Was ist vorgeschrieben?',
-   o: ['Klangprobe vor dem Aufspannen und Probelauf mit Arbeitshöchstgeschwindigkeit, Gefahrbereich frei', 'Die Scheibe mit dem Hammer festklopfen', 'Den Probelauf mit halber Drehzahl und offenem Schutz durchführen', 'Die Schutzhaube abnehmen, damit die Scheibe besser kühlt', 'Die zulässige Umfangsgeschwindigkeit um 20 % überschreiten'],
-   e: 'Eine gerissene Scheibe klingt dumpf. Der Probelauf (mindestens 1 Minute) zeigt, ob die Scheibe hält, bevor jemand davorsteht.' },
+   e: 'A = Normalkorund, 60 = Körnung, K = Härte, 5 = Gefüge, V = keramische Bindung.' },
+ { cat: 'SIC', q: 'Eine neue Schleifscheibe wird aufgespannt. Was ist vorgeschrieben?',
+   o: ['Klangprobe vor dem Aufspannen und Probelauf mit Arbeitshöchstgeschwindigkeit, Gefahrbereich frei', 'Die Scheibe mit dem Hammer festklopfen', 'Den Probelauf mit offenem Schutz durchführen', 'Die Schutzhaube abnehmen, damit die Scheibe besser kühlt', 'Die zulässige Umfangsgeschwindigkeit um 20 % überschreiten'],
+   e: 'Eine gerissene Scheibe klingt dumpf. Der Probelauf zeigt, ob die Scheibe hält, bevor jemand davorsteht.' },
  { cat: 'WST', q: 'Wie läuft das <b>Vergüten</b> ab?',
    o: ['Härten (Erwärmen und Abschrecken) und danach Anlassen bei hoher Temperatur, etwa 540 bis 680 °C', 'Nur langsames Abkühlen im Ofen', 'Härten und Anlassen bei etwa 180 °C', 'Aufkohlen und Härten der Randschicht', 'Erwärmen auf 300 °C und Abkühlen an Luft'],
    e: 'Vergüten = Härten + Anlassen bei hoher Temperatur. Das ergibt hohe Festigkeit bei guter Zähigkeit.' },
- { cat: 'SCH', q: 'Warum schleift man die Lagersitze erst <b>nach</b> einer Wärmebehandlung fertig?',
-   o: ['Die Wärmebehandlung verursacht Verzug und Zunder. Das Endmaß wird erst danach erreicht.', 'Weil weicher Stahl nicht geschliffen werden kann.', 'Weil das Schleifen die Härte erhöht.', 'Weil man so Schleifscheiben spart.', 'Weil es die Norm DIN 509 vorschreibt.'],
-   e: 'Durch Erwärmen und Abschrecken verzieht sich das Teil. Deshalb lässt man vorher ein Schleifaufmaß stehen.' },
+ { cat: 'MON', ref: 'Situation', q: 'Was bedeutet die Ölbezeichnung <b>CLP 220</b>?',
+   o: ['Schmieröl mit Zusätzen gegen Korrosion und Alterung (L) und gegen Verschleiß (P), Viskositätsklasse ISO VG 220', 'Hydrauliköl mit 220 bar Druckfestigkeit', 'Kühlschmierstoff mit 2,2 % Konzentration', 'Schmierfett der Konsistenzklasse 220', 'Motoröl für 220 °C'],
+   e: 'Die Zahl ist die Viskositätsklasse (mittlere kinematische Viskosität bei 40 °C in mm²/s).' },
  { cat: 'MON', q: 'Wie ziehst du die Schrauben der Lagerdeckel an?',
-   o: ['Über Kreuz in mehreren Stufen mit dem Drehmomentschlüssel auf das vorgeschriebene Anzugsmoment', 'Der Reihe nach im Kreis, jede Schraube gleich voll', 'So fest wie möglich mit Verlängerungsrohr', 'Nur handfest, damit der Deckel nicht reißt', 'Mit dem Schlagschrauber ohne Drehmomentbegrenzung'],
-   e: 'Über Kreuz und in Stufen anziehen verhindert, dass der Deckel schief sitzt. Das Anzugsmoment sorgt für die richtige Vorspannkraft.' },
- { cat: 'TM', lock: true, q: 'Wie groß ist die Masse des Rohteils (Rundstahl Ø36 × 225)? Dichte ρ = 7,85 kg/dm³.',
-   o: ['1,80 kg', '7,19 kg', '0,18 kg', '18,0 kg', '2,29 kg'],
-   e: 'V = π/4 · (0,36 dm)² · 2,25 dm ≈ 0,229 dm³. m = 0,229 dm³ · 7,85 kg/dm³ ≈ 1,80 kg.' },
- { cat: 'MON', q: 'Der Riemen zur Antriebswelle wird gespannt. Wie prüfst du die richtige Riemenspannung?',
-   o: ['Mit Prüfkraft und Eindrücktiefe oder mit einem Frequenz-Messgerät nach Herstellerangabe', 'So stark spannen, dass der Riemen nicht mehr nachgibt', 'Nach Gefühl, je fester desto besser', 'Am Motorgeräusch', 'Mit dem Messschieber an der Riemendicke'],
-   e: 'Zu stramm überlastet die Lager, zu locker rutscht der Riemen. Hersteller geben Prüfwerte an.' },
- { cat: 'TK', lock: true, q: 'Wie tief ist die Passfedernut in der Welle (Wellennuttiefe t₁)? Nutze den Schnitt C–C.',
-   o: ['3,5 mm', '16,5 mm', '6 mm', '2,5 mm', '10 mm'],
-   e: 'Gemessen ist der Rest von 16,5 mm. t₁ = 20 mm − 16,5 mm = 3,5 mm.' },
- { cat: 'MON', q: 'Wie baust du den Radial-Wellendichtring richtig ein?',
-   o: ['Dichtlippe zum Schmierstoffraum, Lippe einfetten, über Kanten und Nuten mit einer Montagehülse schieben', 'Dichtlippe nach außen, trocken montieren', 'Mit dem Hammer direkt auf die Dichtlippe schlagen', 'Die Feder der Dichtlippe vorher entfernen', 'Mit Kleber auf der Welle festkleben'],
-   e: 'Die Lippe zeigt zum Medium, das abgedichtet wird. Fett verhindert Trockenlauf. Die Hülse schützt die Lippe vor scharfen Kanten.' },
- { cat: 'QS', q: 'Mit welchem Messgerät prüfst du den Lagersitz Ø25 k5 (Toleranz 9 µm) in der Werkstatt am besten?',
+   o: ['Über Kreuz in mehreren Stufen mit dem Drehmomentschlüssel auf das vorgeschriebene Anzugsmoment', 'Der Reihe nach im Kreis, jede Schraube gleich voll', 'So fest wie möglich mit Verlängerungsrohr', 'Nur handfest', 'Mit dem Schlagschrauber ohne Drehmomentbegrenzung'],
+   e: 'Über Kreuz und in Stufen anziehen verhindert, dass der Deckel schief sitzt.' },
+ { cat: 'TM', lock: true, ref: 'Blatt 3', q: 'Wie groß ist die Masse des Rohteils (Rundstahl Ø48 × 193)? ρ = 7,85 kg/dm³.',
+   o: ['2,74 kg', '10,97 kg', '0,27 kg', '27,4 kg', '3,49 kg'],
+   e: 'V = π/4 · (0,48 dm)² · 1,93 dm ≈ 0,349 dm³. m = 0,349 dm³ · 7,85 kg/dm³ ≈ 2,74 kg.' },
+ { cat: 'MON', ref: 'Situation', q: 'Der Keilriemen zur Keilriemenscheibe (Pos. 9) wird gespannt. Wie prüfst du die richtige Spannung?',
+   o: ['Mit Prüfkraft und Eindrücktiefe oder mit einem Frequenz-Messgerät nach Herstellerangabe', 'So stark spannen, dass der Riemen nicht mehr nachgibt', 'Nach Gefühl', 'Am Motorgeräusch', 'Mit dem Messschieber an der Riemendicke'],
+   e: 'Zu stramm überlastet die Lager, zu locker rutscht der Riemen.' },
+ { cat: 'TK', lock: true, ref: 'Blatt 3', q: 'Für die Lagersitze ist <b>Ra 0,8</b> angegeben. Was bedeutet das?',
+   o: ['Der arithmetische Mittenrauwert darf höchstens 0,8 µm betragen.', 'Die Rautiefe muss mindestens 0,8 mm sein.', 'Die Rundheit darf 0,8 µm abweichen.', 'Der Durchmesser darf um 0,8 µm abweichen.', 'Die Oberfläche muss 0,8 mm tief gehärtet sein.'],
+   e: 'Ra ist der Mittelwert der Abweichungen des Profils von der Mittellinie. Die Angabe ist ein Höchstwert in µm.' },
+ { cat: 'MON', q: 'Wie baust du einen Radial-Wellendichtring richtig ein?',
+   o: ['Dichtlippe zum Ölraum, Lippe einfetten, über Kanten und Nuten mit einer Montagehülse schieben', 'Dichtlippe nach außen, trocken montieren', 'Mit dem Hammer direkt auf die Dichtlippe schlagen', 'Die Feder der Dichtlippe vorher entfernen', 'Mit Kleber auf der Welle festkleben'],
+   e: 'Die Lippe zeigt zum Medium, das abgedichtet wird. Die Hülse schützt die Lippe vor scharfen Kanten.' },
+ { cat: 'QS', ref: 'Blatt 3', q: 'Mit welchem Messgerät prüfst du den Lagersitz Ø30 k6 (Toleranz 13 µm) in der Werkstatt am besten?',
    o: ['Feinzeiger-Messschraube mit 0,001 mm Ablesung', 'Messschieber mit 0,05 mm Ablesung', 'Bügelmessschraube mit 0,01 mm Ablesung', 'Stahlmaßstab', 'Radiuslehre'],
-   e: 'Faustregel: Die Ablesung sollte höchstens ein Zehntel der Toleranz sein. Bei 9 µm braucht man etwa 1 µm.' },
- { cat: 'QS', q: 'Wie prüfst du den Mittenrauwert Ra 0,4 am Lagersitz?',
-   o: ['Mit einem Tastschnittgerät (Rauheitsmessgerät)', 'Mit dem Messschieber', 'Mit einem Haarlineal', 'Mit einer Grenzrachenlehre', 'Mit der Messuhr in Prismen'],
-   e: 'Das Tastschnittgerät fährt mit einer feinen Diamantspitze über die Fläche und berechnet Ra.' },
- { cat: 'ZER', q: 'Die Passfedernut Form A (beide Enden rund) wird gefertigt. Womit?',
+   e: 'Faustregel: Die Ablesung soll höchstens ein Zehntel der Toleranz sein.' },
+ { cat: 'QS', q: 'Beim Schleifen der Lagersitze ergibt sich ein Prozessfähigkeitsindex <b>c<sub>pk</sub> = 0,8</b>. Was bedeutet das?',
+   o: ['Der Prozess ist nicht fähig. Es entsteht Ausschuss, oder die Lage ist nicht mittig.', 'Der Prozess ist sehr gut fähig.', 'Es sind 0,8 % Ausschuss erlaubt.', 'Die Messmittel sind ungenau.', 'Der Prozess ist fähig, wenn c<sub>pk</sub> unter 1 liegt.'],
+   e: 'Üblich wird c<sub>pk</sub> ≥ 1,33 gefordert.' },
+ { cat: 'ZER', ref: 'Blatt 3', q: 'Die Passfedernuten Form A (beide Enden rund) werden gefertigt. Womit?',
    o: ['Mit einem Langloch- oder Schaftfräser auf der Fräsmaschine', 'Mit einem Scheibenfräser', 'Mit einer Säge', 'Durch Räumen', 'Mit einem Gewindebohrer'],
-   e: 'Ein Schaftfräser erzeugt die runden Enden der Form A. Ein Scheibenfräser würde auslaufende Enden erzeugen.' },
+   e: 'Ein Schaftfräser erzeugt die runden Enden der Form A.' },
  { cat: 'TM', lock: true, gen: true },
- { cat: 'ZER', q: 'Welche Sicherheitsregel gilt an der Drehmaschine?',
-   o: ['Den Spannschlüssel nie im Futter stecken lassen.', 'Späne bei laufender Maschine mit der Hand entfernen.', 'Beim Feilen am drehenden Werkstück Handschuhe tragen.', 'Den Schutz vor dem Futter abbauen, wenn er stört.', 'Werkstücke während des Laufs nachmessen.'],
-   e: 'Ein stecken gelassener Schlüssel wird beim Anlaufen herausgeschleudert. Messen und Späne entfernen nur bei Stillstand.' }
+ { cat: 'SIC', img: true, q: 'An der Schleifmaschine muss Gehörschutz getragen werden. Darauf weist ein <b>Gebotszeichen</b> hin. Welche Abbildung zeigt Form und Farbe eines Gebotszeichens?',
+   o: [sicherheitszeichen('gebot'), sicherheitszeichen('verbot'), sicherheitszeichen('warn'), sicherheitszeichen('rettung'), sicherheitszeichen('brand')],
+   e: 'Gebotszeichen sind blaue Kreise mit weißem Symbol. Verbot: roter Ring mit Balken. Warnung: gelbes Dreieck. Rettung: grün. Brandschutz: rot.' }
     ],
     genA(i, r) {
         if (i === 4) {
             const vc = pick(r, [180, 200, 220, 240, 250]);
-            const n = vc * 1000 / (Math.PI * 36);
-            const o = uniqOpts([n, vc * 1000 / 36, vc * 1000 / (Math.PI * 18), vc * 100 / (Math.PI * 36), vc * 1000 / (Math.PI * 32)].map(x => fmtT(x) + ' 1/min'));
-            return { q: `Die Welle wird aus dem Rohteil Ø36 mm geschruppt. Die Schnittgeschwindigkeit ist <b>v<sub>c</sub> = ${vc} m/min</b>. Welche Drehzahl stellst du ein?`, o,
-                     e: `n = v<sub>c</sub> · 1000 / (π · d) = ${vc} · 1000 / (π · 36) ≈ ${fmtT(n)} 1/min.` };
+            const n = vc * 1000 / (Math.PI * 48);
+            const o = uniqOpts([n, vc * 1000 / 48, vc * 1000 / (Math.PI * 24), vc * 100 / (Math.PI * 48), vc * 1000 / (Math.PI * 42)].map(x => fmtT(x) + ' 1/min'));
+            return { q: `Die Welle wird aus dem Rohteil Ø48 mm geschruppt. Die Schnittgeschwindigkeit ist <b>v<sub>c</sub> = ${vc} m/min</b>. Welche Drehzahl stellst du ein?`, o,
+                     e: `n = v<sub>c</sub> · 1000 / (π · d) = ${vc} · 1000 / (π · 48) ≈ ${fmtT(n)} 1/min.` };
         }
         if (i === 12) {
-            const n = pick(r, [800, 1000, 1250]), f = pick(r, [0.2, 0.25, 0.3]);
-            const th = 92 / (n * f);
-            const o = uniqOpts([th * 60, th, 92 * n * f / 1000, 90 / (n * f) * 60 * 10, 92 / n * 60].map(x => fmt(x, 1) + ' s'));
-            return { q: `Der Absatz Ø32 wird in einem Schnitt längsgedreht. Weg mit An- und Überlauf: <b>L = 92 mm</b>. Drehzahl <b>n = ${n} 1/min</b>, Vorschub <b>f = ${fmt(f, 2)} mm</b>. Wie groß ist die Hauptnutzungszeit?`, o,
-                     e: `t<sub>h</sub> = L · i / (n · f) = 92 / (${n} · ${fmt(f, 2)}) min ≈ ${fmt(th, 3)} min ≈ ${fmt(th * 60, 1)} s.` };
+            const st = pick(r, [6, 8, 10, 12]), n = pick(r, [800, 1000, 1250]), f = pick(r, [0.2, 0.25, 0.3]);
+            const th = st * 70 / (n * f);
+            const o = uniqOpts([th, 70 / (n * f), st * 66 / (n * f), th * 60, st * 70 * n * f / 100000].map(x => fmt(x, 2) + ' min'));
+            return { q: `Es werden <b>${st} Abtriebswellen</b> gefertigt. Der Absatz Ø30 (66 mm lang) wird in einem Schnitt längsgedreht. Weg mit An- und Überlauf: L = 70 mm. Drehzahl <b>n = ${n} 1/min</b>, Vorschub <b>f = ${fmt(f, 2)} mm</b>. Wie groß ist die Hauptnutzungszeit für alle Wellen?`, o,
+                     e: `t<sub>h</sub> = L · i / (n · f) = 70 / (${n} · ${fmt(f, 2)}) min ≈ ${fmt(70 / (n * f), 3)} min je Welle. Für ${st} Wellen: ≈ ${fmt(th, 2)} min.` };
         }
         if (i === 27) {
-            const kc = pick(r, [2000, 2100, 2200, 2400]), ap = 2, f = 0.3;
-            const Fc = ap * f * kc;
-            const o = uniqOpts([Fc, Fc * 10, Fc / 10, ap * kc, f * kc].map(x => fmtT(x) + ' N'));
-            return { q: `Beim Schruppen ist a<sub>p</sub> = 2 mm und f = 0,3 mm. Die spezifische Schnittkraft beträgt <b>k<sub>c</sub> = ${fmtT(kc)} N/mm²</b>. Wie groß ist die Schnittkraft F<sub>c</sub>?`, o,
-                     e: `A = a<sub>p</sub> · f = 2 mm · 0,3 mm = 0,6 mm². F<sub>c</sub> = A · k<sub>c</sub> = 0,6 · ${fmtT(kc)} ≈ ${fmtT(Fc)} N.` };
+            const [a, b] = pick(r, [[4.5, 3.6], [5, 4], [6, 4.5], [8, 6], [3.2, 2.4]]);
+            const pct = (a - b) / a * 100;
+            const o = uniqOpts([pct, (a - b) / b * 100, b / a * 100, (a - b) * 10, 100 - (a - b) / b * 100].map(x => fmt(x, 1) + ' %'));
+            return { q: `Mit einem neuen Wendeschneidplatten-Typ sinkt die Bearbeitungszeit einer Welle von <b>${fmt(a, 1)} min</b> auf <b>${fmt(b, 1)} min</b>. Wie groß ist die Zeitersparnis in Prozent?`, o,
+                     e: `Ersparnis = (${fmt(a, 1)} − ${fmt(b, 1)}) / ${fmt(a, 1)} · 100 % ≈ ${fmt(pct, 1)} %. Der Grundwert ist die alte Zeit.` };
         }
     },
     buildB(rngFor) {
-        const r2 = rngFor('B2'), r3 = rngFor('B3');
+        const r2 = rngFor('B2'), r8 = rngFor('B8');
         const vc = pick(r2, [180, 200, 220, 250]), f = pick(r2, [0.1, 0.12, 0.15]), fs = pick(r2, [0.08, 0.1, 0.12]);
-        const n = vc * 1000 / (Math.PI * 25.3), th = 34 / (n * f) * 60, rth = fs * fs / (8 * 0.8) * 1000;
+        const n = vc * 1000 / (Math.PI * 30.3), th = 19 / (n * f) * 60, rth = fs * fs / (8 * 0.8) * 1000;
+        const ist = [];
+        const mk = (ok, okV, badV) => ist.push({ ok, val: ok ? pick(r8, okV) : pick(r8, badV) });
+        mk(r8() < 0.5, ['30,004', '30,011', '30,014'], ['30,017', '30,001', '29,998']);
+        mk(r8() < 0.5, ['36,020', '36,029', '36,018'], ['36,035', '36,015', '36,012']);
+        mk(r8() < 0.5, ['25,005', '25,012', '25,003'], ['25,016', '25,001', '24,999']);
         return [
-        { id: 'B1', title: 'Arbeitsplan für die Antriebswelle', intro: 'Die Welle (Pos. 1) wird aus vergütetem Rundstahl 42CrMo4+QT gefertigt. Sieh dir die Einzelteilzeichnung an.',
+        { id: 'B1', title: 'Arbeitsplan für die Abtriebswelle', ref: 'Blatt 3', intro: 'Die Abtriebswelle (Pos. 3) wird aus vergütetem Rundstahl 42CrMo4+QT gefertigt.',
           parts: [
             { id: 'a', type: 'order', pts: 6, cat: 'ZER', q: 'Bringe die Arbeitsschritte in die richtige Reihenfolge.',
-              items: ['Rohteil Ø36 × 225 sägen', 'Beidseitig plandrehen auf 220 mm und zentrieren', 'Zwischen Spitzen schruppen, Aufmaß stehen lassen', 'Schlichten mit Einstichen, Freistichen und Fasen', 'Passfedernuten fräsen', 'Lagersitze und Wellenenden rundschleifen'],
-              e: 'Erst Rohteil und Zentrierbohrungen, dann Drehen (grob, dann fein), dann Fräsen der Nuten. Geschliffen wird zum Schluss, damit die Passflächen nicht mehr beschädigt werden.' },
+              items: ['Rohteil Ø48 × 193 sägen', 'Beidseitig plandrehen auf 188 mm und zentrieren', 'Zwischen Spitzen schruppen, Aufmaß stehen lassen', 'Schlichten mit Freistichen und Fasen', 'Passfedernuten fräsen', 'Lagersitze und Dichtringlaufbahn rundschleifen'],
+              e: 'Erst Rohteil und Zentrierbohrungen, dann Drehen, dann Fräsen. Geschliffen wird zum Schluss.' },
             { id: 'b', type: 'text', pts: 4, cat: 'ZER', q: 'Begründe: Warum wird zwischen Spitzen gedreht und geschliffen? Warum wird zuletzt geschliffen?',
-              crit: [{ t: 'Zwischen Spitzen: alle Durchmesser auf derselben Achse → guter Rundlauf (A-B).', p: 1 }, { t: 'Umspannen ist ohne Genauigkeitsverlust möglich (Drehen → Schleifen).', p: 1 },
-                     { t: 'Schleifen zuletzt: nur dort Endmaß, Toleranz IT5 und Ra 0,4.', p: 1 }, { t: 'Spätere Arbeitsgänge (Fräsen, Spannen) könnten die Passflächen sonst beschädigen.', p: 1 }],
-              muster: 'Die Zentrierbohrungen bilden eine feste Achse. Beim Drehen und beim Schleifen beziehen sich alle Durchmesser darauf. So stimmt der Rundlauf, auch nach dem Umspannen. Geschliffen wird zum Schluss, weil erst dann die engen Toleranzen und die feine Oberfläche entstehen. Frühere Schritte würden die fertigen Flächen sonst wieder beschädigen.' }
+              crit: [{ t: 'Zwischen Spitzen: alle Durchmesser auf derselben Achse → Rundlauf A-B.', p: 1 }, { t: 'Umspannen zwischen Drehen und Schleifen ohne Genauigkeitsverlust.', p: 1 },
+                     { t: 'Schleifen zuletzt: erst dann Endmaß, enge Toleranz (k6, n6) und feine Oberfläche.', p: 1 }, { t: 'Spätere Arbeitsgänge (Fräsen, Spannen) würden die fertigen Flächen sonst beschädigen.', p: 1 }],
+              muster: 'Die Zentrierbohrungen bilden eine feste Achse. Beim Drehen und Schleifen beziehen sich alle Durchmesser darauf. So stimmt der Rundlauf, auch nach dem Umspannen. Geschliffen wird zum Schluss, weil dann die engen Toleranzen und feinen Oberflächen entstehen, die nicht mehr beschädigt werden sollen.' }
           ] },
-        { id: 'B2', title: 'Schnittdaten beim Drehen', intro: `Der Lagersitz wird vor dem Schleifen auf <b>Ø25,3 mm</b> geschlichtet. Schnittgeschwindigkeit <b>v<sub>c</sub> = ${vc} m/min</b>, Vorschub <b>f = ${fmt(f, 2)} mm</b>, Weg mit Anlauf <b>L = 34 mm</b>, ein Schnitt.`,
+        { id: 'B2', title: 'Schnittdaten beim Drehen', ref: 'Blatt 3', intro: `Der linke Lagersitz wird vor dem Schleifen auf <b>Ø30,3 mm</b> geschlichtet. Schnittgeschwindigkeit <b>v<sub>c</sub> = ${vc} m/min</b>, Vorschub <b>f = ${fmt(f, 2)} mm</b>, Weg mit Anlauf <b>L = 19 mm</b>, ein Schnitt.`,
           parts: [
-            { id: 'a', type: 'num', pts: 6, cat: 'TM', q: 'Berechne Drehzahl (auf ganze Zahl gerundet) und Hauptnutzungszeit (eine Nachkommastelle).',
+            { id: 'a', type: 'num', pts: 6, cat: 'TM', q: 'Berechne Drehzahl (ganze Zahl) und Hauptnutzungszeit (eine Nachkommastelle).',
               fields: [{ label: 'Drehzahl n', unit: '1/min', ans: n, tol: n * 0.015, show: String(Math.round(n)) }, { label: 'Hauptnutzungszeit t<sub>h</sub>', unit: 's', ans: th, tol: th * 0.03, show: fmt(th, 1) }],
-              e: `n = ${vc} · 1000 / (π · 25,3) ≈ ${fmtT(n)} 1/min. t<sub>h</sub> = L / (n · f) = 34 / (${fmtT(n)} · ${fmt(f, 2)}) min ≈ ${fmt(th / 60, 4)} min ≈ ${fmt(th, 1)} s.` },
-            { id: 'b', type: 'num', pts: 2, cat: 'TM', q: `Berechne die theoretische Rautiefe mit R<sub>th</sub> = f² / (8 · r) für den Vorschub <b>f = ${fmt(fs, 2)} mm</b> und den Eckenradius <b>r = 0,8 mm</b>. Gib das Ergebnis in µm an (zwei Nachkommastellen).`,
+              e: `n = ${vc} · 1000 / (π · 30,3) ≈ ${fmtT(n)} 1/min. t<sub>h</sub> = 19 / (${fmtT(n)} · ${fmt(f, 2)}) min ≈ ${fmt(th, 1)} s.` },
+            { id: 'b', type: 'num', pts: 2, cat: 'TM', q: `Berechne die theoretische Rautiefe R<sub>th</sub> = f² / (8 · r) für <b>f = ${fmt(fs, 2)} mm</b> und <b>r = 0,8 mm</b> in µm (zwei Nachkommastellen).`,
               fields: [{ label: 'R<sub>th</sub>', unit: 'µm', ans: rth, tol: 0.02, show: fmt(rth, 2) }],
-              e: `R<sub>th</sub> = ${fmt(fs, 2)}² / (8 · 0,8) mm = ${fmt(rth / 1000, 5)} mm ≈ ${fmt(rth, 2)} µm.` },
+              e: `R<sub>th</sub> = ${fmt(fs, 2)}² / (8 · 0,8) mm ≈ ${fmt(rth, 2)} µm.` },
             { id: 'c', type: 'select', pts: 2, cat: 'ZER', q: 'Welche Wendeschneidplatte wählst du zum Schlichten bis an den Wellenabsatz?',
-              options: ['Rhombische Platte mit spitzem Eckenwinkel (z. B. 35°) und Spanformer für Schlichten', 'Runde Platte für Schruppen', 'Quadratische Platte mit 90° Eckenwinkel und großem Radius 2,4 mm', 'Abstechplatte'], ans: 0,
+              options: ['Rhombische Platte mit spitzem Eckenwinkel (z. B. 35°) und Spanformer für Schlichten', 'Runde Platte für Schruppen', 'Quadratische Platte mit großem Radius 2,4 mm', 'Abstechplatte'], ans: 0,
               e: 'Eine schlanke Platte kommt bis an den Absatz und eignet sich für kleine Schnitttiefen.' }
           ] },
-        { id: 'B3', title: 'CNC-Programm für die Außenkontur', intro: 'Die rechte Wellenseite wird auf einer CNC-Drehmaschine geschlichtet. Werkstücknullpunkt: Mitte der rechten Planfläche. X wird als <b>Durchmesser</b> programmiert. Es gilt G90. Fase am Ende: 1 × 45°. Freistiche und Einstiche bleiben unberücksichtigt.',
+        { id: 'B3', title: 'CNC-Programm für die Außenkontur', ref: 'Blatt 3', intro: 'Die rechte Wellenseite wird auf einer CNC-Drehmaschine geschlichtet. Werkstücknullpunkt: Mitte der rechten Planfläche. X wird als <b>Durchmesser</b> programmiert, G90. Fase am Ende: 1 × 45°. Freistiche bleiben unberücksichtigt.',
           parts: [
             { id: 'a', type: 'num', pts: 5, cat: 'CNC', q: 'Ergänze die Koordinaten der Kontur von rechts nach links.',
-              fields: [{ label: 'Fasenanfang: X', unit: '', ans: 18, tol: 0.001, show: '18' }, { label: 'Fasenende: Z', unit: '', ans: -1, tol: 0.001, show: '−1' },
-                       { label: 'Ende Ø20 (Absatz): Z', unit: '', ans: -34, tol: 0.001, show: '−34' }, { label: 'Ende Ø25 (Absatz): Z', unit: '', ans: -65, tol: 0.001, show: '−65' },
-                       { label: 'Absatz Ø32: X', unit: '', ans: 32, tol: 0.001, show: '32' }],
-              e: 'Fase 1 × 45° am Ø20: Start bei X18 Z0, Ende bei X20 Z−1. Ø20 ist 34 mm lang → Z−34. Ø25 ist 31 mm lang → Z−65. Dann Plan auf X32.' },
+              fields: [{ label: 'Fasenanfang: X', unit: '', ans: 23, tol: 0.001, show: '23' }, { label: 'Fasenende: Z', unit: '', ans: -1, tol: 0.001, show: '−1' },
+                       { label: 'Ende Ø25 (Absatz): Z', unit: '', ans: -40, tol: 0.001, show: '−40' }, { label: 'Absatz: X', unit: '', ans: 30, tol: 0.001, show: '30' },
+                       { label: 'Ende Ø30 (Absatz zum Ø36): Z', unit: '', ans: -106, tol: 0.001, show: '−106' }],
+              e: 'Fase am Ø25: X23 Z0 → X25 Z−1. Ø25 ist 40 mm lang → Z−40. Plan auf X30. Ø30 ist 66 mm lang → Z−106.' },
             { id: 'b', type: 'select', pts: 2, cat: 'CNC', q: 'Mit welchem Befehl fährst du die Kontur im Vorschub als Gerade ab?',
               options: ['G01', 'G00', 'G02', 'G96'], ans: 0, e: 'G01 = Gerade im Vorschub.' },
             { id: 'c', type: 'select', pts: 3, cat: 'CNC', q: 'Warum muss beim Drehen der Fase die Schneidenradiuskorrektur eingeschaltet sein?',
-              options: ['Ohne Korrektur rechnet die Steuerung mit dem theoretischen Schneidenpunkt. An Fasen und Radien entstehen dann Maßfehler.', 'Ohne Korrektur dreht die Spindel falsch herum.', 'Die Korrektur verlängert die Standzeit der Platte.', 'Die Korrektur ist nur beim Gewindedrehen nötig.'], ans: 0,
-              e: 'Der Schneidenradius ist rund. Bei schrägen und runden Konturen läge die echte Schneide sonst neben der programmierten Kontur.' }
+              options: ['Ohne Korrektur rechnet die Steuerung mit dem theoretischen Schneidenpunkt. An Fasen und Radien entstehen Maßfehler.', 'Ohne Korrektur dreht die Spindel falsch herum.', 'Die Korrektur verlängert die Standzeit.', 'Die Korrektur ist nur beim Gewindedrehen nötig.'], ans: 0,
+              e: 'Bei schrägen und runden Konturen läge die echte Schneide sonst neben der programmierten Kontur.' }
           ] },
-        { id: 'B4', title: 'Rundschleifen der Lagersitze', intro: 'Die Lagersitze Ø25 k5 werden mit der Scheibe <b>A 60 K 5 V</b> geschliffen.',
+        { id: 'B4', title: 'Normteile aus dem Tabellenbuch', ref: 'Blatt 1, 2', intro: 'Für die Fertigung werden Maße von Normteilen gebraucht. Nutze die Tabellen zu Sicherungsringen (DIN 471) und Passfedern (DIN 6885) in deinem Tabellenbuch.',
           parts: [
-            { id: 'a', type: 'select', pts: 2, cat: 'SCH', q: 'Welches Schleifverfahren setzt du ein?',
-              options: ['Außen-Längs-Rundschleifen zwischen Spitzen', 'Flachschleifen auf der Magnetspannplatte', 'Innenrundschleifen', 'Profilschleifen mit Diamantrolle'], ans: 0,
-              e: 'Zylindrische Wellenabschnitte schleift man außen rund, die Welle läuft zwischen Spitzen.' },
-            { id: 'b', type: 'match', pts: 4, cat: 'SCH', q: 'Was bedeuten die Teile der Bezeichnung A 60 K 5 V?',
-              rows: ['A', '60', 'K', 'V'], options: ['Schleifmittel (Normalkorund)', 'Körnung', 'Härtegrad', 'Bindung (keramisch)'], ans: [0, 1, 2, 3],
-              e: 'A = Korund, 60 = Körnung, K = Härte, 5 = Gefüge, V = keramische Bindung.' },
-            { id: 'c', type: 'text', pts: 4, cat: 'SCH', q: 'Nenne vier Sicherheitsmaßnahmen beim Rundschleifen.',
-              crit: [{ t: 'Schutzbrille tragen.', p: 1 }, { t: 'Schutzhaube muss montiert und richtig eingestellt sein.', p: 1 },
-                     { t: 'Zulässige Umfangsgeschwindigkeit der Scheibe nicht überschreiten, neue Scheibe mit Klangprobe und Probelauf.', p: 1 }, { t: 'Werkstück sicher spannen, nicht in die laufende Scheibe greifen / keine weite Kleidung.', p: 1 }],
-              muster: 'Schutzbrille tragen. Die Schutzhaube muss dran sein. Die Scheibe darf nur bis zur angegebenen Umfangsgeschwindigkeit laufen. Neue Scheiben vorher mit Klangprobe und Probelauf prüfen. Das Werkstück sicher spannen. Nicht in die laufende Scheibe greifen, enge Kleidung tragen.' }
+            { id: 'a', type: 'num', pts: 4, cat: 'TK', q: 'Welche Maße bekommt der Einstich für den Sicherungsring 25 × 1,2 (Pos. 24) auf der Ritzelwelle?',
+              fields: [{ label: 'Nutdurchmesser d₂', unit: 'mm', ans: 23.9, tol: 0.001, show: '23,9' }, { label: 'Nutbreite m', unit: 'mm', ans: 1.3, tol: 0.001, show: '1,3' }],
+              e: 'DIN 471 für d₁ = 25 mm: d₂ = 23,9 mm, m = 1,3 mm.' },
+            { id: 'b', type: 'num', pts: 4, cat: 'TK', q: 'Welche Maße hat die Passfedernut für den Wellendurchmesser 36 mm (Stirnradsitz)?',
+              fields: [{ label: 'Breite b', unit: 'mm', ans: 10, tol: 0.001, show: '10' }, { label: 'Wellennuttiefe t₁', unit: 'mm', ans: 5, tol: 0.001, show: '5' }],
+              e: 'DIN 6885 für Wellen über 30 bis 38 mm: b × h = 10 × 8, t₁ = 5,0 mm. Das passt zu Schnitt C–C (36 − 5 = 31).' },
+            { id: 'c', type: 'select', pts: 2, cat: 'TK', q: 'Was bedeutet „Form A“ bei der Passfeder?',
+              options: ['rundstirnig (beide Enden rund)', 'geradstirnig (beide Enden eckig)', 'mit Halteschraube', 'mit Abdrückgewinde'], ans: 0,
+              e: 'Form A ist rundstirnig. Die Nut wird deshalb mit einem Schaftfräser gefertigt.' }
           ] },
-        { id: 'B5', title: 'Wärmebehandlung', intro: 'Als Ersatz soll eine Welle aus unvergütetem 42CrMo4 gefertigt und selbst vergütet werden.',
+        { id: 'B5', title: 'Ölwechsel am Getriebe', ref: 'Situation, Blatt 1', intro: 'Bei der Instandsetzung wird das Getriebeöl CLP 220 gewechselt.',
           parts: [
-            { id: 'a', type: 'order', pts: 4, cat: 'WST', q: 'Bringe die Schritte des Vergütens in die richtige Reihenfolge.',
-              items: ['Erwärmen auf Härtetemperatur (etwa 830–860 °C)', 'Halten, bis das Teil durchgewärmt ist', 'Abschrecken in Öl', 'Anlassen bei etwa 540–680 °C und abkühlen'],
-              e: 'Härten (erwärmen, halten, abschrecken), dann Anlassen bei hoher Temperatur.' },
-            { id: 'b', type: 'select', pts: 2, cat: 'WST', q: 'In welchem Mittel schreckt man 42CrMo4 üblicherweise ab?',
-              options: ['Öl', 'Eiswasser mit Salz', 'Ruhende Luft im Ofen', 'Sand'], ans: 0,
-              e: 'Legierte Stähle wie 42CrMo4 härten schon bei milderem Abschrecken. Öl verringert die Rissgefahr.' },
-            { id: 'c', type: 'text', pts: 4, cat: 'WST', q: 'Erkläre, was beim Härten im Gefüge passiert und warum man danach anlässt.',
-              crit: [{ t: 'Beim Erwärmen entsteht Austenit, der Kohlenstoff wird gelöst.', p: 1 }, { t: 'Beim schnellen Abkühlen kann der Kohlenstoff nicht herauswandern.', p: 1 },
-                     { t: 'Es entsteht Martensit: sehr hart, aber spröde.', p: 1 }, { t: 'Anlassen baut Spannungen ab und macht den Stahl zäher.', p: 1 }],
-              muster: 'Über der Härtetemperatur wandelt sich das Gefüge in Austenit um. Der Kohlenstoff ist darin gelöst. Beim Abschrecken hat er keine Zeit, wieder auszuscheiden. Es entsteht Martensit. Der ist sehr hart, aber spröde und hat Spannungen. Beim Anlassen werden die Spannungen abgebaut, und der Stahl wird zäher.' }
+            { id: 'a', type: 'match', pts: 4, cat: 'MON', q: 'Was bedeuten die Teile der Bezeichnung CLP 220?',
+              rows: ['C', 'L', 'P', '220'], options: ['Schmieröl (Umlaufschmieröl) nach DIN 51517', 'Wirkstoffe gegen Korrosion und Alterung', 'Wirkstoffe gegen Verschleiß (Hochdruckzusätze)', 'Viskositätsklasse ISO VG 220'], ans: [0, 1, 2, 3],
+              e: 'CLP-Öle werden für hoch belastete Getriebe verwendet.' },
+            { id: 'b', type: 'order', pts: 3, cat: 'MON', q: 'Bringe die Schritte des Ölwechsels in die richtige Reihenfolge.',
+              items: ['Getriebe warmlaufen lassen, dann abschalten und sichern', 'Auffangwanne unterstellen, Verschlussschraube (Pos. 20) öffnen, Öl ablassen', 'Neuen Dichtring (Pos. 21) einlegen, Verschlussschraube festziehen', 'Neues Öl bis zum Ölstand einfüllen, Dichtheit prüfen'],
+              e: 'Warmes Öl fließt besser ab und nimmt den Schmutz mit.' },
+            { id: 'c', type: 'text', pts: 3, cat: 'SIC', q: 'Nenne drei Regeln für den Umgang mit dem Altöl.',
+              crit: [{ t: 'Altöl in gekennzeichneten, dichten Behältern sammeln (Auffangwanne, Ölbinder bereithalten).', p: 1 }, { t: 'Nicht mit anderen Stoffen (z. B. Wasser, Lösungsmitteln, Kühlschmierstoff) mischen.', p: 1 }, { t: 'Als gefährlichen Abfall über einen zugelassenen Entsorger abgeben, nie in Kanal oder Boden.', p: 1 }],
+              muster: 'Altöl wird in dichten, beschrifteten Behältern gesammelt. Es darf nicht mit Wasser, Lösungsmitteln oder anderen Ölen vermischt werden. Es ist gefährlicher Abfall und geht an einen zugelassenen Entsorger. Verschüttetes Öl wird mit Ölbinder aufgenommen.' }
           ] },
-        { id: 'B6', title: 'Montage der Lagereinheit', intro: 'Die Lagereinheit wird mit der neuen Welle und neuen Lagern montiert.',
+        { id: 'B6', title: 'Einsatzhärten der Ritzelwelle', ref: 'Blatt 2', intro: 'Die Ritzelwelle (Pos. 2) aus 16MnCr5 wird einsatzgehärtet.',
           parts: [
-            { id: 'a', type: 'order', pts: 6, cat: 'MON', q: 'Bringe die Montageschritte in die richtige Reihenfolge.',
-              items: ['Lager erwärmen und bis zum Wellenabsatz aufschieben', 'Sicherungsringe (Pos. 4) einsetzen', 'Welle mit den Lagern in das Gehäuse schieben', 'Lagerdeckel mit eingepressten Wellendichtringen aufsetzen, Schrauben über Kreuz anziehen', 'Leichtgängigkeit durch Drehen von Hand prüfen', 'Passfeder einsetzen und Riemenscheibe montieren'],
-              e: 'Lager auf die Welle, axial sichern, in das Gehäuse, Deckel montieren. Dann prüfen und die Antriebsteile anbauen.' },
-            { id: 'b', type: 'num', pts: 4, cat: 'TM', q: 'Das Lager (Bohrung 25 mm) wird erwärmt. Längenausdehnungskoeffizient α = 0,000012 1/K. Runde auf drei Nachkommastellen bzw. ganze Kelvin.',
-              fields: [{ label: 'Aufweitung Δd bei ΔT = 80 K', unit: 'mm', ans: 0.024, tol: 0.0005, show: '0,024' }, { label: 'nötige ΔT für Δd = 0,030 mm', unit: 'K', ans: 100, tol: 1, show: '100' }],
-              e: 'Δd = α · d · ΔT = 0,000012 · 25 · 80 = 0,024 mm. ΔT = Δd / (α · d) = 0,03 / (0,000012 · 25) = 100 K.' }
+            { id: 'a', type: 'order', pts: 4, cat: 'WST', q: 'Bringe die Schritte in die richtige Reihenfolge.',
+              items: ['Aufkohlen bei etwa 880–950 °C', 'Härten: von Härtetemperatur abschrecken', 'Anlassen bei etwa 150–200 °C', 'Lagersitze und Zahnflanken fertig schleifen'],
+              e: 'Aufkohlen, Härten, Anlassen. Danach wird der Verzug durch Schleifen beseitigt.' },
+            { id: 'b', type: 'select', pts: 2, cat: 'WST', q: 'Warum wählt man für das Einsatzhärten einen Stahl mit wenig Kohlenstoff (0,16 %)?',
+              options: ['Der Kern bleibt zäh, nur die aufgekohlte Randschicht wird hart.', 'Weil er sich besser schweißen lässt.', 'Weil er nach dem Härten rostfrei ist.', 'Weil er sich ohne Abschrecken härten lässt.'], ans: 0,
+              e: 'Nur wo Kohlenstoff eindiffundiert ist, entsteht beim Abschrecken harter Martensit.' },
+            { id: 'c', type: 'text', pts: 4, cat: 'WST', q: 'Welche Eigenschaften braucht eine Ritzelwelle im Betrieb? Begründe mit der Belastung (vier Punkte).',
+              crit: [{ t: 'Harte, verschleißfeste Zahnflanken (Abwälzen unter hoher Flächenpressung).', p: 1 }, { t: 'Zäher Kern (Stöße beim Anlaufen, Biegung im Zahnfuß).', p: 1 },
+                     { t: 'Hohe Dauerfestigkeit (wechselnde Belastung bei jeder Umdrehung).', p: 1 }, { t: 'Harte Lagersitze bzw. Maßbeständigkeit nach dem Schleifen.', p: 1 }],
+              muster: 'Die Zahnflanken rollen unter hohem Druck aufeinander ab. Sie müssen hart und verschleißfest sein. Beim Anlaufen gibt es Stöße, und der Zahnfuß wird auf Biegung belastet. Deshalb braucht man einen zähen Kern. Weil die Belastung bei jeder Umdrehung wechselt, ist eine hohe Dauerfestigkeit wichtig.' }
           ] },
-        { id: 'B7', title: 'Schweißen am Hubtisch', intro: 'Am Rahmen des Hubtisches (S235JR) wird eine Halterung angeschweißt.',
+        { id: 'B7', title: 'Skizze: Lagerdeckel im Halbschnitt', ref: 'Blatt 1, 2', intro: 'Für die Fertigung eines Ersatzteils wird eine Skizze gebraucht.',
           parts: [
-            { id: 'a', type: 'match', pts: 4, cat: 'MON', q: 'Was bedeuten die Abkürzungen der Schweißverfahren?',
-              rows: ['MAG', 'MIG', 'WIG', 'E'], options: ['Metall-Aktivgasschweißen', 'Metall-Inertgasschweißen', 'Wolfram-Inertgasschweißen', 'Lichtbogenhandschweißen (Stabelektrode)'], ans: [0, 1, 2, 3],
-              e: 'Aktivgas (z. B. CO₂-Gemisch) reagiert mit, Inertgas (Argon) nicht. Bei WIG schmilzt die Wolframelektrode nicht ab.' },
-            { id: 'b', type: 'select', pts: 2, cat: 'MON', q: 'Welches Schutzgas nimmst du für MAG an unlegiertem Baustahl?',
-              options: ['Mischgas aus Argon und CO₂', 'Reines Argon', 'Reiner Sauerstoff', 'Stickstoff'], ans: 0,
-              e: 'Für Baustahl nimmt man Mischgas (z. B. Ar + 18 % CO₂). Reines Argon wäre MIG, z. B. für Aluminium.' },
-            { id: 'c', type: 'text', pts: 4, cat: 'MON', q: 'Nenne vier Gefahren beim Schweißen und je eine Schutzmaßnahme (je Paar 1 Punkt).',
-              crit: [{ t: 'UV-Strahlung → Schweißschirm/Automatikhelm, Schutzkleidung, Abschirmung.', p: 1 }, { t: 'Schweißrauch → Absaugung, Lüftung.', p: 1 },
-                     { t: 'Brand/Spritzer → brennbare Stoffe entfernen, Feuerlöscher, Brandwache.', p: 1 }, { t: 'Elektrischer Strom → intakte Kabel, trockene Handschuhe, Werkstückklemme nah an der Naht.', p: 1 }],
-              muster: 'UV-Licht schädigt Augen und Haut: Schweißhelm und Schutzkleidung tragen. Rauch ist giftig: absaugen. Funken können Brände auslösen: brennbares Material weg, Feuerlöscher bereit. Strom: nur intakte Leitungen, trockene Handschuhe. Heiße Teile: Zange und Lederhandschuhe benutzen.' }
+            { id: 'a', type: 'sketch', pts: 10, cat: 'TK', q: 'Skizziere den Lagerdeckel (Pos. 8) mit Zentrierbund im <b>Halbschnitt</b> ohne Bemaßung. Die Mittellinie liegt waagerecht.',
+              crit: [{ t: 'Mittellinie als Strich-Punkt-Linie gezeichnet, sie trennt die beiden Hälften.', p: 2 }, { t: 'Obere Hälfte geschnitten und schraffiert (dünne Linien, 45°, gleichmäßig).', p: 2 },
+                     { t: 'Untere Hälfte als Ansicht ohne Schraffur und ohne verdeckte Kanten.', p: 2 }, { t: 'Zentrierbund in beiden Hälften dargestellt.', p: 2 }, { t: 'Körperkanten als breite Volllinien, Proportionen ungefähr richtig.', p: 2 }],
+              muster: `Halbschnitt: oben geschnitten, unten Ansicht. ${deckelHalbschnitt('ok', 'pM1')}` }
           ] },
-        { id: 'B8', title: 'Prüfplanung für die Welle', intro: 'Für die neue Welle wird ein Prüfplan erstellt.',
+        { id: 'B8', title: 'Prüfen der Abtriebswelle', ref: 'Blatt 3', intro: 'Die neue Abtriebswelle wird geprüft. Nutze die Einzelteilzeichnung und dein Tabellenbuch (ISO-Toleranzen für Wellen).',
           parts: [
-            { id: 'a', type: 'match', pts: 5, cat: 'QS', q: 'Ordne jedem Merkmal das passende Prüfmittel zu.',
-              rows: ['Lagersitz Ø25 k5', 'Gesamtlänge 220', 'Nutbreite 6 P9', 'Rundlauf 0,02 A-B', 'Ra 0,4'],
-              options: ['Feinzeiger-Messschraube', 'Messschieber', 'Grenzlehre (Nutlehre)', 'Messuhr, Welle in Prismen', 'Tastschnittgerät'], ans: [0, 1, 2, 3, 4],
-              e: 'Je enger die Toleranz, desto feiner muss das Prüfmittel anzeigen. Für Formen und Lagen braucht man besondere Messaufbauten.' },
-            { id: 'b', type: 'num', pts: 2, cat: 'QS', q: 'Wie groß ist die Maßtoleranz von Ø25 k5? (Tabellenbuch)',
-              fields: [{ label: 'Toleranz T', unit: 'µm', ans: 9, tol: 0.01, show: '9' }],
-              e: 'k5 für über 18 bis 30 mm: +11 / +2 µm → T = 9 µm (IT5).' },
-            { id: 'c', type: 'text', pts: 3, cat: 'QS', q: 'Die Welle kommt warm von der Schleifmaschine. Warum misst du sie nicht sofort? Begründe.',
-              crit: [{ t: 'Bezugstemperatur für Maße ist 20 °C.', p: 1 }, { t: 'Stahl dehnt sich bei Wärme aus (etwa 0,012 mm je m und K).', p: 1 }, { t: 'Bei 9 µm Toleranz führen schon wenige Kelvin zu Fehlmessungen → erst abkühlen lassen.', p: 1 }],
-              muster: 'Alle Maße gelten bei 20 °C. Warmer Stahl ist größer. Bei 25 mm und 10 K wächst der Durchmesser um etwa 3 µm. Das ist ein Drittel der Toleranz. Deshalb lässt man die Welle abkühlen und misst dann.' }
+            { id: 'a', type: 'num', pts: 4, cat: 'QS', q: 'Bestimme die Grenzmaße. Drei Nachkommastellen.',
+              fields: [{ label: 'Ø30 k6 Höchstmaß', unit: 'mm', ans: 30.015, tol: 0.0005, show: '30,015' }, { label: 'Ø30 k6 Mindestmaß', unit: 'mm', ans: 30.002, tol: 0.0005, show: '30,002' },
+                       { label: 'Ø36 n6 Höchstmaß', unit: 'mm', ans: 36.033, tol: 0.0005, show: '36,033' }, { label: 'Ø36 n6 Mindestmaß', unit: 'mm', ans: 36.017, tol: 0.0005, show: '36,017' }],
+              e: 'k6 für über 18 bis 30 mm: +15 / +2 µm. n6 für über 30 bis 50 mm: +33 / +17 µm.' },
+            { id: 'b', type: 'match', pts: 3, cat: 'QS', q: 'Prüfprotokoll: Sind die Istmaße in Ordnung?',
+              rows: [`Lagersitz Ø30 k6 – Istmaß ${ist[0].val} mm`, `Stirnradsitz Ø36 n6 – Istmaß ${ist[1].val} mm`, `Wellenende Ø25 k6 – Istmaß ${ist[2].val} mm`],
+              options: ['i. O.', 'n. i. O.'], ans: ist.map(x => x.ok ? 0 : 1), keepOrder: true,
+              e: 'Grenzmaße: Ø30 k6: 30,002 … 30,015 · Ø36 n6: 36,017 … 36,033 · Ø25 k6: 25,002 … 25,015 mm.' },
+            { id: 'c', type: 'text', pts: 3, cat: 'QS', q: 'Beschreibe, wie du die Rundlauftoleranz 0,02 mm (Bezug A-B) am Ø36 prüfst.',
+              crit: [{ t: 'Welle auf den Bezugsflächen A und B lagern (z. B. zwei Prismen).', p: 1 }, { t: 'Messuhr senkrecht auf den Ø36 setzen, Welle eine volle Umdrehung drehen.', p: 1 }, { t: 'Größter minus kleinster Wert ≤ 0,02 mm → i. O.', p: 1 }],
+              muster: 'Die Welle wird mit den beiden Lagersitzen A und B in Prismen gelegt. Die Messuhr steht senkrecht auf dem Ø36. Dann dreht man die Welle eine ganze Umdrehung. Die Differenz zwischen größtem und kleinstem Wert darf höchstens 0,02 mm sein.' }
           ] }
         ];
     }
@@ -867,7 +1011,7 @@ function buildA() {
         const nr = idx + 1;
         const base = d.gen ? EXAM.genA(nr, rngFor('A' + nr)) : { q: d.q, o: d.o, e: d.e };
         const order = shuffle(rngFor('Aorder' + nr), base.o.map((_, k) => k));
-        return { nr, cat: d.cat, lock: !!d.lock, q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
+        return { nr, cat: d.cat, lock: !!d.lock, ref: base.ref || d.ref || '', img: !!(base.img || d.img), q: base.q, opts: order.map(k => base.o[k]), correct: order.indexOf(0), e: base.e };
     });
 }
 /* ---------- Teil B ---------- */
@@ -908,8 +1052,8 @@ function renderA() {
       <div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span>
         ${a.lock ? `<span class="badge lock">🔒 nicht abwählbar · ${lockLabel(a.cat)}</span>` : `<button class="abw-btn" data-abw="${a.nr}">Abwählen</button>`}
       </div>
-      <div class="qtext">${a.q}</div>
-      <div class="opts">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
+      ${a.ref ? `<div class="ref">📐 ${a.ref}</div>` : ''}<div class="qtext">${a.q}</div>
+      <div class="opts ${a.img ? 'imgopts' : ''}">${a.opts.map((o, k) => `<label class="opt" data-q="${a.nr}" data-k="${k}"><input type="radio" name="a${a.nr}"><span class="onr">${k + 1}</span><span>${o}</span></label>`).join('')}</div>
     </div>`).join('');
     refreshA();
 }
@@ -965,6 +1109,9 @@ function partHtml(t, p, mode) {
             const fb = mode === 'review' ? (val === p.ans[i] ? ' <span class="ok">✔</span>' : ` <span class="bad">✘ richtig: ${p.options[p.ans[i]]}</span>`) : '';
             return `<div class="mrow"><span class="ml">${row}</span><select class="sel" data-mkey="${key}" data-i="${i}" ${ro}><option value="-1">– bitte wählen –</option>${optOrder.map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${p.options[k]}</option>`).join('')}</select>${fb}</div>`;
         }).join('');
+    } else if (p.type === 'sketch') {
+        if (mode === 'exam') h += `<div class="info">✏️ Skizziere auf Papier (Bleistift, Lineal). Nach der Abgabe vergleichst du deine Skizze mit der Musterlösung.</div><label class="crit"><input type="checkbox" data-sketch="${key}" ${v ? 'checked' : ''}><span>Meine Skizze ist fertig.</span></label>`;
+        else h += `<div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
     } else if (p.type === 'text') {
         if (mode === 'exam') h += `<textarea class="inp" data-tkey="${key}" placeholder="Deine Antwort in kurzen Sätzen …" style="margin-top:.5rem">${esc(v || '')}</textarea>`;
         else h += `<div class="yours">${esc(v || '(keine Antwort)')}</div><div class="muster"><b>Musterlösung:</b> ${p.muster}</div><p class="expl">Selbstbewertung: ${selfPts(key, p)} von ${p.pts} Punkten</p>`;
@@ -978,7 +1125,7 @@ function bHead(t) {
 }
 function tPts(t) { return t.parts.reduce((s, p) => s + p.pts, 0); }
 function renderB() {
-    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}">${bHead(t)}<div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
+    $('listB').innerHTML = B.map(t => `<div class="qa" id="qb-${t.id}">${bHead(t)}${t.ref ? `<div class="ref">📐 ${t.ref}</div>` : ''}<div class="qtext">${t.intro}</div>${t.parts.map(p => partHtml(t, p, 'exam')).join('')}</div>`).join('');
     refreshB();
 }
 function refreshB() {
@@ -1036,7 +1183,7 @@ function partScore(t, p) {
     if (p.type === 'select') return v === p.ans ? p.pts : 0;
     if (p.type === 'order') { if (!v) return 0; const c = v.filter((k, i) => k === i).length; return Math.round(p.pts * c / v.length * 2) / 2; }
     if (p.type === 'match') { const per = p.pts / p.rows.length; return p.rows.reduce((s, _, i) => s + (v && v[i] === p.ans[i] ? per : 0), 0); }
-    if (p.type === 'text') return selfPts(key, p);
+    if (p.type === 'text' || p.type === 'sketch') return selfPts(key, p);
     return 0;
 }
 const DEZ = { 100: '1,0', 99: '1,1', 98: '1,1', 97: '1,2', 96: '1,2', 95: '1,3', 94: '1,3', 93: '1,4', 92: '1,4', 91: '1,5', 90: '1,6', 89: '1,7', 88: '1,8', 87: '1,9', 86: '2,0', 85: '2,0', 84: '2,1', 83: '2,2', 82: '2,3', 81: '2,4', 80: '2,5', 79: '2,5', 78: '2,6', 77: '2,7', 76: '2,8', 75: '2,8', 74: '2,9', 73: '3,0', 72: '3,0', 71: '3,1', 70: '3,2', 69: '3,3', 68: '3,3', 67: '3,4', 66: '3,5', 65: '3,5', 64: '3,6', 63: '3,6', 62: '3,7', 61: '3,8', 60: '3,8', 59: '3,9', 58: '3,9', 57: '4,0', 56: '4,0', 55: '4,1', 54: '4,2', 53: '4,2', 52: '4,3', 51: '4,3', 50: '4,4', 49: '4,5', 48: '4,5', 47: '4,6', 46: '4,6', 45: '4,7', 44: '4,7', 43: '4,8', 42: '4,8', 41: '4,9', 40: '4,9', 39: '5,0', 38: '5,0', 37: '5,1', 36: '5,1', 35: '5,2', 34: '5,2', 33: '5,3', 32: '5,3', 31: '5,4', 30: '5,4' };
@@ -1062,11 +1209,11 @@ function finishExam(timeUp) {
 function renderSelf() {
     const abwB = effectiveAbwB();
     let h = '';
-    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.filter(p => p.type === 'text').forEach(p => {
+    B.forEach(t => { if (abwB.includes(t.id)) return; t.parts.filter(p => p.type === 'text' || p.type === 'sketch').forEach(p => {
         const key = pKey(t, p), s = state.self[key] || [];
         h += `<div class="qa"><div class="qhead"><span class="qnr">${t.id} ${p.id}) – ${t.title}</span><span class="badge">${p.pts} Punkte</span></div>
         <div class="qtext">${p.q}</div>
-        <b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>
+        ${p.type === 'sketch' ? `<b>Deine Antwort:</b><div class="yours">${state.ansB[key] ? 'Skizze auf Papier – lege sie neben die Musterlösung.' : '(keine Skizze)'}</div>` : `<b>Deine Antwort:</b><div class="yours">${esc(state.ansB[key] || '(keine Antwort)')}</div>`}
         <div class="muster"><b>Musterlösung:</b> ${p.muster}</div>
         <p style="margin-top:.6rem"><b>Hake ab, was in deiner Antwort steht:</b></p>
         ${p.crit.map((c, i) => `<label class="crit"><input type="checkbox" data-self="${key}" data-i="${i}" ${s[i] ? 'checked' : ''} ${state.ansB[key] ? '' : 'disabled'}><span>${c.t} <span class="stat" style="display:inline">(${c.p} P.)</span></span></label>`).join('')}
@@ -1111,7 +1258,7 @@ function renderReview(part) {
         $('review').innerHTML = A.map(a => {
             const your = state.ansA[a.nr], struck = abw.includes(a.nr);
             return `<div class="qa ${struck ? 'struck' : ''}"><div class="qhead"><span class="qnr">Aufgabe ${a.nr}</span><span class="badge">${struck ? 'nicht gewertet' : (your === a.correct ? '✔ richtig' : '✘ falsch')}</span></div>
-            <div class="qtext">${a.q}</div><div class="opts">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
+            ${a.ref ? `<div class="ref">📐 ${a.ref}</div>` : ''}<div class="qtext">${a.q}</div><div class="opts ${a.img ? 'imgopts' : ''}">${a.opts.map((o, k) => `<div class="opt ${k === a.correct ? 'right' : (k === your ? 'wrong' : '')} ${k === your ? 'sel' : ''}"><span class="onr">${k + 1}</span><span>${o}</span></div>`).join('')}</div>
             <p class="expl">💡 ${a.e}</p></div>`;
         }).join('');
     } else {
@@ -1162,6 +1309,7 @@ function initApp() {
     });
     $('listB').addEventListener('change', e => {
         if (state.phase !== 'exam') return; const el = e.target;
+        if (el.dataset.sketch) { state.ansB[el.dataset.sketch] = el.checked ? 'Skizze' : ''; save(); updStat(); return; }
         if (el.dataset.mkey) { const k = el.dataset.mkey; state.ansB[k] = state.ansB[k] || []; state.ansB[k][Number(el.dataset.i)] = Number(el.value); save(); updStat(); }
     });
     $('listB').addEventListener('click', e => {
@@ -1228,7 +1376,7 @@ window.__pruefung = {
             if (p.type === 'select') state.ansB[k] = p.ans;
             if (p.type === 'order') state.ansB[k] = p.items.map((_, i) => i);
             if (p.type === 'match') state.ansB[k] = p.ans.slice();
-            if (p.type === 'text') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
+            if (p.type === 'text' || p.type === 'sketch') { state.ansB[k] = 'Testantwort'; state.self[k] = p.crit.map(() => true); }
         }));
         save();
     }

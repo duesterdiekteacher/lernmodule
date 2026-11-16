@@ -94,3 +94,33 @@ function tableSvg(x, y, cols, rows, rh = 22) { // cols: x-Positionen inkl. Ende
 function stuecklisteHtml(title, rows) {
     return `<div class="paper text" style="max-width:940px"><h3>${title}</h3><table><tr><th>Pos.</th><th>Menge</th><th>Benennung / Norm</th><th>Werkstoff</th><th>Bemerkung</th></tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
 }
+
+/* ---------- kleine Bilder für Antwortmöglichkeiten ---------- */
+function picWrap(inner, w = 150, h = 110) { return `<span class="pic"><svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${SVGSTYLE}${inner}</svg></span>`; }
+// Lagerdeckel mit Zentrierbund, Achse waagerecht. variant: ok | voll | unten | kante | ohnebund
+function deckelHalbschnitt(variant, id) {
+    const cy = 55, x1 = 64, x2 = 90, xb = 50, R = 46, r1 = 22, r2 = 34;
+    const hat = `<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-width=".7"/></pattern></defs>`;
+    const H = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${id})" stroke="#000" stroke-width="1.6"/>`;
+    const O = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" stroke="#000" stroke-width="1.6"/>`;
+    let s = hat;
+    const upperCut = variant !== 'unten', lowerCut = variant === 'voll' || variant === 'unten';
+    // obere Hälfte
+    if (upperCut) { s += H(x1, cy - R, x2 - x1, R); if (variant !== 'ohnebund') s += H(xb, cy - r2, x1 - xb, r2 - r1); else s += O(xb, cy - r2, x1 - xb, r2 - r1); }
+    else { s += O(x1, cy - R, x2 - x1, R) + O(xb, cy - r2, x1 - xb, r2 - r1); }
+    // untere Hälfte
+    if (lowerCut) { s += H(x1, cy, x2 - x1, R) + H(xb, cy + r1, x1 - xb, r2 - r1); }
+    else { s += O(x1, cy, x2 - x1, R) + O(xb, cy + r1, x1 - xb, r2 - r1); }
+    s += variant === 'kante' ? Ln(xb - 10, cy, x2 + 12, cy, 'v') : Ln(xb - 10, cy, x2 + 12, cy, 'c');
+    return picWrap(s, 150, 110);
+}
+// Sicherheitszeichen (vereinfacht). kind: gebot | verbot | warn | rettung | brand
+function sicherheitszeichen(kind) {
+    let s = '';
+    if (kind === 'gebot') s = '<circle cx="75" cy="55" r="40" fill="#1d4ed8"/><rect x="71" y="30" width="8" height="34" rx="3" fill="#fff"/><circle cx="75" cy="76" r="5" fill="#fff"/>';
+    if (kind === 'verbot') s = '<circle cx="75" cy="55" r="38" fill="#fff" stroke="#dc2626" stroke-width="9"/><line x1="49" y1="29" x2="101" y2="81" stroke="#dc2626" stroke-width="9"/>';
+    if (kind === 'warn') s = '<polygon points="75,14 118,94 32,94" fill="#facc15" stroke="#000" stroke-width="5" stroke-linejoin="round"/><rect x="71" y="42" width="8" height="30" rx="3" fill="#000"/><circle cx="75" cy="82" r="5" fill="#000"/>';
+    if (kind === 'rettung') s = '<rect x="35" y="15" width="80" height="80" fill="#16a34a"/><rect x="68" y="30" width="14" height="50" fill="#fff"/><rect x="50" y="48" width="50" height="14" fill="#fff"/>';
+    if (kind === 'brand') s = '<rect x="35" y="15" width="80" height="80" fill="#dc2626"/><path d="M75,30 C95,50 92,62 88,72 C84,84 66,84 62,72 C58,62 64,54 70,48 C70,58 76,60 78,56 C80,48 74,40 75,30 Z" fill="#fff"/>';
+    return picWrap(s, 150, 110);
+}
