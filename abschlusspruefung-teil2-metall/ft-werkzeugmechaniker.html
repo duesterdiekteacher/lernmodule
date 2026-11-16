@@ -328,6 +328,7 @@ function tolFrame(x, y, sym, val, datum) { // sym: 'flat' | 'runout' | 'par' | '
     return s;
 }
 function datumBox(x, y, letter, tx, ty) { // Bezugsbuchstabe mit Dreieck an (tx,ty)
+    if (y > ty) return Ln(x + 10, y, tx, ty + 6, 't') + `<polygon points="${tx - 6},${ty} ${tx + 6},${ty} ${tx},${ty + 7}" class="fill"/>` + Rc(x, y, 20, 20, 't') + Tx(x + 10, y + 15, letter, 13);
     return Ln(x + 10, y + 20, tx, ty - 6, 't') + `<polygon points="${tx - 6},${ty} ${tx + 6},${ty} ${tx},${ty - 7}" class="fill"/>` + Rc(x, y, 20, 20, 't') + Tx(x + 10, y + 15, letter, 13);
 }
 function titleBlock(x, y, w, f) { // f: {name, werkstoff, nr, tol, mass, extra}
@@ -343,7 +344,34 @@ function titleBlock(x, y, w, f) { // f: {name, werkstoff, nr, tol, mass, extra}
 }
 function balloon(tx, ty, bx, by, n) {
     const dx = bx - tx, dy = by - ty, L = Math.hypot(dx, dy) || 1;
-    return Ln(tx, ty, bx - dx / L * 13, by - dy / L * 13, 't') + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+    return `<line x1="${tx}" y1="${ty}" x2="${bx - dx / L * 13}" y2="${by - dy / L * 13}" class="t" data-l="1"/>` + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+}
+/* Positionsnummern automatisch anordnen: items = [[tx, ty, Seite, Nr], ...] in Pixeln,
+   Seite 'L' | 'R' | 'T' | 'B'. cfg = {L, R, T, B (Lage der Spalte/Reihe), min, max je Seite als [a, b], gap}.
+   Die Kreise liegen möglichst auf Höhe des Ziels; sich kreuzende Hinweislinien werden getauscht. */
+function balloonsAuto(items, cfg) {
+    const gap = cfg.gap || 32; let out = '';
+    const cr = (a, b) => { const d = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+        const d1 = d(a[0], a[1], b[0]), d2 = d(a[0], a[1], b[1]), d3 = d(b[0], b[1], a[0]), d4 = d(b[0], b[1], a[1]);
+        return d1 * d2 < 0 && d3 * d4 < 0; };
+    ['L', 'R', 'T', 'B'].forEach(side => {
+        const vert = side === 'L' || side === 'R';
+        const it = items.filter(i => i[2] === side).map(i => ({ t: [i[0], i[1]], n: i[3], w: vert ? i[1] : i[0] }));
+        if (!it.length) return;
+        it.sort((a, b) => a.w - b.w);
+        const [lo, hi] = cfg[side + 'r'] || [0, 1e9];
+        const p = it.map(i => Math.min(hi, Math.max(lo, i.w)));
+        for (let i = 1; i < p.length; i++) p[i] = Math.max(p[i], p[i - 1] + gap);
+        if (p[p.length - 1] > hi) { p[p.length - 1] = hi; for (let i = p.length - 2; i >= 0; i--) p[i] = Math.min(p[i], p[i + 1] - gap); }
+        const pos = k => vert ? [cfg[side], p[k]] : [p[k], cfg[side]];
+        const slot = it.map((_, k) => k);
+        let changed = true, guard = 0;
+        while (changed && guard++ < 200) { changed = false;
+            for (let i = 0; i < it.length; i++) for (let j = i + 1; j < it.length; j++)
+                if (cr([it[i].t, pos(slot[i])], [it[j].t, pos(slot[j])])) { [slot[i], slot[j]] = [slot[j], slot[i]]; changed = true; } }
+        it.forEach((i, k) => { const [bx, by] = pos(slot[k]); out += balloon(i.t[0], i.t[1], bx, by, i.n); });
+    });
+    return out;
 }
 function tableSvg(x, y, cols, rows, rh = 22) { // cols: x-Positionen inkl. Ende
     let s = `<rect x="${cols[0]}" y="${y}" width="${cols[cols.length - 1] - cols[0]}" height="${rh}" class="grey"/>`;
@@ -457,22 +485,13 @@ function svgWmWerkzeug() {
     s += R(28.85, 58, 35.15, 70) + `<path d="M${X(28.85)},${Z(58)} Q${X(32)},${Z(55)} ${X(35.15)},${Z(58)}" class="v"/>`; // Fangstift
     s += Ln(X(32), Z(52), X(32), Z(145), 'c') + Ln(X(0), Z(25), X(0), Z(145), 'c');
     // Positionsnummern
-    s += balloon(X(90), Z(165), X(130), Z(200), 1);
-    s += balloon(X(30), Z(205), X(70), Z(200), 2);
-    s += balloon(X(-20), Z(143), X(-79), Z(150), 3);
-    s += balloon(X(-20), Z(130), X(-79), Z(122), 4);
-    s += balloon(X(0), Z(100), X(-79), Z(98), 5);
-    s += balloon(X(40), Z(100), X(130), Z(110), 6);
-    s += balloon(X(33), Z(62), X(130), Z(80), 7);
-    s += balloon(X(-20), Z(70), X(-79), Z(74), 8);
-    s += balloon(X(-25), Z(55), X(-79), Z(50), 9);
-    s += balloon(X(60), Z(40), X(130), Z(48), 10);
-    s += balloon(X(-40), Z(15), X(-79), Z(20), 11);
-    s += balloon(X(-55), Z(60), X(-79), Z(-12), 12);
-    s += balloon(X(97), Z(150), X(130), Z(150), 13);
-    s += balloon(X(62), Z(58), X(130), Z(18), 16);
+    const items = [
+        [30, 205, 'R', 2], [70, 165, 'R', 1], [107, 150, 'R', 13], [40, 100, 'R', 6], [33, 62, 'R', 7], [62, 58, 'R', 16], [60, 40, 'R', 10],
+        [-20, 143, 'L', 3], [-20, 130, 'L', 4], [0, 100, 'L', 5], [-20, 70, 'L', 8], [-25, 55, 'L', 9], [-55, 38, 'L', 12], [-35, 15, 'L', 11]
+    ].map(([x, z, sd, n]) => [X(x), Z(z), sd, n]);
+    s += balloonsAuto(items, { L: 30, R: 548, Lr: [60, 600], Rr: [60, 600] });
     s += Tx(X(-45) - 4, Z(55) - 6, 'Streifen', 11, 'end', 'fill="#555"');
-    s += `<line x1="${X(105)}" y1="${Z(65)}" x2="${X(80)}" y2="${Z(65)}" class="t" marker-end="url(#${m})"/>` + Tx(X(105) + 4, Z(65) + 4, 'Vorschub', 11, 'start', 'fill="#555"');
+    s += `<line x1="${X(105)}" y1="${Z(80)}" x2="${X(80)}" y2="${Z(80)}" class="t" marker-end="url(#${m})"/>` + Tx(X(105) + 4, Z(80) + 4, 'Vorschub', 11, 'start', 'fill="#555"');
     s += Tx(X(0), Z(-8), 'Stufe 1', 12) + Tx(X(32), Z(-8), 'Stufe 2', 12);
     s += dimH(m, X(0), X(32), Z(-20), Z(-10), 'V = 32');
     return s + '</svg>';
@@ -509,8 +528,8 @@ function svgWmTeil() {
     s += dimH(m, SX(st2), SX(st1), SY(22) - 18, SY(13), 'V = 32');
     s += dimV(m, SY(22), SY(-22), SX(104) + 26, SX(104), 'B = 44');
     s += Ln(SX(st3 - 8), SY(-21), SX(st3 - 22), SY(-21) + 40, 't') + Tx(SX(st3 - 22) - 4, SY(-21) + 52, 'a = 2', 12, 'end');
-    s += dimH(m, SX(st3 + 15), SX(st2 - 15), SY(-22) + 44, SY(-20), 'e = 2');
-    s += `<line x1="${SX(110)}" y1="${SY(0)}" x2="${SX(96)}" y2="${SY(0)}" class="t" marker-end="url(#${m})"/>`;
+    s += dimH(m, SX(st3 + 15), SX(st2 - 15), SY(-22) + 44, SY(-20), '') + Tx(SX(st2 - 15) + 10, SY(-22) + 48, 'e = 2', 13, 'start');
+    s += `<line x1="${SX(101)}" y1="${SY(0)}" x2="${SX(88)}" y2="${SY(0)}" class="t" marker-end="url(#${m})"/>`;
     // Legende
     const ly = 430;
     s += Tx(70, ly, 'Legende Streifenbild:', 13, 'start', 'font-weight="bold"');
@@ -544,8 +563,8 @@ function svgWmSchneidplatte() {
     s += dimV(m, Y(53), Y(27), X(0) - 30, X(30) - 16, '26 ±0,01');
     s += dimV(m, Y(60), Y(20), X(100) + 30, X(77), '40 +0,02/0');
     s += dimH(m, X(47), X(77), Y(60) - 22, Y(60), '30 +0,02/0');
-    s += Tx(X(30) + 18, Y(53) - 18, '2× Ø6,6 +0,01/0', 12, 'start') + Tx(X(77) + 6, Y(60) - 6, '4× R5', 12, 'start');
-    s += Tx(X(8) + 22, Y(8) + 4, '2× Ø8 H7', 11, 'start') + Tx(X(50) + 20, Y(8) + 4, '4× M8', 11, 'start');
+    s += Tx(X(30) - 14, Y(53) - 16, '2× Ø6,6 +0,01/0', 12, 'end') + Tx(X(77) + 6, Y(60) + 18, '4× R5', 12, 'start');
+    s += Tx(X(8) + 26, Y(8) + 4, '2× Ø8 H7', 11, 'start') + Tx(X(50) + 26, Y(8) + 4, '4× M8', 11, 'start');
     // Schnitt A–A
     const sy = 700, h = 22 * k * 0.9, kk = k;
     const SX = x => ox + x * kk, SZ = z => sy - z * (k * 0.9);
@@ -560,9 +579,9 @@ function svgWmSchneidplatte() {
     s += dimV(m, SZ(22), SZ(0), SX(0) - 30, SX(0), '22');
     s += dimV(m, SZ(22), SZ(16), SX(100) + 30, SX(77), '6', SX(77));
     s += Tx(SX(100) + 44, SZ(19) + 4, 'Schneidkantenhöhe', 11, 'start');
-    s += Tx(SX(33) + 10, SZ(4), 'Freiwinkel 1°', 11, 'start');
+    s += Tx(SX(40), SZ(0) + 18, 'Freiwinkel 1°', 11, 'middle');
     // Lagetoleranz und Bezug
-    s += datumBox(SX(12), SZ(0) + 30, 'A', SX(15), SZ(0) + 1);
+    s += datumBox(SX(15) - 10, SZ(0) + 30, 'A', SX(15), SZ(0));
     s += tolFrame(SX(80), SZ(22) - 48, 'par', '0,01', 'A') + `<line x1="${SX(88)}" y1="${SZ(22) - 28}" x2="${SX(88)}" y2="${SZ(22)}" class="d" marker-end="url(#${m})"/>`;
     // Hinweise
     const ny = 790;

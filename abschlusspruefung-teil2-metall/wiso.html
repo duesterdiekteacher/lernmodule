@@ -328,6 +328,7 @@ function tolFrame(x, y, sym, val, datum) { // sym: 'flat' | 'runout' | 'par' | '
     return s;
 }
 function datumBox(x, y, letter, tx, ty) { // Bezugsbuchstabe mit Dreieck an (tx,ty)
+    if (y > ty) return Ln(x + 10, y, tx, ty + 6, 't') + `<polygon points="${tx - 6},${ty} ${tx + 6},${ty} ${tx},${ty + 7}" class="fill"/>` + Rc(x, y, 20, 20, 't') + Tx(x + 10, y + 15, letter, 13);
     return Ln(x + 10, y + 20, tx, ty - 6, 't') + `<polygon points="${tx - 6},${ty} ${tx + 6},${ty} ${tx},${ty - 7}" class="fill"/>` + Rc(x, y, 20, 20, 't') + Tx(x + 10, y + 15, letter, 13);
 }
 function titleBlock(x, y, w, f) { // f: {name, werkstoff, nr, tol, mass, extra}
@@ -343,7 +344,34 @@ function titleBlock(x, y, w, f) { // f: {name, werkstoff, nr, tol, mass, extra}
 }
 function balloon(tx, ty, bx, by, n) {
     const dx = bx - tx, dy = by - ty, L = Math.hypot(dx, dy) || 1;
-    return Ln(tx, ty, bx - dx / L * 13, by - dy / L * 13, 't') + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+    return `<line x1="${tx}" y1="${ty}" x2="${bx - dx / L * 13}" y2="${by - dy / L * 13}" class="t" data-l="1"/>` + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+}
+/* Positionsnummern automatisch anordnen: items = [[tx, ty, Seite, Nr], ...] in Pixeln,
+   Seite 'L' | 'R' | 'T' | 'B'. cfg = {L, R, T, B (Lage der Spalte/Reihe), min, max je Seite als [a, b], gap}.
+   Die Kreise liegen möglichst auf Höhe des Ziels; sich kreuzende Hinweislinien werden getauscht. */
+function balloonsAuto(items, cfg) {
+    const gap = cfg.gap || 32; let out = '';
+    const cr = (a, b) => { const d = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+        const d1 = d(a[0], a[1], b[0]), d2 = d(a[0], a[1], b[1]), d3 = d(b[0], b[1], a[0]), d4 = d(b[0], b[1], a[1]);
+        return d1 * d2 < 0 && d3 * d4 < 0; };
+    ['L', 'R', 'T', 'B'].forEach(side => {
+        const vert = side === 'L' || side === 'R';
+        const it = items.filter(i => i[2] === side).map(i => ({ t: [i[0], i[1]], n: i[3], w: vert ? i[1] : i[0] }));
+        if (!it.length) return;
+        it.sort((a, b) => a.w - b.w);
+        const [lo, hi] = cfg[side + 'r'] || [0, 1e9];
+        const p = it.map(i => Math.min(hi, Math.max(lo, i.w)));
+        for (let i = 1; i < p.length; i++) p[i] = Math.max(p[i], p[i - 1] + gap);
+        if (p[p.length - 1] > hi) { p[p.length - 1] = hi; for (let i = p.length - 2; i >= 0; i--) p[i] = Math.min(p[i], p[i + 1] - gap); }
+        const pos = k => vert ? [cfg[side], p[k]] : [p[k], cfg[side]];
+        const slot = it.map((_, k) => k);
+        let changed = true, guard = 0;
+        while (changed && guard++ < 200) { changed = false;
+            for (let i = 0; i < it.length; i++) for (let j = i + 1; j < it.length; j++)
+                if (cr([it[i].t, pos(slot[i])], [it[j].t, pos(slot[j])])) { [slot[i], slot[j]] = [slot[j], slot[i]]; changed = true; } }
+        it.forEach((i, k) => { const [bx, by] = pos(slot[k]); out += balloon(i.t[0], i.t[1], bx, by, i.n); });
+    });
+    return out;
 }
 function tableSvg(x, y, cols, rows, rh = 22) { // cols: x-Positionen inkl. Ende
     let s = `<rect x="${cols[0]}" y="${y}" width="${cols[cols.length - 1] - cols[0]}" height="${rh}" class="grey"/>`;

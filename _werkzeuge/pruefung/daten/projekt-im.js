@@ -52,7 +52,7 @@ function stuecklisteHtmlIM(title, rows) {
 
 /* ---------- Blatt 1: Getriebe ---------- */
 function svgImGetriebe() {
-    const m = 'arIG', k = 2.9, ox = 243, oy = 399;
+    const m = 'arIG', k = 2.5, ox = 285, oy = 387;
     const X = x => ox + x * k, Y = y => oy - y * k;
     const P = pts => pts.map(([x, y]) => [X(x), Y(y)]);
     const HP = (pts, n = 1) => Hatch(P(pts), m, n);
@@ -133,16 +133,15 @@ function svgImGetriebe() {
     // Mittellinien
     s += Ln(X(-76), Y(yR), X(130), Y(yR), 'c') + Ln(X(-34), Y(0), X(175), Y(0), 'c');
     // Positionsnummern
-    const B = (tx, ty, bx, by, n) => balloon(X(tx), Y(ty), bx, by, n);
-    s += B(60, 106, 330, 50, 1) + B(80, yR + 13, 400, 50, 2) + B(20, 19, 160, 670, 3) + B(52, -40, 300, 670, 4);
-    s += B(-24, yR + 30, 40, 110, 5) + B(125, 33, 750, 330, 5) + B(-23, -30, 40, 470, 6) + B(80, -17.5, 380, 670, 7);
-    s += B(122, yR + 28, 750, 110, 8) + B(-48, yR + 30, 40, 170, 9) + B(-10, yR + 19, 230, 50, 10) + B(109, -28, 750, 400, 11);
-    s += B(-24, yR + 16, 40, 230, 12) + B(125, -20, 750, 460, 13) + B(-48, yR + 10, 40, 290, 14) + B(52, 20, 460, 670, 15);
-    s += B(118.3, -32.5, 750, 530, 16) + B(-64.5, yR - 12, 40, 350, 17) + B(150, 13, 750, 280, 18) + B(-18.6, -32.5, 40, 530, 19);
-    s += B(85, -64, 540, 670, 20) + B(80, -70.6, 620, 670, 21) + B(20, 115, 160, 50, 22) + B(-69, yR - 4, 40, 410, 23);
-    s += B(-18.6, yR - 13.5, 230, 670, 24);
-    s += Tx(X(-76), Y(yR) + 32, 'Antrieb', 10, 'start', 'fill="#555"');
-    s += Tx(X(170), Y(-12.5) + 16, 'zum Kettenrad', 10, 'end', 'fill="#555"');
+    const items = [
+        [-26, 98, 'T', 5], [-10.5, 87.25, 'T', 10], [20, 115, 'T', 22], [60, 106, 'T', 1], [80, 81, 'T', 2],
+        [-55, 98, 'L', 9], [-24.5, yR + 16, 'L', 12], [-48, yR + 10, 'L', 14], [-69, yR - 3, 'L', 23], [-64.5, yR - 11, 'L', 17], [-23, -25, 'L', 6],
+        [122, 92, 'R', 8], [116.6, yR - 13.5, 'R', 24], [117.4, yR - 30, 'R', 19], [125, 28, 'R', 5], [150, 12.5, 'R', 18], [125, -19, 'R', 13], [118.3, -29.5, 'R', 16],
+        [20, -5, 'B', 3], [46, 17, 'B', 15], [58, -40, 'B', 4], [75, -17.5, 'B', 7], [85, -64, 'B', 20], [90, -73.6, 'B', 21], [106, -22.5, 'B', 11]
+    ].map(([x, y, sd, n]) => [X(x), Y(y), sd, n]);
+    s += balloonsAuto(items, { L: 40, R: 745, T: 52, B: 655, Lr: [80, 620], Rr: [80, 620], Tr: [60, 720], Br: [60, 720] });
+    s += Tx(X(-48), Y(yR - 40) + 16, 'Antrieb', 10, 'middle', 'fill="#555"');
+    s += Tx(X(170), Y(16) - 6, 'zum Kettenrad', 10, 'end', 'fill="#555"');
     return s + '</svg>';
 }
 
@@ -158,16 +157,16 @@ function svgImWelle() {
     s += Ln(X(1), Yu(15), X(1), Yl(15), 't') + Ln(X(187), Yu(12.5), X(187), Yl(12.5), 't');
     [[60, 80, 5], [150, 186, 3.5]].forEach(([a, b, hw]) => { s += `<rect x="${X(a)}" y="${cy - hw * k}" width="${(b - a) * k}" height="${2 * hw * k}" rx="${hw * k}" class="v"/>`; });
     s += Ln(X(-5), cy, X(193), cy, 'c');
-    s += datumBox(X(4), Yl(15) + 30, 'A', X(8), Yl(15) + 1);
-    s += datumBox(X(123), Yl(15) + 30, 'B', X(127), Yl(15) + 1);
+    s += datumBox(X(8) - 10, Yl(15) + 30, 'A', X(8), Yl(15));
+    s += datumBox(X(127) - 10, Yl(15) + 30, 'B', X(127), Yl(15));
     s += tolFrame(X(48), Yu(21) - 66, 'runout', '0,02', 'A-B') + `<line x1="${X(62)}" y1="${Yu(21) - 46}" x2="${X(62)}" y2="${Yu(18)}" class="d" marker-end="url(#${m})"/>`;
     const dd = (x, r, lab) => `<line x1="${X(x)}" y1="${Yu(r)}" x2="${X(x)}" y2="${Yl(r)}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + `<text x="${X(x) - 5}" y="${cy}" font-size="13" text-anchor="middle" transform="rotate(-90 ${X(x) - 5} ${cy})">${lab}</text>`;
     const ddE = (x, r, lab) => `<line x1="${X(x)}" y1="${Yu(r)}" x2="${X(x)}" y2="${Yl(r)}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + Tx(X(x), Yu(r) - 8, lab, 13);
-    s += dd(9, 15, 'Ø30 k6') + dd(37, 21, 'Ø42') + ddE(70, 18, 'Ø36 n6') + dd(115, 15, 'Ø30 k6') + ddE(168, 12.5, 'Ø25 k6');
+    s += dd(9, 15, 'Ø30 k6') + dd(37, 21, 'Ø42')  + dd(115, 15, 'Ø30 k6') + dimV(m, Yu(12.5), Yl(12.5), X(199), X(188), 'Ø25 k6');
     const yL = Yl(21) + 75;
     [[0, 17, '17', 15, 21], [17, 58, '41', 21, 21], [58, 82, '24', 21, 18], [82, 148, '66', 18, 15], [148, 188, '40', 15, 12.5]].forEach(([a, b, l, ra, rb]) => { s += dimH(m, X(a), X(b), yL, Yl(ra), l, Yl(rb)); });
     s += dimH(m, X(0), X(188), yL + 32, Yl(15), '188', Yl(12.5));
-    s += dimH(m, X(60), X(80), Yl(18) + 26, cy + 5 * k, '20', cy + 5 * k);
+    s += dimH(m, X(60), X(80), Yl(18) + 36, cy + 5 * k, '20', cy + 5 * k);
     s += dimH(m, X(150), X(186), Yl(12.5) + 30, cy + 3.5 * k, '36', cy + 3.5 * k);
     // Schnitt C–C
     const sx = 610, sy = 520, R = 18 * 3.2;
@@ -176,8 +175,9 @@ function svgImWelle() {
     s += `<path d="M${sx - hw},${yTop} A${R},${R} 0 1 0 ${sx + hw},${yTop} L${sx + hw},${sy - R + dep} L${sx - hw},${sy - R + dep} Z" fill="url(#${m}h1)" stroke="#000" stroke-width="1.7"/>`;
     s += cross(sx, sy, R + 12);
     s += dimV(m, sy - R + dep, sy + R, sx + R + 40, sx + hw, '31', sx);
-    s += dimH(m, sx - hw, sx + hw, sy - R - 14, sy - R + dep, '10 P9');
-    s += Ln(X(76), Yu(21) - 20, X(76), Yu(21) - 8, 'v') + Ln(X(76), Yl(21) + 8, X(76), Yl(21) + 20, 'v') + Tx(X(76) + 6, Yu(21) - 12, 'C', 13, 'start', 'font-weight="bold"') + Tx(X(76) + 6, Yl(21) + 22, 'C', 13, 'start', 'font-weight="bold"');
+    s += dimH(m, sx - hw, sx + hw, sy - R - 14, sy - R + dep, '') + Tx(sx + hw + 8, sy - R - 10, '10 P9', 13, 'start');
+    s += Ln(X(76), Yu(18) - 16, X(76), Yu(18) - 4, 'v') + Ln(X(76), Yl(18) + 4, X(76), Yl(18) + 16, 'v') + Tx(X(76) - 5, Yu(18) - 5, 'C', 13, 'end', 'font-weight="bold"') + Tx(X(76) - 5, Yl(18) + 15, 'C', 13, 'end', 'font-weight="bold"');
+    { const c = Math.SQRT1_2 * R; s += `<line x1="${sx + c}" y1="${sy + c}" x2="${sx - c}" y2="${sy - c}" class="d" marker-start="url(#${m})" marker-end="url(#${m})"/>` + Ln(sx - c, sy - c, sx - c - 18, sy - c - 18, 'd') + Ln(sx - c - 18, sy - c - 18, sx - c - 78, sy - c - 18, 'd') + Tx(sx - c - 48, sy - c - 22, 'Ø36 n6', 13); }
     const ny = 450;
     ['Zentrierbohrungen beidseitig ISO 6411 – A 2,5/5,3', 'Freistiche an allen Wellenabsätzen DIN 509 – F 0,6 × 0,3', 'Lagersitze Ø30 k6: Ra 0,8 · Ø36 n6 und Ø25 k6: Ra 1,6', 'Laufbahn Wellendichtring auf Ø30 rechts: Ra 0,4, drallfrei geschliffen', 'Übrige Flächen Ra 3,2 · nicht bemaßte Kanten: Fase 1 × 45°', 'Rohteil: Rundstahl Ø48 × 193, vergütet'].forEach((t, i) => { s += Tx(70, ny + i * 21, '• ' + t, 12.5, 'start'); });
     s += titleBlock(70, 680, 620, { name: 'Abtriebswelle', werkstoff: '42CrMo4+QT', nr: 'RB-01-003', tol: 'ISO 2768-mK · Tolerierung ISO 8015' });
@@ -203,7 +203,7 @@ function svgImAnlage() {
     s += Rc(470, 140, 14, 10, 'vf') + Tx(488, 136, '-BG1 (oben)', 11, 'start');
     s += Rc(470, 320, 14, 10, 'vf') + Tx(488, 316, '-BG2 (unten)', 11, 'start');
     s += Rc(296, 110, 10, 14, 'vf') + `<line x1="306" y1="117" x2="330" y2="117" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>` + Tx(290, 122, '-BG3 (WT da)', 11, 'end');
-    s += `<line x1="230" y1="312" x2="290" y2="312" class="t" marker-end="url(#${m})"/>` + `<line x1="470" y1="125" x2="530" y2="125" class="t" marker-end="url(#${m})"/>`;
+    s += `<line x1="230" y1="312" x2="290" y2="312" class="t" marker-end="url(#${m})"/>` + `<line x1="470" y1="114" x2="530" y2="114" class="t" marker-end="url(#${m})"/>`;
     s += `<line x1="345" y1="322" x2="345" y2="172" class="t" marker-end="url(#${m})" marker-start="url(#${m})"/>` + Tx(338, 250, 'Hub 400', 11, 'end');
     s += Rc(560, 360, 140, 60, 'vf') + Tx(630, 386, 'Hydraulikaggregat', 11) + Tx(630, 402, '-GP1, -MA1, -QN1', 11);
     s += `<path d="M560,390 L400,390" class="h"/>`;
@@ -300,7 +300,7 @@ function svgImHydraulik() {
     s += `<polyline points="380,640 380,600 400,600" class="h"/>`;
     s += Tx(482, 605, '-QN1', 14, 'start', 'font-weight="bold"');
     // 0Z2 Manometer
-    s += Ln(275, 530, 230, 530) + Ln(230, 530, 230, 545) + Ci(230, 560, 15) + `<line x1="220" y1="570" x2="240" y2="550" class="t" marker-end="url(#${m})"/>`;
+    s += Ln(275, 530, 230, 530) + Ci(275, 530, 3, 'fill') + Ln(230, 530, 230, 545) + Ci(230, 560, 15) + `<line x1="220" y1="570" x2="240" y2="550" class="t" marker-end="url(#${m})"/>`;
     s += Tx(205, 565, '-PG1', 14, 'end', 'font-weight="bold"');
     return s + '</svg>';
 }
@@ -313,8 +313,8 @@ function svgImStromlauf() {
     const top = 70, bot = 500;
     s += Ln(40, top, 720, top) + Ln(40, bot, 720, bot) + Tx(30, top + 5, 'L1', 13, 'end') + Tx(30, bot + 5, 'N', 13, 'end');
     // Bauelemente
-    const opener = (x, y, lab, extra = '') => Ln(x, y, x, y + 14) + Ln(x, y + 46, x, y + 60) + Ln(x, y + 14, x + 12, y + 14, 't') + Ln(x + 12, y + 14, x, y + 46) + Tx(x - 26, y + 34, lab, 12, 'end') + extra;
-    const closer = (x, y, lab, extra = '') => Ln(x, y, x, y + 14) + Ln(x, y + 46, x, y + 60) + Ln(x - 12, y + 18, x, y + 46) + Tx(x - 28, y + 34, lab, 12, 'end') + extra;
+    const opener = (x, y, lab, extra = '', dx = 26) => Ln(x, y, x, y + 14) + Ln(x, y + 46, x, y + 60) + Ln(x, y + 14, x + 12, y + 14, 't') + Ln(x + 12, y + 14, x, y + 46) + Tx(x - dx, y + 34, lab, 12, 'end') + extra;
+    const closer = (x, y, lab, extra = '', dx = 28) => Ln(x, y, x, y + 14) + Ln(x, y + 46, x, y + 60) + Ln(x - 12, y + 18, x, y + 46) + Tx(x - dx, y + 34, lab, 12, 'end') + extra;
     const push = (x, y) => Ln(x - 6, y + 30, x - 22, y + 30, 'h') + Ln(x - 22, y + 24, x - 22, y + 36, 'v');
     const coil = (x, y, lab) => Rc(x - 14, y, 28, 22) + Tx(x + 20, y + 16, lab, 12, 'start');
     const lamp = (x, y, lab) => Ci(x, y + 11, 11) + Ln(x - 8, y + 3, x + 8, y + 19, 't') + Ln(x + 8, y + 3, x - 8, y + 19, 't') + Tx(x + 18, y + 16, lab, 12, 'start');
@@ -323,11 +323,11 @@ function svgImStromlauf() {
     // Strompfad 1: F2 – S0 – S1 – S2 ∥ Q1 – Q1-Spule
     let x = 110;
     s += opener(x, top, '-FC1') + Tx(x + 16, top + 34, '95/96', 9, 'start');
-    s += opener(x, top + 60, '-SF0', '') + `<path d="M${x - 30},${top + 82} q8,-10 16,0" class="v"/>` + Ln(x - 22, top + 82, x - 22, top + 90, 'h') + Ln(x - 22, top + 90, x - 6, top + 90, 'h');
-    s += opener(x, top + 120, '-SF1') + push(x, top + 120);
-    s += closer(x, top + 180, '-SF2') + push(x, top + 180);
+    s += opener(x, top + 60, '-SF0', '', 38) + `<path d="M${x - 30},${top + 82} q8,-10 16,0" class="v"/>` + Ln(x - 22, top + 82, x - 22, top + 90, 'h') + Ln(x - 22, top + 90, x - 6, top + 90, 'h');
+    s += opener(x, top + 120, '-SF1', '', 30) + push(x, top + 120);
+    s += closer(x, top + 180, '-SF2', '', 30) + push(x, top + 180);
     // Selbsthaltung Q1 13/14 parallel zu S2 (Pfad 2)
-    s += Ln(x, top + 180, 190, top + 180) + Ln(190, top + 180, 190, top + 180) + closer(190, top + 180, '-QA1') + Tx(206, top + 214, '13/14', 9, 'start') + Ln(190, top + 240, x, top + 240);
+    s += Ln(x, top + 180, 190, top + 180) + Ln(190, top + 180, 190, top + 180) + closer(190, top + 180, '-QA1') + Tx(206, top + 214, '13/14', 9, 'start') + Ln(190, top + 240, x, top + 240) + Ci(x, top + 180, 3, 'fill') + Ci(x, top + 240, 3, 'fill');
     s += Ln(x, top + 240, x, top + 330) + coil(x, top + 330, '-QA1') + Ln(x, top + 352, x, bot);
     s += pathNo(x, '1') + pathNo(190, '2');
     // Strompfad 3: Q1 23/24 – H1
@@ -337,14 +337,14 @@ function svgImStromlauf() {
     x = 440;
     s += closer(x, top, '-QA1') + Tx(x + 6, top + 34, '33/34', 9, 'start') + Ln(x, top + 60, x, 190);
     s += Ln(x, 190, 520, 190);
-    s += closer(x, 190, '-SF3') + push(x, 190);
+    s += closer(x, 190, '-SF3', '', 30) + push(x, 190);
     s += opener(x, 250, '-BG1') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, '-MB1') + Ln(x, top + 352, x, bot) + pathNo(x, '4');
     // Strompfad 5: S4 (Senken) – B2 (unten, Öffner) – Y2
     x = 600;
-    s += Ln(520, 190, x, 190) + closer(x, 190, '-SF4') + push(x, 190) + opener(x, 250, '-BG2') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, '-MB2') + Ln(x, top + 352, x, bot) + pathNo(x, '5');
+    s += Ln(520, 190, x, 190) + closer(x, 190, '-SF4', '', 30) + push(x, 190) + opener(x, 250, '-BG2') + Ln(x, 310, x, top + 330) + valveCoil(x, top + 330, '-MB2') + Ln(x, top + 352, x, bot) + pathNo(x, '5');
     s += Ci(440, 190, 3, 'fill');
     // Legende
-    const lg = ['-FC1: Motorschutz Pumpenmotor -MA1', '-SF0: Not-Halt · -SF1: Aus · -SF2: Ein (Pumpe)', '-QA1: Schütz Pumpenmotor · -PF1: Meldeleuchte', '-SF3: Taster Heben · -SF4: Taster Senken (Einrichtbetrieb)', '-BG1: Endschalter oben · -BG2: Endschalter unten', '-MB1, -MB2: Magnetspulen von -QM1']
+    const lg = ['-FC1: Motorschutz Pumpenmotor -MA1', '-SF0: Not-Halt · -SF1: Aus · -SF2: Ein (Pumpe)', '-QA1: Schütz Pumpenmotor · -PF1: Meldeleuchte', '-SF3: Taster Heben · -SF4: Taster Senken', '-BG1: Endschalter oben · -BG2: Endschalter unten', '-MB1, -MB2: Magnetspulen von -QM1']
     lg.forEach((t, i) => { s += Tx(i < 3 ? 50 : 400, 560 + (i % 3) * 20, t, 12.5, 'start'); });
     s += Rc(40, 540, 680, 74, 't');
     return s + '</svg>';

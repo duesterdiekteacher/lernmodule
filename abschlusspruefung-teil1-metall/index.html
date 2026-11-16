@@ -733,12 +733,12 @@ function svgGesamt() {
     [[140, 35], [140, 65]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 6.5 * k) + hexS(X(x), Y(y), 3 * k); });
     [[22.5, 20], [22.5, 80]].forEach(([x, y]) => { s += Ci(X(x), Y(y), 4 * k); });
     // Positionsnummern
-    const ball = (tx, ty, bx, by, n) => Ln(tx, ty, bx, by - (by > ty ? 13 : -13), 't') + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
+    const ball = (tx, ty, bx, by, n) => `<line x1="${tx}" y1="${ty}" x2="${bx}" y2="${by - (by > ty ? 13 : -13)}" class="t" data-l="1"/>` + Ci(tx, ty, 2, 'fill') + Ci(bx, by, 13, 'vf') + Tx(bx, by + 5, n, 14, 'middle', 'font-weight="bold"');
     const by = 640;
     s += ball(X(6), Y(4), X(6), by, 1);
     s += ball(X(22.5), Y(80), X(22.5) - 10, by - 335, 8);
     s += ball(X(22.5), Y(20), X(22.5), by, 8);
-    s += ball(X(22.5), Y(35), X(40), by, 7);
+    s += ball(X(22.5), Y(35), X(44), by, 7);
     s += ball(X(60), Y(15), X(62), by, 9);
     s += ball(X(85), Y(12), X(84), by, 4);
     s += ball(X(82), Y(30), X(104), by, 3);

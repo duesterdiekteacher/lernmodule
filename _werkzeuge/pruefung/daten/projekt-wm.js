@@ -67,22 +67,13 @@ function svgWmWerkzeug() {
     s += R(28.85, 58, 35.15, 70) + `<path d="M${X(28.85)},${Z(58)} Q${X(32)},${Z(55)} ${X(35.15)},${Z(58)}" class="v"/>`; // Fangstift
     s += Ln(X(32), Z(52), X(32), Z(145), 'c') + Ln(X(0), Z(25), X(0), Z(145), 'c');
     // Positionsnummern
-    s += balloon(X(90), Z(165), X(130), Z(200), 1);
-    s += balloon(X(30), Z(205), X(70), Z(200), 2);
-    s += balloon(X(-20), Z(143), X(-79), Z(150), 3);
-    s += balloon(X(-20), Z(130), X(-79), Z(122), 4);
-    s += balloon(X(0), Z(100), X(-79), Z(98), 5);
-    s += balloon(X(40), Z(100), X(130), Z(110), 6);
-    s += balloon(X(33), Z(62), X(130), Z(80), 7);
-    s += balloon(X(-20), Z(70), X(-79), Z(74), 8);
-    s += balloon(X(-25), Z(55), X(-79), Z(50), 9);
-    s += balloon(X(60), Z(40), X(130), Z(48), 10);
-    s += balloon(X(-40), Z(15), X(-79), Z(20), 11);
-    s += balloon(X(-55), Z(60), X(-79), Z(-12), 12);
-    s += balloon(X(97), Z(150), X(130), Z(150), 13);
-    s += balloon(X(62), Z(58), X(130), Z(18), 16);
+    const items = [
+        [30, 205, 'R', 2], [70, 165, 'R', 1], [107, 150, 'R', 13], [40, 100, 'R', 6], [33, 62, 'R', 7], [62, 58, 'R', 16], [60, 40, 'R', 10],
+        [-20, 143, 'L', 3], [-20, 130, 'L', 4], [0, 100, 'L', 5], [-20, 70, 'L', 8], [-25, 55, 'L', 9], [-55, 38, 'L', 12], [-35, 15, 'L', 11]
+    ].map(([x, z, sd, n]) => [X(x), Z(z), sd, n]);
+    s += balloonsAuto(items, { L: 30, R: 548, Lr: [60, 600], Rr: [60, 600] });
     s += Tx(X(-45) - 4, Z(55) - 6, 'Streifen', 11, 'end', 'fill="#555"');
-    s += `<line x1="${X(105)}" y1="${Z(65)}" x2="${X(80)}" y2="${Z(65)}" class="t" marker-end="url(#${m})"/>` + Tx(X(105) + 4, Z(65) + 4, 'Vorschub', 11, 'start', 'fill="#555"');
+    s += `<line x1="${X(105)}" y1="${Z(80)}" x2="${X(80)}" y2="${Z(80)}" class="t" marker-end="url(#${m})"/>` + Tx(X(105) + 4, Z(80) + 4, 'Vorschub', 11, 'start', 'fill="#555"');
     s += Tx(X(0), Z(-8), 'Stufe 1', 12) + Tx(X(32), Z(-8), 'Stufe 2', 12);
     s += dimH(m, X(0), X(32), Z(-20), Z(-10), 'V = 32');
     return s + '</svg>';
@@ -119,8 +110,8 @@ function svgWmTeil() {
     s += dimH(m, SX(st2), SX(st1), SY(22) - 18, SY(13), 'V = 32');
     s += dimV(m, SY(22), SY(-22), SX(104) + 26, SX(104), 'B = 44');
     s += Ln(SX(st3 - 8), SY(-21), SX(st3 - 22), SY(-21) + 40, 't') + Tx(SX(st3 - 22) - 4, SY(-21) + 52, 'a = 2', 12, 'end');
-    s += dimH(m, SX(st3 + 15), SX(st2 - 15), SY(-22) + 44, SY(-20), 'e = 2');
-    s += `<line x1="${SX(110)}" y1="${SY(0)}" x2="${SX(96)}" y2="${SY(0)}" class="t" marker-end="url(#${m})"/>`;
+    s += dimH(m, SX(st3 + 15), SX(st2 - 15), SY(-22) + 44, SY(-20), '') + Tx(SX(st2 - 15) + 10, SY(-22) + 48, 'e = 2', 13, 'start');
+    s += `<line x1="${SX(101)}" y1="${SY(0)}" x2="${SX(88)}" y2="${SY(0)}" class="t" marker-end="url(#${m})"/>`;
     // Legende
     const ly = 430;
     s += Tx(70, ly, 'Legende Streifenbild:', 13, 'start', 'font-weight="bold"');
@@ -154,8 +145,8 @@ function svgWmSchneidplatte() {
     s += dimV(m, Y(53), Y(27), X(0) - 30, X(30) - 16, '26 ±0,01');
     s += dimV(m, Y(60), Y(20), X(100) + 30, X(77), '40 +0,02/0');
     s += dimH(m, X(47), X(77), Y(60) - 22, Y(60), '30 +0,02/0');
-    s += Tx(X(30) + 18, Y(53) - 18, '2× Ø6,6 +0,01/0', 12, 'start') + Tx(X(77) + 6, Y(60) - 6, '4× R5', 12, 'start');
-    s += Tx(X(8) + 22, Y(8) + 4, '2× Ø8 H7', 11, 'start') + Tx(X(50) + 20, Y(8) + 4, '4× M8', 11, 'start');
+    s += Tx(X(30) - 14, Y(53) - 16, '2× Ø6,6 +0,01/0', 12, 'end') + Tx(X(77) + 6, Y(60) + 18, '4× R5', 12, 'start');
+    s += Tx(X(8) + 26, Y(8) + 4, '2× Ø8 H7', 11, 'start') + Tx(X(50) + 26, Y(8) + 4, '4× M8', 11, 'start');
     // Schnitt A–A
     const sy = 700, h = 22 * k * 0.9, kk = k;
     const SX = x => ox + x * kk, SZ = z => sy - z * (k * 0.9);
@@ -170,9 +161,9 @@ function svgWmSchneidplatte() {
     s += dimV(m, SZ(22), SZ(0), SX(0) - 30, SX(0), '22');
     s += dimV(m, SZ(22), SZ(16), SX(100) + 30, SX(77), '6', SX(77));
     s += Tx(SX(100) + 44, SZ(19) + 4, 'Schneidkantenhöhe', 11, 'start');
-    s += Tx(SX(33) + 10, SZ(4), 'Freiwinkel 1°', 11, 'start');
+    s += Tx(SX(40), SZ(0) + 18, 'Freiwinkel 1°', 11, 'middle');
     // Lagetoleranz und Bezug
-    s += datumBox(SX(12), SZ(0) + 30, 'A', SX(15), SZ(0) + 1);
+    s += datumBox(SX(15) - 10, SZ(0) + 30, 'A', SX(15), SZ(0));
     s += tolFrame(SX(80), SZ(22) - 48, 'par', '0,01', 'A') + `<line x1="${SX(88)}" y1="${SZ(22) - 28}" x2="${SX(88)}" y2="${SZ(22)}" class="d" marker-end="url(#${m})"/>`;
     // Hinweise
     const ny = 790;
